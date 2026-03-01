@@ -9,18 +9,19 @@ finward/
 └── backend/    # API REST con Prisma, Supabase Auth, Ledger
 ```
 
-## Inicio Rápido (local)
+## Inicio rápido (desarrollo local)
 
 ```bash
-./dev.sh setup     # Primera vez
-# Editar backend/.env con Supabase (DATABASE_URL, DIRECT_URL, SUPABASE_*)
-./dev.sh db:push   # Aplicar schema
-# Ejecutar prisma/rls-policies.sql en Supabase SQL Editor
-./dev.sh db:seed   # (opcional) Datos de prueba - requiere SEED_USER_ID
-./dev.sh start     # Backend en http://localhost:4000
+./dev.sh setup       # 1. Primera vez
+# Editar backend/.env con Supabase (SUPABASE_*, DATABASE_URL, DIRECT_URL)
+./dev.sh db:push     # 2. Aplicar schema
+./dev.sh setup-dev   # 3. Usuario demo + seed + RLS
+./dev.sh start       # 4. Backend en http://localhost:4000
 ```
 
-Ver [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) para el flujo completo de desarrollo local.
+**Credenciales demo:** `demo@finward.dev` / `DemoFinward123!`
+
+Ver [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) para el flujo completo.
 
 ## Despliegue con Docker
 
@@ -52,5 +53,4 @@ Políticas de **Row Level Security (RLS)** para Supabase Postgres. RLS filtra fi
 ## Prisma
 
 - **Inicial**: `prisma db push` (usa DIRECT_URL)
-- **Self-hosted + Tailscale**: usar `DIRECT_URL` con host `192.168.100.109:5433` para evitar conflicto con pooler en 5432
-- **Producción**: `prisma migrate dev` / `prisma migrate deploy` (estándar profesional para cambios)
+- **Tailscale**: DIRECT_URL con `192.168.100.109:5433` (evita conflicto pooler en 5432)

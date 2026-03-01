@@ -3,10 +3,25 @@
 ## Requisitos
 
 - Node.js 20+
-- Cuenta Supabase (Cloud o Self-Hosted)
-- Tailscale (opcional, para Supabase self-hosted remoto)
+- Supabase Self-hosted + Tailscale
 
-## Flujo completo
+---
+
+## Flujo rápido (primera vez)
+
+```bash
+./dev.sh setup       # 1. .env, npm install, prisma generate
+# Editar backend/.env con Supabase (SUPABASE_*, DATABASE_URL, DIRECT_URL)
+./dev.sh db:push     # 2. Aplicar schema
+./dev.sh setup-dev   # 3. Auth user demo + seed + RLS
+./dev.sh start       # 4. Iniciar backend
+```
+
+**Credenciales demo:** `demo@finward.dev` / `DemoFinward123!`
+
+---
+
+## Paso a paso
 
 ### 1. Setup inicial (primera vez)
 
@@ -24,16 +39,14 @@ Esto:
 
 Edita `backend/.env`:
 
-| Variable | Descripción | Ejemplo |
-|----------|-------------|---------|
-| SUPABASE_URL | URL pública del proyecto | `https://xxx.supabase.co` |
-| SUPABASE_ANON_KEY | JWT público | `eyJ...` |
-| SUPABASE_SERVICE_ROLE_KEY | JWT service role | `eyJ...` |
-| DATABASE_URL | Pooler (para app runtime) | `postgresql://postgres.[TENANT]:[PASS]@host:6543/postgres?pgbouncer=true` |
-| DIRECT_URL | Postgres directo (db push, migrate) | `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` |
-| SEED_USER_ID | UUID usuario en Supabase Auth (para seed) | `00000000-0000-0000-0000-...` |
-
-**Tailscale + Self-Hosted:** Usar `192.168.100.109:5433` en DIRECT_URL para evitar conflicto con pooler en 5432.
+| Variable | Descripción | Ejemplo (mi setup) |
+|----------|-------------|-------------------|
+| SUPABASE_URL | SUPABASE_PUBLIC_URL del self-hosted | `https://xxx.supabase.co` |
+| SUPABASE_ANON_KEY | ANON_KEY | `eyJ...` |
+| SUPABASE_SERVICE_ROLE_KEY | SERVICE_ROLE_KEY | `eyJ...` |
+| DATABASE_URL | Pooler (puerto 6543) | `postgresql://postgres.[TENANT]:[PASS]@192.168.100.109:6543/postgres?pgbouncer=true` |
+| DIRECT_URL | Postgres directo (5433, evita pooler) | `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` |
+| SEED_USER_ID | Solo para `db:seed` manual; `setup-dev` no lo usa | `00000000-0000-0000-0000-...` |
 
 ### 3. Aplicar schema a la base de datos
 
@@ -41,43 +54,29 @@ Edita `backend/.env`:
 ./dev.sh db:push
 ```
 
-Usa DIRECT_URL internamente. Requiere acceso a Postgres (ej. Tailscale conectado).
+Usa DIRECT_URL internamente (Tailscale conectado).
 
-### 4. Aplicar políticas RLS
-
-1. Supabase Dashboard > SQL Editor
-2. Pegar contenido de `backend/prisma/rls-policies.sql`
-3. Run
-
-O si tienes `psql`:
-```bash
-./dev.sh rls
-```
-
-### 5. Seed (datos de prueba)
-
-1. Crear usuario en Supabase Auth: Dashboard > Auth > Users > Add user
-2. Copiar UUID del usuario
-3. Añadir a `backend/.env`: `SEED_USER_ID=<uuid>`
-4. Ejecutar:
+### 4. Setup dev (Auth + Seed + RLS)
 
 ```bash
-./dev.sh db:seed
+./dev.sh setup-dev
 ```
 
-### 6. Iniciar backend
+Crea usuario **demo@finward.dev** en Supabase Auth, ejecuta seed y aplica RLS. Todo listo para el frontend.
+
+### 5. Iniciar backend
 
 ```bash
 ./dev.sh start
 ```
 
-Backend en http://localhost:4000  
+Backend: http://localhost:4000  
 API: http://localhost:4000/api  
 Swagger: http://localhost:4000/api-docs
 
-### 7. Probar la app
+### 6. Probar frontend
 
-Inicia sesión con el usuario creado en Supabase Auth (el mismo UUID que usaste en SEED_USER_ID). Explora todas las funcionalidades con los datos del seed.
+Inicia sesión con `demo@finward.dev` / `DemoFinward123!`.
 
 ---
 
@@ -86,11 +85,11 @@ Inicia sesión con el usuario creado en Supabase Auth (el mismo UUID que usaste 
 | Comando | Descripción |
 |---------|-------------|
 | `./dev.sh setup` | Primera vez: .env, npm install, prisma generate |
+| `./dev.sh setup-dev` | **Auth user demo + seed + RLS** (demo listo) |
 | `./dev.sh start` | Inicia backend con hot reload |
-| `./dev.sh db:push` | Aplica schema a Supabase (usa DIRECT_URL) |
-| `./dev.sh db:seed` | Ejecuta seed (requiere SEED_USER_ID) |
-| `./dev.sh rls` | Aplica RLS vía psql (o muestra instrucciones) |
-| `./dev.sh generate` | Regenera cliente Prisma |
+| `./dev.sh db:push` | Aplica schema a Supabase |
+| `./dev.sh db:seed` | Solo seed (requiere SEED_USER_ID) |
+| `./dev.sh rls` | Aplica RLS vía psql (o instrucciones) |
 | `./dev.sh studio` | Abre Prisma Studio |
 
 ---
@@ -108,3 +107,4 @@ Para cambios de schema:
 ./dev.sh db:push   # Aplicar cambios
 ./dev.sh rls       # Si añadiste tablas, actualizar rls-policies.sql y ejecutar
 ```
+
