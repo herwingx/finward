@@ -1,0 +1,321 @@
+// Finward - Schema para Supabase Postgres
+// Prisma: esquema + migraciones | Supabase Client: queries con RLS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============ ENUMS ============
+
+enum AccountType {
+  CASH
+  DEBIT
+  CREDIT
+  LOAN
+  INVESTMENT
+  SAVINGS
+}
+
+enum StatementStatus {
+  PENDING
+  PAID
+  PARTIAL
+  OVERDUE
+}
+
+// ============ USER / PROFILE ============
+// id debe coincidir con auth.users.id (Supabase Auth)
+// Se crea via trigger o on signup
+
+model User {
+  id       String  @id
+  email    String  @unique
+  name     String
+  currency String  @default("MXN")
+  timezone String  @default("America/Mexico_City")
+  avatar   String?
+
+  monthlyNetIncome     Float?  @default(0)
+  incomeFrequency      String?
+  notificationsEnabled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  accounts             Account[]
+  categories           Category[]
+  transactions         Transaction[]
+  installmentPurchases InstallmentPurchase[]
+  loans                Loan[]
+  recurringTransactions RecurringTransaction[]
+  savingsGoals         SavingsGoal[]
+}
+
+// ============ ACCOUNTS ============
+
+model Account {
+  id         String      @id @default(uuid())
+  name       String
+  type       AccountType
+  balance    Float       @default(0)
+  currency   String      @default("MXN")
+  creditLimit Float?
+  cutoffDay  Int?
+  paymentDay Int?
+  interestRate Float?
+
+  isArchived       Boolean @default(false)
+  includeInNetWorth Boolean @default(true)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions            Transaction[]             @relation("AccountTransactions")
+  destinationTransactions Transaction[]             @relation("DestinationTransactions")
+  installmentPurchases    InstallmentPurchase[]
+  loans                   Loan[]
+  recurringTransactions   RecurringTransaction[]
+  snapshots               AccountSnapshot[]
+  statements              CreditCardStatement[]
+  ledgerEntries           LedgerEntry[]
+
+  @@index([userId])
+}
+
+// ============ CATEGORIES ============
+
+model Category {
+  id         String  @id @default(uuid())
+  name       String
+  icon       String
+  color      String
+  type       String
+  budgetType String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions          Transaction[]          @relation("CategoryTransactions")
+  installmentPurchases  InstallmentPurchase[]
+  recurringTransactions RecurringTransaction[]
+
+  @@unique([name, userId])
+  @@index([userId])
+}
+
+// ============ TRANSACTIONS ============
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Float
+  description String
+  date        DateTime
+  type        String
+  status      String   @default("completed")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId             String?
+  category               Category?  @relation("CategoryTransactions", fields: [categoryId], references: [id])
+  accountId              String?
+  account                Account?   @relation("AccountTransactions", fields: [accountId], references: [id])
+  destinationAccountId   String?
+  destinationAccount     Account?   @relation("DestinationTransactions", fields: [destinationAccountId], references: [id])
+
+  recurringTransactionId String?
+  recurringTransaction   RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id])
+  installmentPurchaseId  String?
+  installmentPurchase    InstallmentPurchase?  @relation("InstallmentTransactions", fields: [installmentPurchaseId], references: [id])
+  loanId                 String?
+  loan                   Loan?      @relation(fields: [loanId], references: [id])
+  statementId            String?
+  statement              CreditCardStatement?  @relation(fields: [statementId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  ledgerEntries LedgerEntry[]
+
+  @@index([userId, date])
+  @@index([statementId])
+}
+
+// ============ LEDGER (Doble Partida) ============
+// Cada transacción genera 2+ entradas que suman 0
+// amount: + = crédito, - = débito
+// Balance cuenta = SUM(amount) de sus LedgerEntries
+
+model LedgerEntry {
+  id            String   @id @default(uuid())
+  accountId     String
+  transactionId String
+  amount        Float
+  type          String
+
+  createdAt DateTime @default(now())
+
+  account     Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([transactionId])
+}
+
+// ============ INSTALLMENT PURCHASE (MSI) ============
+
+model InstallmentPurchase {
+  id              String   @id @default(uuid())
+  description     String
+  totalAmount     Float
+  installments    Int
+  monthlyPayment  Float
+  purchaseDate    DateTime
+  paidInstallments Int    @default(0)
+  paidAmount     Float    @default(0)
+  status         String   @default("active")
+
+  accountId  String
+  account    Account  @relation(fields: [accountId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  transactions Transaction[] @relation("InstallmentTransactions")
+
+  @@index([userId])
+  @@index([accountId])
+}
+
+// ============ RECURRING ============
+
+model RecurringTransaction {
+  id          String   @id @default(uuid())
+  amount      Float
+  description String
+  type        String
+  frequency   String
+  startDate   DateTime
+  nextDueDate DateTime
+  endDate     DateTime?
+  active      Boolean  @default(true)
+  lastRun     DateTime?
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  accountId  String
+  account    Account  @relation(fields: [accountId], references: [id])
+
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+// ============ LOANS ============
+
+model Loan {
+  id              String   @id @default(uuid())
+  borrowerName    String
+  borrowerPhone   String?
+  borrowerEmail   String?
+  reason          String?
+  loanType        String   @default("lent")
+  originalAmount  Float
+  remainingAmount Float
+  loanDate        DateTime
+  expectedPayDate DateTime?
+  status          String   @default("active")
+  notes           String?
+  interestRate    Float?
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id])
+
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+// ============ CREDIT CARD STATEMENTS ============
+
+model CreditCardStatement {
+  id              String          @id @default(uuid())
+  accountId       String
+  account         Account         @relation(fields: [accountId], references: [id])
+
+  cycleStart      DateTime
+  cycleEnd        DateTime
+  paymentDueDate  DateTime
+
+  totalDue        Float
+  minimumPayment  Float?
+  msiAmount       Float           @default(0)
+  regularAmount   Float           @default(0)
+
+  status    StatementStatus @default(PENDING)
+  paidAmount Float          @default(0)
+  paidAt    DateTime?
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+
+  @@index([accountId, cycleEnd])
+}
+
+// ============ SNAPSHOTS ============
+
+model AccountSnapshot {
+  id        String   @id @default(uuid())
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  balance   Float
+  date      DateTime
+
+  @@unique([accountId, date])
+  @@index([accountId, date])
+}
+
+// ============ SAVINGS GOALS ============
+
+model SavingsGoal {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  deadline      DateTime?
+  icon          String?
+  color         String?
+  priority      Int      @default(1)
+  status        String   @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contributions SavingsContribution[]
+
+  @@index([userId])
+}
+
+model SavingsContribution {
+  id             String      @id @default(uuid())
+  amount         Float
+  date           DateTime
+  notes          String?
+  savingsGoalId  String
+  savingsGoal    SavingsGoal @relation(fields: [savingsGoalId], references: [id], onDelete: Cascade)
+  transactionId  String?
+
+  createdAt DateTime @default(now())
+}
