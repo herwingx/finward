@@ -11,7 +11,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "node -r dotenv/config prisma/seed.js"
+    "db:seed": "node -r dotenv/config prisma/seed.js",
+    "db:setup-dev": "node scripts/setup-dev.js"
   },
   "keywords": [
     "finward",

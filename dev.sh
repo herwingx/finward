@@ -99,6 +99,12 @@ cmd_rls() {
     fi
 }
 
+cmd_setup_dev() {
+    log_info "Setup completo: Auth user + Seed + RLS..."
+    (cd backend && npm run db:setup-dev)
+    log_success "Setup completado. Usa demo@finward.dev / DemoFinward123!"
+}
+
 cmd_db_seed() {
     if [ ! -f backend/.env ]; then
         log_error "backend/.env no existe. Ejecuta: ./dev.sh setup"
@@ -136,6 +142,7 @@ COMANDOS:
   setup       Primera vez: .env, npm install, prisma generate
   start       Inicia backend con hot reload (ts-node-dev)
   db:push     Aplica schema a Supabase (prisma db push)
+  setup-dev   Setup completo: crea auth user demo, seed, RLS (demo@finward.dev / DemoFinward123!)
   db:seed     Ejecuta seed de datos de prueba (requiere SEED_USER_ID)
   rls         Aplica políticas RLS (o instrucciones si no hay psql)
   generate    Regenera cliente Prisma
@@ -160,6 +167,7 @@ case "${1:-start}" in
     setup)     cmd_setup ;;
     start)     cmd_start ;;
     db:push)   cmd_db_push ;;
+    setup-dev) cmd_setup_dev ;;
     db:seed)   cmd_db_seed ;;
     rls)       cmd_rls ;;
     generate)  cmd_generate ;;
