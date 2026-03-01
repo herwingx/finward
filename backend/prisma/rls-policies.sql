@@ -1,8 +1,13 @@
 -- RLS Policies for Supabase
--- Apply after prisma migrate deploy
--- Run in Supabase SQL Editor or: psql $DATABASE_URL -f prisma/rls-policies.sql
+-- Ver: backend/docs/RLS.md
+--
+-- ¿Qué es? Row Level Security filtra filas por usuario a nivel PostgreSQL.
+-- ¿Para qué? Evitar que un usuario vea/modifique datos de otros.
+--
+-- Aplicar después de prisma db push / migrate deploy
+-- Ejecutar en Supabase SQL Editor o: psql $DIRECT_URL -f prisma/rls-policies.sql
 
--- Enable RLS on all user-scoped tables
+-- Habilitar RLS en tablas con datos de usuario
 ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Account" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Category" ENABLE ROW LEVEL SECURITY;
