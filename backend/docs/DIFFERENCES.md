@@ -93,6 +93,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 - Módulo `investments/` con rutas limpias
 - Misma lógica: crear Investment + opcionalmente CreateExpense
 - Categoría "Inversiones" creada bajo demanda
+- **CoinGecko**: `POST /investments/refresh-prices` actualiza `currentPrice` en crypto (ticker = CoinGecko ID). Ver [COINGECKO.md](COINGECKO.md)
 
 ---
 

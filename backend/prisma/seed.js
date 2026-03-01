@@ -161,6 +161,9 @@ O desde .env: SEED_USER_ID=tu-uuid
   await prisma.investment.create({
     data: { userId, name: 'CETES', type: 'bond', ticker: 'CETES', quantity: 10, avgBuyPrice: 10.5, currentPrice: 10.8, currency: 'MXN', purchaseDate: subDays(today, 60), lastPriceUpdate: today },
   });
+  await prisma.investment.create({
+    data: { userId, name: 'Bitcoin', type: 'crypto', ticker: 'bitcoin', quantity: 0.01, avgBuyPrice: 800000, currentPrice: 800000, currency: 'MXN', purchaseDate: subDays(today, 30), lastPriceUpdate: today },
+  });
   await prisma.budget.create({
     data: { userId, name: 'Comida marzo', amount: 4000, startDate: startOfMonth(today), endDate: endOfMonth(today), notifyThreshold: 80, rollover: false },
   });

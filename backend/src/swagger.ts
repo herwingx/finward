@@ -64,6 +64,9 @@ const options: swaggerJsdoc.Options = {
         get: { summary: 'List investments', tags: ['Investments'] },
         post: { summary: 'Create investment', tags: ['Investments'] },
       },
+      '/investments/refresh-prices': {
+        post: { summary: 'Refresh crypto prices from CoinGecko', tags: ['Investments'] },
+      },
       '/investments/{id}': {
         get: { summary: 'Get investment', tags: ['Investments'] },
         put: { summary: 'Update investment', tags: ['Investments'] },

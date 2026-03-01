@@ -1,10 +1,42 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
+import { fetchPrices } from '../../../lib/coingecko';
 import { AppError } from '../../../shared/errors';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
+
+router.post('/refresh-prices', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const investments = await prisma.investment.findMany({
+    where: { userId, type: 'crypto', ticker: { not: null } },
+  });
+
+  const withTicker = investments.filter((i) => i.ticker?.trim());
+  if (withTicker.length === 0) {
+    return res.json({ updated: 0, message: 'No crypto investments with ticker to refresh' });
+  }
+
+  const tickers = withTicker.map((i) => i.ticker!).filter(Boolean);
+  const prices = await fetchPrices(tickers, 'mxn');
+
+  let updated = 0;
+  for (const inv of withTicker) {
+    const ticker = inv.ticker!.toLowerCase();
+    const priceData = prices[ticker];
+    const newPrice = priceData?.['mxn'];
+    if (typeof newPrice === 'number' && newPrice > 0) {
+      await prisma.investment.update({
+        where: { id: inv.id },
+        data: { currentPrice: newPrice, lastPriceUpdate: new Date() },
+      });
+      updated++;
+    }
+  }
+
+  res.json({ updated, total: withTicker.length });
+});
 
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;

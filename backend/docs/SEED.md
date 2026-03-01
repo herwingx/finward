@@ -35,5 +35,5 @@ Si ya tienes un usuario en Supabase Auth:
 | Loan | Préstamo a Juan Pérez |
 | CreditCardStatement | Corte pendiente |
 | SavingsGoal | Meta vacaciones |
-| Investment | CETES |
+| Investment | CETES, Bitcoin (crypto con ticker para CoinGecko) |
 | Budget, Notification | Datos de ejemplo |
