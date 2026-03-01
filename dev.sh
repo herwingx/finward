@@ -72,8 +72,45 @@ cmd_start() {
 
 cmd_db_push() {
     log_info "Aplicando schema a Supabase (prisma db push)..."
-    (cd backend && npx prisma db push)
-    log_success "Schema aplicado"
+    (cd backend && set -a && . .env 2>/dev/null; set +a
+     export DATABASE_URL="${DIRECT_URL:-$DATABASE_URL}"
+     npx prisma db push)
+    log_success "Schema aplicado. Luego ejecuta: ./dev.sh rls"
+}
+
+cmd_rls() {
+    if [ ! -f backend/prisma/rls-policies.sql ]; then
+        log_error "backend/prisma/rls-policies.sql no existe"
+        exit 1
+    fi
+    if command -v psql &>/dev/null; then
+        log_info "Aplicando políticas RLS vía psql..."
+        (cd backend && set -a && . .env 2>/dev/null; set +a
+         psql "$DIRECT_URL" -f prisma/rls-policies.sql)
+        log_success "RLS aplicado"
+    else
+        echo ""
+        log_warning "psql no instalado. Ejecuta backend/prisma/rls-policies.sql en Supabase SQL Editor:"
+        echo ""
+        echo "  1. Supabase Dashboard > SQL Editor"
+        echo "  2. Nuevo query, pega el contenido de backend/prisma/rls-policies.sql"
+        echo "  3. Run"
+        echo ""
+    fi
+}
+
+cmd_db_seed() {
+    if [ ! -f backend/.env ]; then
+        log_error "backend/.env no existe. Ejecuta: ./dev.sh setup"
+        exit 1
+    fi
+    (cd backend && set -a && . .env 2>/dev/null; set +a
+     if [ -z "$SEED_USER_ID" ]; then
+         log_error "SEED_USER_ID no definido. Crea usuario en Supabase Auth y añade SEED_USER_ID=uuid a backend/.env"
+         exit 1
+     fi
+     npm run db:seed)
+    log_success "Seed completado"
 }
 
 cmd_generate() {
@@ -99,6 +136,8 @@ COMANDOS:
   setup       Primera vez: .env, npm install, prisma generate
   start       Inicia backend con hot reload (ts-node-dev)
   db:push     Aplica schema a Supabase (prisma db push)
+  db:seed     Ejecuta seed de datos de prueba (requiere SEED_USER_ID)
+  rls         Aplica políticas RLS (o instrucciones si no hay psql)
   generate    Regenera cliente Prisma
   studio      Abre Prisma Studio
 
@@ -121,6 +160,8 @@ case "${1:-start}" in
     setup)     cmd_setup ;;
     start)     cmd_start ;;
     db:push)   cmd_db_push ;;
+    db:seed)   cmd_db_seed ;;
+    rls)       cmd_rls ;;
     generate)  cmd_generate ;;
     studio)    cmd_studio ;;
     help|-h|--help) cmd_help ;;
