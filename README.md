@@ -9,7 +9,7 @@ finward/
 └── backend/    # API REST con Prisma, Supabase Auth, Ledger
 ```
 
-## Inicio Rápido
+## Inicio Rápido (local)
 
 1. `cd backend`
 2. `cp .env.example .env` - Configurar Supabase
@@ -17,6 +17,19 @@ finward/
 4. `npx prisma db push` - inicial. Después: `prisma migrate dev` para cambios.
 5. Ejecutar `prisma/rls-policies.sql` en Supabase SQL Editor
 6. `npm run dev`
+
+## Despliegue con Docker
+
+Requiere `backend/.env` con Supabase. No usa Postgres local (Supabase externo).
+
+```bash
+# Iniciar backend
+./deploy.sh start
+
+
+# Otros comandos
+./deploy.sh stop | restart | update | logs | status | db:push | shell
+```
 
 ## Docs
 

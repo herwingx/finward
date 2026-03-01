@@ -1,5 +1,7 @@
 # Setup - Finward Backend
 
+## Local
+
 1. Copiar `.env.example` a `.env`
 2. Configurar DATABASE_URL, DIRECT_URL (Supabase Postgres)
 3. Configurar SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
@@ -7,3 +9,10 @@
 5. `npx prisma db push` - inicial (solo schema). Después usar `prisma migrate dev` para cambios.
 6. Ejecutar `prisma/rls-policies.sql` en Supabase SQL Editor
 7. `npm run dev`
+
+## Docker
+
+1. `cp backend/.env.example backend/.env` y configurar Supabase
+2. `./deploy.sh start` - backend en puerto 4000
+3. `./deploy.sh start --self-hosted` - backend + nginx en puerto 80
+4. `./deploy.sh db:push` - aplicar schema a Supabase
