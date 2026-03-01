@@ -56,7 +56,7 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | GET, POST | /api/investments | CRUD inversiones |
-| POST | /api/investments/refresh-prices | Actualizar precios crypto (CoinGecko) |
+| POST | /api/investments/refresh-prices | Actualizar precios crypto (CoinGecko) + stock (Yahoo Finance) |
 | GET, POST | /api/recurring | CRUD recurrentes + pay/skip |
 | GET | /api/financial-planning/summary | Resumen período |
 | GET | /api/financial-planning/upcoming | Próximos compromisos |

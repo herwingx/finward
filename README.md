@@ -41,7 +41,8 @@ Requiere `backend/.env` con Supabase. No usa Postgres local (Supabase externo).
 - [backend/docs/SEED.md](backend/docs/SEED.md) - Seed de datos de prueba
 - [backend/docs/ARCHITECTURE.md](backend/docs/ARCHITECTURE.md) - Arquitectura
 - [backend/docs/STORAGE.md](backend/docs/STORAGE.md) - Uploads (Supabase Storage)
-- [backend/docs/COINGECKO.md](backend/docs/COINGECKO.md) - Inversiones crypto con precios reales (CoinGecko API free)
+- [backend/docs/COINGECKO.md](backend/docs/COINGECKO.md) - Precios crypto (CoinGecko)
+- [backend/docs/YAHOO_FINANCE.md](backend/docs/YAHOO_FINANCE.md) - Precios acciones/ETFs (Yahoo Finance)
 
 ## rls-policies.sql
 

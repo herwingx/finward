@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { fetchPrices } from '../../../lib/coingecko';
+import { fetchStockPrice } from '../../../lib/yahooFinance';
 import { AppError } from '../../../shared/errors';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import type { AuthRequest } from '../../../shared/types';
@@ -9,33 +10,53 @@ const router = Router();
 
 router.post('/refresh-prices', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const investments = await prisma.investment.findMany({
-    where: { userId, type: 'crypto', ticker: { not: null } },
+  const all = await prisma.investment.findMany({
+    where: { userId, ticker: { not: null } },
   });
-
-  const withTicker = investments.filter((i) => i.ticker?.trim());
+  const withTicker = all.filter((i) => i.ticker?.trim());
   if (withTicker.length === 0) {
-    return res.json({ updated: 0, message: 'No crypto investments with ticker to refresh' });
+    return res.json({ updated: 0, crypto: 0, stock: 0, message: 'No investments with ticker to refresh' });
   }
 
-  const tickers = withTicker.map((i) => i.ticker!).filter(Boolean);
-  const prices = await fetchPrices(tickers, 'mxn');
+  const crypto = withTicker.filter((i) => i.type === 'crypto');
+  const stock = withTicker.filter((i) => i.type === 'stock');
 
   let updated = 0;
-  for (const inv of withTicker) {
-    const ticker = inv.ticker!.toLowerCase();
-    const priceData = prices[ticker];
-    const newPrice = priceData?.['mxn'];
-    if (typeof newPrice === 'number' && newPrice > 0) {
-      await prisma.investment.update({
-        where: { id: inv.id },
-        data: { currentPrice: newPrice, lastPriceUpdate: new Date() },
-      });
-      updated++;
+
+  // Crypto: CoinGecko (batch)
+  if (crypto.length > 0) {
+    const ids = crypto.map((i) => i.ticker!.toLowerCase());
+    const prices = await fetchPrices(ids, 'mxn');
+    for (const inv of crypto) {
+      const id = inv.ticker!.toLowerCase();
+      const newPrice = prices[id]?.['mxn'];
+      if (typeof newPrice === 'number' && newPrice > 0) {
+        await prisma.investment.update({
+          where: { id: inv.id },
+          data: { currentPrice: newPrice, lastPriceUpdate: new Date() },
+        });
+        updated++;
+      }
     }
   }
 
-  res.json({ updated, total: withTicker.length });
+  // Stock: Yahoo Finance (paralelo)
+  if (stock.length > 0) {
+    const results = await Promise.all(stock.map((i) => fetchStockPrice(i.ticker!)));
+    for (let i = 0; i < stock.length; i++) {
+      const inv = stock[i];
+      const result = results[i];
+      if (result && result.price > 0) {
+        await prisma.investment.update({
+          where: { id: inv.id },
+          data: { currentPrice: result.price, lastPriceUpdate: new Date() },
+        });
+        updated++;
+      }
+    }
+  }
+
+  res.json({ updated, crypto: crypto.length, stock: stock.length });
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {

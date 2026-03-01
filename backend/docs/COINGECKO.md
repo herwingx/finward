@@ -1,6 +1,6 @@
-# CoinGecko API - Inversiones con precios reales
+# CoinGecko API - Crypto
 
-Usamos la **API pública de CoinGecko** para actualizar `currentPrice` en inversiones tipo crypto. Valores reales, sin cálculos propios.
+Usamos la **API pública de CoinGecko** para actualizar `currentPrice` en inversiones tipo **crypto**. Para **acciones/ETFs**, ver [YAHOO_FINANCE.md](YAHOO_FINANCE.md).
 
 ## Gratis, uso personal
 
@@ -44,7 +44,7 @@ POST /api/investments/refresh-prices
 Authorization: Bearer <token>
 ```
 
-Respuesta: `{ updated: number, total: number }`
+Respuesta: `{ updated: number, crypto: number, stock: number }`
 
 ## Variables de entorno
 
@@ -59,5 +59,5 @@ COINGECKO_API_KEY=cg_xxxxx
 
 ## Qué NO cubre CoinGecko
 
-- CETES, bonos, acciones, ETFs → sin API gratuita aquí. `currentPrice` lo mantienes manual.
-- Solo crypto listada en CoinGecko.
+- Acciones, ETFs → usamos [Yahoo Finance](YAHOO_FINANCE.md)
+- CETES, bonos → sin API gratuita, `currentPrice` manual
