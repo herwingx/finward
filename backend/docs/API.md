@@ -23,6 +23,8 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 
 ### Profile
 | GET | PUT | /api/profile | Obtener/crear perfil | Actualizar perfil |
+| POST | /api/profile/avatar/upload-url | Obtener signed upload URL (Supabase Storage profile-pictures) |
+| GET | /api/profile/avatar-url | Obtener signed URL para mostrar foto de perfil |
 
 ### Transactions, Accounts, Categories
 | Método | Ruta | Descripción |

@@ -9,11 +9,27 @@ En lugar de servidor local de archivos (multer, express.static), usar **Supabase
 - URLs públicas o firmadas
 - RLS por bucket/carpeta
 
-## Uso
+## Bucket: profile-pictures
 
-1. Crear bucket en Supabase Dashboard (Storage)
-2. Políticas RLS: `auth.uid() = user_id` en `storage.objects`
-3. Frontend: `supabase.storage.from('avatars').upload(path, file)`
-4. Backend: opcional proxy para signed URLs si se necesita lógica extra
+Bucket privado para fotos de perfil. Política RLS: solo usuarios autenticados.
+
+### Backend endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | /api/profile/avatar/upload-url | Devuelve `{ path, token }` para subir foto |
+| GET | /api/profile/avatar-url | Devuelve signed URL para mostrar foto actual |
+
+### Flujo de subida
+
+1. Cliente llama `POST /api/profile/avatar/upload-url` con `{ contentType?, extension? }`
+2. Backend devuelve `{ path, token }` (path: `{userId}/avatar.{ext}`)
+3. Cliente sube: `supabase.storage.from('profile-pictures').uploadToSignedUrl(path, token, file)`
+4. Cliente actualiza perfil: `PUT /api/profile` con `{ avatar: path }`
+
+### Flujo de visualización
+
+- Cliente llama `GET /api/profile/avatar-url` para obtener URL firmada (1h de validez)
+- Si no hay avatar, responde `{ url: null }`
 
 No se requiere multer ni carpeta `/uploads` en el backend.

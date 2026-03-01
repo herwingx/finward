@@ -19,6 +19,20 @@ const options: swaggerJsdoc.Options = {
         get: { summary: 'Get or create profile', tags: ['Profile'] },
         put: { summary: 'Update profile', tags: ['Profile'] },
       },
+      '/profile/avatar/upload-url': {
+        post: {
+          summary: 'Get signed upload URL for profile picture',
+          description: 'Returns { path, token } for Supabase Storage (bucket profile-pictures)',
+          tags: ['Profile'],
+        },
+      },
+      '/profile/avatar-url': {
+        get: {
+          summary: 'Get signed URL to display profile picture',
+          description: 'Returns { url, expiresIn } for private bucket, or { url: null } if none',
+          tags: ['Profile'],
+        },
+      },
       '/transactions': {
         get: { summary: 'List transactions', tags: ['Transactions'] },
         post: { summary: 'Create transaction (income/expense/transfer)', tags: ['Transactions'] },
