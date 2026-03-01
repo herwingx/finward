@@ -11,12 +11,12 @@ finward/
 
 ## Inicio Rápido (local)
 
-1. `cd backend`
-2. `cp .env.example .env` - Configurar Supabase
-3. `npm install`
-4. `npx prisma db push` - inicial. Después: `prisma migrate dev` para cambios.
-5. Ejecutar `prisma/rls-policies.sql` en Supabase SQL Editor
-6. `npm run dev`
+```bash
+./dev.sh setup     # Primera vez
+./dev.sh start     # Backend en http://localhost:4000
+```
+
+O manual: `cd backend` → `cp .env.example .env` → `npm install` → `npx prisma db push` → ejecutar `prisma/rls-policies.sql` en Supabase SQL Editor → `npm run dev`
 
 ## Despliegue con Docker
 
@@ -44,5 +44,6 @@ Archivo SQL con políticas de Row Level Security (RLS) para Supabase Postgres. E
 
 ## Prisma
 
-- **Inicial**: `prisma db push` (schema limpio, sin historial de migraciones)
+- **Inicial**: `prisma db push` (usa DIRECT_URL)
+- **Self-hosted + Tailscale**: usar `DIRECT_URL` con host `192.168.100.109:5433` para evitar conflicto con pooler en 5432
 - **Producción**: `prisma migrate dev` / `prisma migrate deploy` (estándar profesional para cambios)
