@@ -23,7 +23,6 @@ NC='\033[0m'
 COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="finward"
 
-
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }

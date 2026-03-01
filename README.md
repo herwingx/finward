@@ -28,12 +28,8 @@ Ver [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) para el flujo com
 Requiere `backend/.env` con Supabase. No usa Postgres local (Supabase externo).
 
 ```bash
-# Iniciar backend
 ./deploy.sh start
-
-
-# Otros comandos
-./deploy.sh stop | restart | update | logs | status | db:push | shell
+# Otros: stop | restart | update | logs | status | db:push | shell
 ```
 
 ## Docs
