@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "tailwindcss-safe-area";
+
+@theme {
+  --color-app-bg: var(--bg-canvas);
+  --color-app-surface: var(--bg-surface);
+  --color-app-subtle: var(--bg-subtle);
+  --color-app-elevated: var(--bg-elevated);
+  --color-app-border: var(--border-default);
+  --color-app-border-strong: var(--border-strong);
+  --color-app-text: var(--text-main);
+  --color-app-muted: var(--text-muted);
+  --color-app-inverted: var(--text-inverted);
+  --color-app-primary: var(--brand-primary);
+  --color-app-primary-dark: var(--brand-primary-dark);
+  --color-app-success: var(--semantic-success);
+  --color-app-danger: var(--semantic-danger);
+  --color-app-warning: var(--semantic-warning);
+  --color-app-info: var(--semantic-info);
+  --color-account-credit-bg: var(--bg-credit);
+  --color-account-debit-bg: var(--bg-debit);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --radius-3xl: 1.5rem;
+  --shadow-subtle: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-float: 0 4px 24px -4px rgba(0,0,0,0.08);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --bg-canvas: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F3F4F6;
+  --bg-elevated: #FFFFFF;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --text-inverted: #FFFFFF;
+  --border-default: #E5E7EB;
+  --border-strong: #CBD5E1;
+  --brand-primary: #2563EB;
+  --brand-primary-dark: #1D4ED8;
+  --semantic-success: #10B981;
+  --semantic-danger: #EF4444;
+  --semantic-warning: #F59E0B;
+  --semantic-info: #0EA5E9;
+  --bg-credit: #FFF1F2;
+  --bg-debit: #EFF6FF;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg-canvas: #09090B;
+  --bg-surface: #18181B;
+  --bg-subtle: #1C1C1E;
+  --bg-elevated: #27272A;
+  --text-main: #FAFAFA;
+  --text-muted: #A1A1AA;
+  --text-inverted: #000000;
+  --border-default: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.12);
+  --brand-primary: #60A5FA;
+  --brand-primary-dark: #3B82F6;
+  --semantic-success: #34D399;
+  --semantic-danger: #F87171;
+  --semantic-warning: #FBBF24;
+  --bg-credit: rgba(225, 29, 72, 0.15);
+  --bg-debit: rgba(37, 99, 235, 0.15);
+}
+
+html, body {
+  @apply bg-app-bg text-app-text antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html { overscroll-behavior-y: none; overflow-x: hidden; }
+body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+#root { overflow-x: hidden; width: 100%; }
+
+.font-numbers {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.bento-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+@media (hover: hover) {
+  .bento-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-float);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.skeleton-loader {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-subtle);
+}
+
+.skeleton-loader::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+button { cursor: pointer; touch-action: manipulation; }
+button:active { transform: scale(0.96); }
