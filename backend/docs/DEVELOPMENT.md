@@ -1,42 +1,110 @@
-# Guía de Desarrollo - Finward Backend
+# Flujo de desarrollo local - Finward
 
-## Estructura de Carpetas
+## Requisitos
 
+- Node.js 20+
+- Cuenta Supabase (Cloud o Self-Hosted)
+- Tailscale (opcional, para Supabase self-hosted remoto)
+
+## Flujo completo
+
+### 1. Setup inicial (primera vez)
+
+```bash
+# Desde raíz de finward
+./dev.sh setup
 ```
-src/
-├── shared/        # errors, types, security (compartido)
-├── lib/           # supabase, prisma clients
-├── modules/
-│   └── <module>/
-│       ├── domain/      # reglas puras
-│       ├── useCases/    # lógica de negocio
-│       └── infrastructure/  # routes, controllers
-├── jobs/          # cron jobs
-├── server.ts
-└── swagger.ts
+
+Esto:
+- Crea `backend/.env` desde `.env.example` (si no existe)
+- Instala dependencias (`npm install`)
+- Genera cliente Prisma (`npx prisma generate`)
+
+### 2. Configurar variables de entorno
+
+Edita `backend/.env`:
+
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| SUPABASE_URL | URL pública del proyecto | `https://xxx.supabase.co` |
+| SUPABASE_ANON_KEY | JWT público | `eyJ...` |
+| SUPABASE_SERVICE_ROLE_KEY | JWT service role | `eyJ...` |
+| DATABASE_URL | Pooler (para app runtime) | `postgresql://postgres.[TENANT]:[PASS]@host:6543/postgres?pgbouncer=true` |
+| DIRECT_URL | Postgres directo (db push, migrate) | `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` |
+| SEED_USER_ID | UUID usuario en Supabase Auth (para seed) | `00000000-0000-0000-0000-...` |
+
+**Tailscale + Self-Hosted:** Usar `192.168.100.109:5433` en DIRECT_URL para evitar conflicto con pooler en 5432.
+
+### 3. Aplicar schema a la base de datos
+
+```bash
+./dev.sh db:push
 ```
 
-## Convenciones
+Usa DIRECT_URL internamente. Requiere acceso a Postgres (ej. Tailscale conectado).
 
-- Use Cases: `CreateExpenseUseCase.ts`, `createExpense(input)`
-- Routes: `transactionRoutes.ts`, `authMiddleware` en rutas protegidas
-- Errores: usar `AppError.badRequest()`, `AppError.notFound()`, etc.
+### 4. Aplicar políticas RLS
 
-## Conventional Commits
+1. Supabase Dashboard > SQL Editor
+2. Pegar contenido de `backend/prisma/rls-policies.sql`
+3. Run
 
-- `feat:` - Nueva funcionalidad
-- `fix:` - Bug fix
-- `docs:` - Documentación
-- `chore:` - Config, deps
-- `refactor:` - Refactor
+O si tienes `psql`:
+```bash
+./dev.sh rls
+```
 
-Ejemplo: `feat: add recurring transactions module`
+### 5. Seed (datos de prueba)
 
-## Comandos
+1. Crear usuario en Supabase Auth: Dashboard > Auth > Users > Add user
+2. Copiar UUID del usuario
+3. Añadir a `backend/.env`: `SEED_USER_ID=<uuid>`
+4. Ejecutar:
 
-- `npm run dev` - Desarrollo con hot reload
-- `npm run build` - Compilar TypeScript
-- `npm run start` - Ejecutar build
-- `npx prisma migrate dev` - Crear migración (con DB local)
-- `npx prisma migrate deploy` - Aplicar migraciones (producción)
-- `npx prisma studio` - UI de base de datos
+```bash
+./dev.sh db:seed
+```
+
+### 6. Iniciar backend
+
+```bash
+./dev.sh start
+```
+
+Backend en http://localhost:4000  
+API: http://localhost:4000/api  
+Swagger: http://localhost:4000/api-docs
+
+### 7. Probar la app
+
+Inicia sesión con el usuario creado en Supabase Auth (el mismo UUID que usaste en SEED_USER_ID). Explora todas las funcionalidades con los datos del seed.
+
+---
+
+## Comandos resumidos
+
+| Comando | Descripción |
+|---------|-------------|
+| `./dev.sh setup` | Primera vez: .env, npm install, prisma generate |
+| `./dev.sh start` | Inicia backend con hot reload |
+| `./dev.sh db:push` | Aplica schema a Supabase (usa DIRECT_URL) |
+| `./dev.sh db:seed` | Ejecuta seed (requiere SEED_USER_ID) |
+| `./dev.sh rls` | Aplica RLS vía psql (o muestra instrucciones) |
+| `./dev.sh generate` | Regenera cliente Prisma |
+| `./dev.sh studio` | Abre Prisma Studio |
+
+---
+
+## Flujo día a día
+
+```bash
+./dev.sh start   # Iniciar backend
+# ... desarrollar ...
+# Ctrl+C para detener
+```
+
+Para cambios de schema:
+```bash
+./dev.sh db:push   # Aplicar cambios
+./dev.sh rls       # Si añadiste tablas, actualizar rls-policies.sql y ejecutar
+```

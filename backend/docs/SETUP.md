@@ -19,6 +19,16 @@
 6. Ejecutar `prisma/rls-policies.sql` en Supabase SQL Editor
 7. `npm run dev`
 
+### Seed (datos de prueba)
+
+Para poblar datos de prueba y probar todas las funcionalidades:
+
+1. Crea un usuario en Supabase Auth (Dashboard > Auth > Users)
+2. Añade `SEED_USER_ID=<uuid>` a `backend/.env`
+3. `npm run db:seed` (o `./dev.sh db:seed` desde raíz)
+
+Ver [docs/SEED.md](SEED.md) para más detalles.
+
 ## Desarrollo con Tailscale
 
 Acceso directo al Supabase self-hosted vía Tailscale:
