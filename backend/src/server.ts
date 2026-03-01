@@ -5,6 +5,8 @@ import bodyParser from 'body-parser';
 process.env.TZ = 'America/Mexico_City';
 
 import { errorHandler } from './shared/errors';
+import { requestLogger } from './shared/requestLogger';
+import { logger } from './shared/logger';
 import { corsMiddleware, helmetMiddleware, generalLimiter } from './shared/security';
 import authRoutes from './modules/auth/infrastructure/authRoutes';
 import { authMiddleware } from './modules/auth/infrastructure/authMiddleware';
@@ -28,6 +30,7 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+app.use(requestLogger);
 app.use(helmetMiddleware);
 app.use(corsMiddleware());
 app.use('/api', generalLimiter);
@@ -64,15 +67,15 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(`Finward API - port ${PORT}`);
+  logger.info({ port: PORT }, 'Finward API started');
   if (process.env.NODE_ENV === 'production' && process.env.ENABLE_CRON_JOBS === 'true') {
     setInterval(async () => {
       const now = new Date();
       if (now.getHours() === 0 && now.getMinutes() >= 5 && now.getMinutes() < 6) {
-        await generateCreditCardStatements().catch(console.error);
+        await generateCreditCardStatements().catch((err) => logger.error({ err }, 'Statement job failed'));
       }
       if (now.getHours() === 23 && now.getMinutes() >= 55 && now.getMinutes() < 56) {
-        await createDailyAccountSnapshots().catch(console.error);
+        await createDailyAccountSnapshots().catch((err) => logger.error({ err }, 'Snapshot job failed'));
       }
     }, 60000);
   }

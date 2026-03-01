@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { logger } from '../shared/logger';
 import { startOfDay } from 'date-fns';
 import { getBillingCycle } from '../modules/credit-cards/domain/billingCycle';
 
@@ -51,7 +52,7 @@ export async function generateCreditCardStatements(): Promise<{ processed: numbe
       });
       created.push(statement.id);
     } catch (err) {
-      console.error('[StatementJob]', account.name, err);
+      logger.error({ err, accountId: account.id, accountName: account.name }, 'Statement job failed for account');
     }
   }
   return { processed: accounts.length, statements: created };

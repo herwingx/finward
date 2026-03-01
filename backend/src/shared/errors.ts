@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from './logger';
 
 /**
  * AppError - Errores de aplicación con código HTTP
@@ -46,12 +47,13 @@ export function errorHandler(
   _next: NextFunction
 ): void {
   if (err instanceof AppError) {
+    logger.warn({ statusCode: err.statusCode, code: err.code, msg: err.message }, 'AppError');
     res.status(err.statusCode).json({
       error: err.message,
       code: err.code,
     });
     return;
   }
-  console.error('[Error]', err);
+  logger.error({ err, stack: err.stack }, 'Unhandled error');
   res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
 }
