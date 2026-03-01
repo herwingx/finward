@@ -15,6 +15,9 @@ ALTER TABLE "CreditCardStatement" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "AccountSnapshot" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "SavingsGoal" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "SavingsContribution" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Investment" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Budget" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Notification" ENABLE ROW LEVEL SECURITY;
 
 -- User: own profile only
 CREATE POLICY "user_own_profile" ON "User"
@@ -88,3 +91,15 @@ CREATE POLICY "contribution_via_goal" ON "SavingsContribution"
       AND g."userId" = auth.uid()::text
     )
   );
+
+-- Investment: own only
+CREATE POLICY "investment_user_isolated" ON "Investment"
+  FOR ALL USING (auth.uid()::text = "userId");
+
+-- Budget: own only
+CREATE POLICY "budget_user_isolated" ON "Budget"
+  FOR ALL USING (auth.uid()::text = "userId");
+
+-- Notification: own only
+CREATE POLICY "notification_user_isolated" ON "Notification"
+  FOR ALL USING (auth.uid()::text = "userId");

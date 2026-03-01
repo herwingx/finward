@@ -1,14 +1,47 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
+import { createIncome } from '../../transactions/useCases/CreateIncomeUseCase';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
 
-router.get('/', async (req: AuthRequest, res: Response) => {
+router.get('/summary', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const loans = await prisma.loan.findMany({ where: { userId } });
+  const active = loans.filter((l) => l.status === 'active' || l.status === 'partial');
+  const lent = active.filter((l) => l.loanType === 'lent');
+  const borrowed = active.filter((l) => l.loanType === 'borrowed');
+  res.json({
+    totalLoans: loans.length,
+    activeLoansCount: active.length,
+    paidLoansCount: loans.filter((l) => l.status === 'paid').length,
+    totalOwedToMe: lent.reduce((s, l) => s + l.remainingAmount, 0),
+    lentLoansCount: lent.length,
+    totalIOwe: borrowed.reduce((s, l) => s + l.remainingAmount, 0),
+    borrowedLoansCount: borrowed.length,
+    netBalance: lent.reduce((s, l) => s + l.remainingAmount, 0) - borrowed.reduce((s, l) => s + l.remainingAmount, 0),
+    totalRecovered: loans.reduce((s, l) => s + (l.originalAmount - l.remainingAmount), 0),
+  });
+});
+
+router.get('/', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const loans = await prisma.loan.findMany({
+    where: { userId },
+    include: { account: true },
+    orderBy: [{ status: 'asc' }, { expectedPayDate: 'asc' }, { loanDate: 'desc' }],
+  });
   res.json(loans);
+});
+
+router.get('/:id', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const id = req.params.id as string;
+  const loan = await prisma.loan.findFirst({ where: { id, userId }, include: { account: true } });
+  if (!loan) throw AppError.notFound('Loan not found');
+  res.json(loan);
 });
 
 router.post('/', async (req: AuthRequest, res: Response) => {
@@ -35,6 +68,128 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     },
   });
   res.status(201).json(loan);
+});
+
+router.put('/:id', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const id = req.params.id as string;
+  const { borrowerName, borrowerPhone, borrowerEmail, reason, expectedPayDate, notes, originalAmount, accountId } =
+    req.body ?? {};
+
+  const loan = await prisma.loan.findFirst({ where: { id, userId } });
+  if (!loan) throw AppError.notFound('Loan not found');
+
+  const newOriginal = originalAmount !== undefined ? parseFloat(originalAmount) : loan.originalAmount;
+  let newRemaining = loan.remainingAmount;
+  if (originalAmount !== undefined && originalAmount !== loan.originalAmount) {
+    const paid = loan.originalAmount - loan.remainingAmount;
+    newRemaining = Math.max(0, newOriginal - paid);
+  }
+
+  const updated = await prisma.loan.update({
+    where: { id },
+    data: {
+      borrowerName: borrowerName ?? loan.borrowerName,
+      borrowerPhone: borrowerPhone ?? loan.borrowerPhone,
+      borrowerEmail: borrowerEmail ?? loan.borrowerEmail,
+      reason: reason ?? loan.reason,
+      expectedPayDate: expectedPayDate === null ? null : expectedPayDate ? new Date(expectedPayDate) : loan.expectedPayDate,
+      notes: notes ?? loan.notes,
+      originalAmount: newOriginal,
+      remainingAmount: newRemaining,
+      accountId: accountId ?? loan.accountId,
+    },
+    include: { account: true },
+  });
+  res.json(updated);
+});
+
+router.post('/:id/payment', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const id = req.params.id as string;
+  const { amount, paymentDate, notes, accountId } = req.body ?? {};
+
+  if (!amount) throw AppError.badRequest('Amount required');
+
+  const loan = await prisma.loan.findFirst({ where: { id, userId }, include: { account: true } });
+  if (!loan) throw AppError.notFound('Loan not found');
+  if (loan.status === 'paid') throw AppError.badRequest('Loan already paid');
+
+  const payAmount = parseFloat(amount);
+  const payDate = paymentDate ? new Date(paymentDate) : new Date();
+  const newRemaining = Math.max(0, loan.remainingAmount - payAmount);
+  const status = newRemaining <= 0 ? 'paid' : newRemaining < loan.originalAmount - 0.01 ? 'partial' : 'active';
+
+  let cat = await prisma.category.findFirst({ where: { userId, name: { contains: 'Préstamo', mode: 'insensitive' } } });
+  if (!cat) {
+    cat = await prisma.category.create({
+      data: { userId, name: 'Préstamos', icon: 'credit_score', color: '#f59e0b', type: 'expense', budgetType: 'need' },
+    });
+  }
+
+  const targetAccId = accountId ?? loan.accountId;
+  if (!targetAccId) throw AppError.badRequest('accountId required for loan payment');
+
+  let tx;
+  if (loan.loanType === 'lent') {
+    tx = await createIncome({
+      userId,
+      accountId: targetAccId,
+      categoryId: cat.id,
+      amount: payAmount,
+      description: `Cobro préstamo: ${loan.borrowerName}`,
+      date: payDate,
+    });
+  } else {
+    tx = await createExpense({
+      userId,
+      accountId: targetAccId,
+      categoryId: cat.id,
+      amount: payAmount,
+      description: `Pago préstamo: ${loan.borrowerName}`,
+      date: payDate,
+    });
+  }
+
+  await prisma.transaction.update({
+    where: { id: tx.id },
+    data: { loanId: id },
+  });
+
+  await prisma.loan.update({
+    where: { id },
+    data: { remainingAmount: newRemaining, status },
+  });
+
+  res.status(201).json(await prisma.transaction.findUnique({
+    where: { id: tx.id },
+    include: { category: true, account: true },
+  }));
+});
+
+router.post('/:id/mark-paid', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const id = req.params.id as string;
+
+  const loan = await prisma.loan.findFirst({ where: { id, userId } });
+  if (!loan) throw AppError.notFound('Loan not found');
+
+  await prisma.loan.update({
+    where: { id },
+    data: { remainingAmount: 0, status: 'paid' },
+  });
+  res.json({ message: 'Loan marked as paid' });
+});
+
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const id = req.params.id as string;
+
+  const loan = await prisma.loan.findFirst({ where: { id, userId } });
+  if (!loan) throw AppError.notFound('Loan not found');
+
+  await prisma.loan.delete({ where: { id } });
+  res.status(204).send();
 });
 
 export default router;

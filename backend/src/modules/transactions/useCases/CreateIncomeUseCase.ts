@@ -1,18 +1,17 @@
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 
-export interface CreateExpenseInput {
+export interface CreateIncomeInput {
   userId: string;
   accountId: string;
   categoryId: string;
   amount: number;
   description: string;
   date: Date;
-  installmentPurchaseId?: string | null;
   recurringTransactionId?: string | null;
 }
 
-export async function createExpense(input: CreateExpenseInput) {
+export async function createIncome(input: CreateIncomeInput) {
   const { userId, accountId, categoryId, amount, description, date } = input;
   if (amount <= 0) throw AppError.badRequest('Amount must be positive');
 
@@ -23,8 +22,7 @@ export async function createExpense(input: CreateExpenseInput) {
   if (!category) throw AppError.notFound('Category not found');
 
   const isCredit = account.type === 'CREDIT';
-  const debitAmount = isCredit ? amount : -amount;
-  if (!isCredit && account.balance < amount) throw AppError.badRequest('Insufficient funds');
+  const amt = isCredit ? -amount : amount;
 
   return prisma.$transaction(async (tx) => {
     const t = await tx.transaction.create({
@@ -35,17 +33,21 @@ export async function createExpense(input: CreateExpenseInput) {
         amount,
         description,
         date,
-        type: 'expense',
-        installmentPurchaseId: input.installmentPurchaseId ?? undefined,
+        type: 'income',
         recurringTransactionId: input.recurringTransactionId ?? undefined,
       },
     });
     await tx.ledgerEntry.create({
-      data: { accountId, transactionId: t.id, amount: debitAmount, type: isCredit ? 'credit' : 'debit' },
+      data: {
+        accountId,
+        transactionId: t.id,
+        amount: amt,
+        type: isCredit ? 'debit' : 'credit',
+      },
     });
     await tx.account.update({
       where: { id: accountId },
-      data: { balance: { increment: isCredit ? amount : -amount } },
+      data: { balance: { increment: isCredit ? -amount : amount } },
     });
     return tx.transaction.findUnique({ where: { id: t.id }, include: { category: true, account: true } });
   });

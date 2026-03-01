@@ -12,8 +12,15 @@ import transactionRoutes from './modules/transactions/infrastructure/transaction
 import accountRoutes from './modules/accounts/infrastructure/accountRoutes';
 import categoryRoutes from './modules/categories/infrastructure/categoryRoutes';
 import creditCardRoutes from './modules/credit-cards/infrastructure/creditCardRoutes';
+import installmentRoutes from './modules/installments/infrastructure/installmentRoutes';
+import investmentRoutes from './modules/investments/infrastructure/investmentRoutes';
+import recurringRoutes from './modules/recurring/infrastructure/recurringRoutes';
+import financialPlanningRoutes from './modules/financial-planning/infrastructure/financialPlanningRoutes';
+import notificationRoutes from './modules/notifications/infrastructure/notificationRoutes';
+import profileRoutes from './modules/profile/infrastructure/profileRoutes';
 import loanRoutes from './modules/loans/infrastructure/loanRoutes';
 import goalRoutes from './modules/goals/infrastructure/goalRoutes';
+import aiRoutes from './modules/ai/infrastructure/aiRoutes';
 import { generateCreditCardStatements, createDailyAccountSnapshots } from './jobs';
 import { setupSwagger } from './swagger';
 
@@ -37,12 +44,19 @@ setupSwagger(app);
 // API routes
 app.use('/api/auth', authRoutes);
 
+app.use('/api/profile', authMiddleware, profileRoutes);
 app.use('/api/transactions', authMiddleware, transactionRoutes);
 app.use('/api/accounts', authMiddleware, accountRoutes);
 app.use('/api/categories', authMiddleware, categoryRoutes);
 app.use('/api/credit-card', authMiddleware, creditCardRoutes);
+app.use('/api/installments', authMiddleware, installmentRoutes);
+app.use('/api/investments', authMiddleware, investmentRoutes);
+app.use('/api/recurring', authMiddleware, recurringRoutes);
+app.use('/api/financial-planning', authMiddleware, financialPlanningRoutes);
+app.use('/api/notifications', authMiddleware, notificationRoutes);
 app.use('/api/loans', authMiddleware, loanRoutes);
 app.use('/api/goals', authMiddleware, goalRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

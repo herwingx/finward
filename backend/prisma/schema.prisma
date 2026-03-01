@@ -49,9 +49,12 @@ model User {
   categories           Category[]
   transactions         Transaction[]
   installmentPurchases InstallmentPurchase[]
+  investments          Investment[]
+  budgets              Budget[]
   loans                Loan[]
   recurringTransactions RecurringTransaction[]
   savingsGoals         SavingsGoal[]
+  notifications        Notification[]
 }
 
 // ============ ACCOUNTS ============
@@ -318,4 +321,69 @@ model SavingsContribution {
   transactionId  String?
 
   createdAt DateTime @default(now())
+}
+
+// ============ INVESTMENTS ============
+
+model Investment {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  type            String
+  ticker          String?
+  quantity        Float
+  avgBuyPrice     Float
+  currentPrice    Float
+  currency        String   @default("MXN")
+  purchaseDate    DateTime?
+  lastPriceUpdate DateTime?
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============ BUDGETS (Financial Planning) ============
+
+model Budget {
+  id         String   @id @default(uuid())
+  name       String
+  amount     Float
+  startDate  DateTime
+  endDate    DateTime
+  notifyThreshold Int?
+  rollover   Boolean  @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============ NOTIFICATIONS ============
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type       String
+  title      String
+  body       String
+  data       Json?
+  read       Boolean  @default(false)
+
+  scheduledFor DateTime?
+  sentAt      DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
 }

@@ -25,7 +25,16 @@ export async function createTransfer(input: CreateTransferInput) {
 
   return prisma.$transaction(async (tx) => {
     const t = await tx.transaction.create({
-      data: { userId, accountId, destinationAccountId, amount, description, date, type: 'transfer' },
+      data: {
+        userId,
+        accountId,
+        destinationAccountId,
+        amount,
+        description,
+        date,
+        type: 'transfer',
+        installmentPurchaseId: input.installmentPurchaseId ?? undefined,
+      },
     });
     await tx.ledgerEntry.createMany({
       data: [
