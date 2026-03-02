@@ -1,13 +1,14 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
-import { addDays, addMonths, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
+import { addDays, addMonths, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
+import { getFinancialSummary } from '../useCases/GetFinancialSummaryUseCase';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
 
 type PeriodType = 'semanal' | 'quincenal' | 'mensual' | 'bimestral' | 'semestral' | 'anual';
 
-function getPeriodDates(periodType: PeriodType): { start: Date; end: Date } {
+function getPeriodDates(periodType: PeriodType, mode: 'calendar' | 'projection'): { start: Date; end: Date } {
   const now = new Date();
   const today = startOfDay(now);
 
@@ -18,10 +19,9 @@ function getPeriodDates(periodType: PeriodType): { start: Date; end: Date } {
         end: addDays(today, 7),
       };
     case 'quincenal':
-      return {
-        start: today,
-        end: addDays(today, 15),
-      };
+      return mode === 'projection'
+        ? { start: today, end: addDays(today, 30) }
+        : { start: today, end: addDays(today, 15) };
     case 'mensual':
       return {
         start: startOfMonth(now),
@@ -53,13 +53,14 @@ function getPeriodDates(periodType: PeriodType): { start: Date; end: Date } {
 router.get('/summary', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const periodType = (req.query.period as PeriodType) || 'quincenal';
+  const mode = ((req.query.mode as string) || 'calendar') === 'projection' ? 'projection' : 'calendar';
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { timezone: true, monthlyNetIncome: true },
   });
 
-  const { start: periodStart, end: periodEnd } = getPeriodDates(periodType);
+  const { start: periodStart, end: periodEnd } = getPeriodDates(periodType, mode);
 
   const [accounts, transactions, recurring, loans, installments] = await Promise.all([
     prisma.account.findMany({ where: { userId } }),
@@ -96,35 +97,53 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
     .filter((a) => ['CREDIT', 'LOAN'].includes(a.type))
     .reduce((s, a) => s + Math.abs(a.balance), 0);
 
-  const incomeTotal = transactions
-    .filter((t) => t.type === 'income')
-    .reduce((s, t) => s + t.amount, 0);
-
-  const expenseTotal = transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((s, t) => s + t.amount, 0);
-
-  const expectedRecurring = recurring.reduce((acc, r) => {
-    const amt = r.amount;
-    if (r.type === 'income') acc.income += amt;
-    else acc.expense += amt;
-    return acc;
-  }, { income: 0, expense: 0 });
-
-  res.json({
-    periodStart: periodStart.toISOString(),
-    periodEnd: periodEnd.toISOString(),
+  const summary = getFinancialSummary({
+    periodStart,
+    periodEnd,
     periodType,
-    currentBalance: liquidBalance,
-    currentDebt: debtBalance,
-    incomeTotal,
-    expenseTotal,
-    expectedRecurringIncome: expectedRecurring.income,
-    expectedRecurringExpense: expectedRecurring.expense,
-    activeLoans: loans.length,
-    activeInstallments: installments.length,
+    mode,
+    liquidBalance,
+    debtBalance,
+    transactions: transactions.map((t) => ({
+      type: t.type,
+      amount: t.amount,
+      date: t.date,
+      category: t.category,
+    })),
+    recurring: recurring.map((r) => ({
+      id: r.id,
+      amount: r.amount,
+      description: r.description,
+      type: r.type,
+      frequency: r.frequency,
+      startDate: r.startDate,
+      nextDueDate: r.nextDueDate,
+      endDate: r.endDate,
+      category: r.category,
+    })),
+    loans: loans.map((l) => ({
+      id: l.id,
+      remainingAmount: l.remainingAmount,
+      expectedPayDate: l.expectedPayDate,
+      borrowerName: l.borrowerName,
+      loanType: l.loanType,
+    })),
+    installments: installments.map((i) => ({
+      id: i.id,
+      description: i.description,
+      totalAmount: i.totalAmount,
+      installments: i.installments,
+      paidInstallments: i.paidInstallments,
+      paidAmount: i.paidAmount,
+      monthlyPayment: i.monthlyPayment,
+      purchaseDate: i.purchaseDate,
+      account: i.account,
+      category: i.category,
+    })),
     monthlyNetIncome: user?.monthlyNetIncome ?? null,
   });
+
+  res.json(summary);
 });
 
 router.get('/upcoming', async (req: AuthRequest, res: Response) => {
