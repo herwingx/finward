@@ -28,6 +28,8 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 
 ### Profile
 | GET | PUT | /api/profile | Obtener/crear perfil | Actualizar perfil |
+
+**GET /api/profile** crea el usuario en Prisma si no existe, o sincroniza el id cuando el usuario existe por email pero con id distinto (Supabase Auth cambió). Esto evita 500 por desincronización Auth↔Prisma.
 | POST | /api/profile/avatar/upload-url | Obtener signed upload URL (Supabase Storage profile-pictures) |
 | GET | /api/profile/avatar-url | Obtener signed URL para mostrar foto de perfil |
 
@@ -92,7 +94,12 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 
 ## Códigos de Error
 
-- 400 - Bad Request (validación)
-- 401 - Unauthorized (token inválido o faltante)
-- 404 - Not Found
-- 500 - Internal Server Error
+| Código | Significado |
+|--------|-------------|
+| 400 | Bad Request (validación, referencia FK inválida) |
+| 401 | Unauthorized (token inválido o faltante) |
+| 404 | Not Found (registro no encontrado) |
+| 409 | Conflict (registro duplicado, unique constraint) |
+| 500 | Internal Server Error |
+
+Las respuestas de error usan `{ error: string, code?: string }`. El frontend muestra `error` al usuario.

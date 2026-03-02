@@ -115,3 +115,19 @@ Para cambios de schema:
 ./dev.sh rls       # Si añadiste tablas, actualizar rls-policies.sql y ejecutar
 ```
 
+---
+
+## Notas técnicas
+
+### Sincronización Auth ↔ Prisma
+
+Si el id de Supabase Auth difiere del id en `User` (ej. proyecto recreado, migración), `GET /api/profile` detecta el usuario por email y **sincroniza automáticamente**: migra categorías, cuentas, transacciones, etc. al nuevo id. Evita 500 en rutas protegidas.
+
+### Manejo de errores Prisma
+
+Los errores conocidos se convierten en HTTP:
+
+- P2002 (unique constraint) → 409 Conflict
+- P2003 (foreign key) → 400 Bad Request
+- P2025 (record not found) → 404 Not Found
+

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { createSupabaseServiceClient } from '../../../lib/supabase';
@@ -6,6 +7,92 @@ import { logger } from '../../../shared/logger';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
+
+/** Sincroniza User cuando existe por email pero con id distinto (Supabase Auth cambió). */
+async function syncUserFromEmail(
+  userEmail: string,
+  newId: string,
+  newName: string
+): Promise<Prisma.UserGetPayload<{ select: { id: true; email: true; name: true; currency: true; timezone: true; avatar: true; monthlyNetIncome: true; incomeFrequency: true; notificationsEnabled: true } }>> {
+  const existing = await prisma.user.findUnique({ where: { email: userEmail } });
+  if (!existing) throw AppError.notFound('User not found');
+  if (existing.id === newId) {
+    const full = await prisma.user.findUniqueOrThrow({
+      where: { id: newId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        currency: true,
+        timezone: true,
+        avatar: true,
+        monthlyNetIncome: true,
+        incomeFrequency: true,
+        notificationsEnabled: true,
+      },
+    });
+    return full;
+  }
+
+  const oldId = existing.id;
+  const tempEmail = `sync-${newId.slice(0, 8)}@temp.finward.local`;
+  const oldTempEmail = `sync-old-${oldId.slice(0, 8)}@temp.finward.local`;
+
+  return prisma.$transaction(async (tx) => {
+    await tx.user.create({
+      data: {
+        id: newId,
+        email: tempEmail,
+        name: newName,
+        currency: existing.currency,
+        timezone: existing.timezone,
+        avatar: existing.avatar,
+        monthlyNetIncome: existing.monthlyNetIncome,
+        incomeFrequency: existing.incomeFrequency,
+        notificationsEnabled: existing.notificationsEnabled,
+      },
+    });
+    const models = [
+      { table: tx.category, key: 'userId' as const },
+      { table: tx.account, key: 'userId' as const },
+      { table: tx.transaction, key: 'userId' as const },
+      { table: tx.installmentPurchase, key: 'userId' as const },
+      { table: tx.recurringTransaction, key: 'userId' as const },
+      { table: tx.loan, key: 'userId' as const },
+      { table: tx.savingsGoal, key: 'userId' as const },
+      { table: tx.investment, key: 'userId' as const },
+      { table: tx.budget, key: 'userId' as const },
+      { table: tx.notification, key: 'userId' as const },
+    ];
+    for (const { table, key } of models) {
+      await (table as { updateMany: (arg: unknown) => Promise<unknown> }).updateMany({
+        where: { [key]: oldId },
+        data: { [key]: newId },
+      });
+    }
+    await tx.user.update({
+      where: { id: oldId },
+      data: { email: oldTempEmail },
+    });
+    const updated = await tx.user.update({
+      where: { id: newId },
+      data: { email: userEmail, name: existing.name },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        currency: true,
+        timezone: true,
+        avatar: true,
+        monthlyNetIncome: true,
+        incomeFrequency: true,
+        notificationsEnabled: true,
+      },
+    });
+    await tx.user.delete({ where: { id: oldId } });
+    return updated;
+  });
+}
 const PROFILE_PICTURES_BUCKET = 'profile-pictures';
 const AVATAR_SIGNED_URL_EXPIRY = 3600; // 1 hour
 
@@ -21,9 +108,10 @@ const DEFAULT_CATEGORIES = [
 
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const userEmail = req.user!.email;
+  const userEmail = req.user!.email ?? `${userId}@finward.local`;
+  const userName = userEmail.split('@')[0] ?? 'User';
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -39,27 +127,49 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     },
   });
 
-  if (!user) {
-    const newUser = await prisma.user.create({
-      data: {
-        id: userId,
-        email: userEmail ?? `${userId}@finward.local`,
-        name: userEmail?.split('@')[0] ?? 'User',
-        categories: { create: DEFAULT_CATEGORIES },
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        currency: true,
-        timezone: true,
-        avatar: true,
-        monthlyNetIncome: true,
-        incomeFrequency: true,
-        notificationsEnabled: true,
-      },
+  if (!user && userEmail) {
+    const byEmail = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true, name: true },
     });
-    return res.json(newUser);
+    if (byEmail && byEmail.id !== userId) {
+      logger.info({ oldId: byEmail.id, newId: userId, email: userEmail }, 'Syncing User id Supabase→Prisma');
+      const synced = await syncUserFromEmail(userEmail, userId, userName);
+      return res.json(synced);
+    }
+  }
+
+  if (!user) {
+    try {
+      const newUser = await prisma.user.create({
+        data: {
+          id: userId,
+          email: userEmail,
+          name: userName,
+          categories: { create: DEFAULT_CATEGORIES },
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          currency: true,
+          timezone: true,
+          avatar: true,
+          monthlyNetIncome: true,
+          incomeFrequency: true,
+          notificationsEnabled: true,
+        },
+      });
+      return res.json(newUser);
+    } catch (err: unknown) {
+      const prismaErr = err as { code?: string };
+      if (prismaErr?.code === 'P2002') {
+        logger.info({ userId, email: userEmail }, 'User create P2002, syncing by email');
+        const synced = await syncUserFromEmail(userEmail, userId, userName);
+        return res.json(synced);
+      }
+      throw err;
+    }
   }
 
   if (user._count.categories === 0) {

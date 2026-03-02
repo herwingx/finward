@@ -18,8 +18,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
     throw new Error('Unauthorized');
   }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({} as Record<string, unknown>));
-    const message = (err as { message?: string }).message ?? `HTTP ${res.status}`;
+    const err = await res.json().catch(() => ({} as Record<string, unknown>)) as { message?: string; error?: string };
+    const message = err.message ?? err.error ?? `HTTP ${res.status}`;
     throw new Error(message);
   }
   return res.json() as Promise<T>;
@@ -48,8 +48,8 @@ export async function apiFetchNoJson(path: string, options?: RequestInit): Promi
     throw new Error('Unauthorized');
   }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({} as Record<string, unknown>));
-    const message = (err as { message?: string }).message ?? `HTTP ${res.status}`;
+    const err = await res.json().catch(() => ({} as Record<string, unknown>)) as { message?: string; error?: string };
+    const message = err.message ?? err.error ?? `HTTP ${res.status}`;
     throw new Error(message);
   }
 }

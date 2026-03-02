@@ -1,5 +1,7 @@
 # Seed - Datos de prueba para Finward
 
+El seed está en JavaScript (`prisma/seed.js`) para ejecutarse sin compilar. Prisma lo ejecuta con `node -r dotenv/config prisma/seed.js`.
+
 ## Opción fácil: setup-dev (recomendado)
 
 ```bash

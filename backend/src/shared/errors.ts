@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger';
 
@@ -53,6 +54,24 @@ export function errorHandler(
       code: err.code,
     });
     return;
+  }
+  // Prisma known errors → HTTP
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P2002') {
+      logger.warn({ code: err.code, meta: err.meta }, 'Prisma unique constraint');
+      res.status(409).json({ error: 'Registro duplicado', code: 'CONFLICT' });
+      return;
+    }
+    if (err.code === 'P2003') {
+      logger.warn({ code: err.code, meta: err.meta }, 'Prisma foreign key');
+      res.status(400).json({ error: 'Referencia inválida', code: 'BAD_REQUEST' });
+      return;
+    }
+    if (err.code === 'P2025') {
+      logger.warn({ code: err.code, meta: err.meta }, 'Prisma record not found');
+      res.status(404).json({ error: 'Registro no encontrado', code: 'NOT_FOUND' });
+      return;
+    }
   }
   logger.error({ err, stack: err.stack }, 'Unhandled error');
   const isConnectionError =

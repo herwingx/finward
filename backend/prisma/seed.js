@@ -46,6 +46,12 @@ O desde .env: SEED_USER_ID=tu-uuid
 
   console.log('🌱 Iniciando seed para userId:', userId);
 
+  // Si existe usuario demo con otro id (auth recreado), eliminarlo para sincronizar
+  const existingByEmail = await prisma.user.findUnique({ where: { email: 'demo@finward.dev' } });
+  if (existingByEmail && existingByEmail.id !== userId) {
+    await prisma.user.delete({ where: { id: existingByEmail.id } });
+  }
+
   const user = await prisma.user.upsert({
     where: { id: userId },
     create: {
