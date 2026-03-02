@@ -420,7 +420,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                 <div className="text-right shrink-0">
                   <p className="text-[9px] md:text-[10px] uppercase font-bold text-indigo-500">Saldo proyectado</p>
                   <p className="text-base md:text-xl font-black font-numbers text-indigo-600 dark:text-indigo-400 leading-none">
-                    {formatCurrency(summary.disposableIncome)}
+                    {formatCurrency(summary.disposableIncome ?? 0)}
                   </p>
                 </div>
               ) : (
@@ -428,7 +428,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                   <span className="material-symbols-outlined text-[16px] md:text-[18px]">warning</span>
                   <div>
                     <p className="text-[9px] md:text-[10px] uppercase font-bold leading-none">Déficit</p>
-                    <p className="text-xs md:text-sm font-bold font-numbers">{formatCurrency(summary.disposableIncome)}</p>
+                    <p className="text-xs md:text-sm font-bold font-numbers">{formatCurrency(summary.disposableIncome ?? 0)}</p>
                   </div>
                 </div>
               )}
@@ -451,7 +451,7 @@ export const FinancialPlanningWidget: React.FC = () => {
               iconSize="14px"
             />
           </div>
-          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.totalPeriodIncome)}</p>
+          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.totalPeriodIncome ?? 0)}</p>
         </div>
 
         {/* Fixed Commitments */}

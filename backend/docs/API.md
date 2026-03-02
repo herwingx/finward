@@ -65,8 +65,10 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 | GET, POST | /api/investments | CRUD inversiones |
 | POST | /api/investments/refresh-prices | Actualizar precios crypto (CoinGecko) + stock (Yahoo Finance) |
 | GET, POST | /api/recurring | CRUD recurrentes + pay/skip |
-| GET | /api/financial-planning/summary | Resumen período |
+| GET | /api/financial-planning/summary | Resumen período (period, mode) |
 | GET | /api/financial-planning/upcoming | Próximos compromisos |
+
+**financial-planning/summary** devuelve: `periodStart`, `periodEnd`, `periodType`, `currentBalance`, `currentDebt`, `incomeTotal`, `expenseTotal`, `expectedRecurringIncome`, `expectedRecurringExpense`, `monthlyNetIncome`. El frontend usa `?? 0` / `?? []` para campos opcionales.
 | GET, PUT | /api/notifications | Listar, marcar leídas |
 
 ### Loans

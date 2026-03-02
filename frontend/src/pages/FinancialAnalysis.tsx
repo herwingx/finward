@@ -99,12 +99,12 @@ const FinancialAnalysis: React.FC = () => {
     const dailyIncome = new Map<string, number>();
     const dailyExpense = new Map<string, number>();
 
-    summary.expectedIncome.forEach((e: any) => {
+    (summary.expectedIncome ?? []).forEach((e: any) => {
       const key = new Date(e.dueDate).toISOString().split('T')[0];
       dailyIncome.set(key, (dailyIncome.get(key) || 0) + e.amount);
     });
 
-    [...summary.expectedExpenses, ...summary.msiPaymentsDue].forEach((e: any) => {
+    [...(summary.expectedExpenses ?? []), ...(summary.msiPaymentsDue ?? [])].forEach((e: any) => {
       const key = new Date(e.dueDate).toISOString().split('T')[0];
       dailyExpense.set(key, (dailyExpense.get(key) || 0) + e.amount);
     });
@@ -112,7 +112,7 @@ const FinancialAnalysis: React.FC = () => {
     const allDates = Array.from(new Set([...dailyIncome.keys(), ...dailyExpense.keys()])).sort();
 
     const points = [];
-    let currentBalance = summary.currentBalance;
+    let currentBalance = summary.currentBalance ?? 0;
     const startDate = new Date(summary.periodStart);
     const endDate = new Date(summary.periodEnd);
     const chartStyle = periodType === 'anual' ? 'chart' : 'short';
@@ -191,9 +191,11 @@ const FinancialAnalysis: React.FC = () => {
     };
 
     // Force group by recurrence ID (for expenses) to totalize them over the period
-    const allExpenses = groupBy(summary.expectedExpenses, x => x.recurringTransactionId || x.description, true);
+    const expenses = summary.expectedExpenses ?? [];
+    const msiPayments = summary.msiPaymentsDue ?? [];
+    const allExpenses = groupBy(expenses, x => x.recurringTransactionId || x.description, true);
     // Include regular credit card charges too, not just MSI
-    const rawMsi = summary.msiPaymentsDue.filter((m: any) => !m.isLastInstallment);
+    const rawMsi = msiPayments.filter((m: any) => !m.isLastInstallment);
     const allMsi = groupBy(rawMsi, x => x.originalId || x.id, false);
 
     return {
@@ -201,10 +203,10 @@ const FinancialAnalysis: React.FC = () => {
       msi: expandedMsi ? allMsi : allMsi.slice(0, 5),
       countExpensesGrouped: allExpenses.length,
       countMsiGrouped: allMsi.length,
-      msiEnding: summary.msiPaymentsDue.filter((m: any) => m.isLastInstallment),
+      msiEnding: msiPayments.filter((m: any) => m.isLastInstallment),
       // Deduplicate recurringEnding: Keep only one entry per recurring series that is ending
       recurringEnding: (() => {
-        const ending = summary.expectedExpenses.filter((e: any) => e.endDate && new Date(e.endDate) <= new Date(summary.periodEnd));
+        const ending = expenses.filter((e: any) => e.endDate && new Date(e.endDate) <= new Date(summary.periodEnd));
         const seen = new Set();
         return ending.filter((e: any) => {
           // Use recurringTransactionId if available, or fallback to description as a loose key
@@ -220,8 +222,8 @@ const FinancialAnalysis: React.FC = () => {
 
   // Formatos
   const formatCurrency = (val: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(val);
-  const totalExpenses = summary ? summary.totalCommitments : 0;
-  const totalIncome = summary ? summary.totalPeriodIncome : 0;
+  const totalExpenses = summary ? (summary.totalCommitments ?? 0) : 0;
+  const totalIncome = summary ? (summary.totalPeriodIncome ?? 0) : 0;
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
   if (isLoading) return <SkeletonFinancialAnalysis />;
@@ -280,7 +282,7 @@ const FinancialAnalysis: React.FC = () => {
             <div className="text-right">
               <p className="text-[10px] font-bold text-app-muted uppercase">Saldo Final</p>
               <p className={`text-2xl font-black font-numbers tracking-tight tabular-nums ${summary.isSufficient ? 'text-app-primary' : 'text-rose-600 dark:text-rose-400'}`}>
-                {formatCurrency(summary.disposableIncome)}
+                {formatCurrency(summary.disposableIncome ?? 0)}
               </p>
             </div>
           </div>
@@ -503,11 +505,11 @@ const FinancialAnalysis: React.FC = () => {
 
         {/* --- F. ALERTS --- */}
         <AnimatePresence>
-          {summary.warnings.length > 0 && (
+          {(summary.warnings ?? []).length > 0 && (
             <div className="mt-8 pt-4 border-t border-app-border border-dashed">
               <h4 className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-3">Atención Requerida</h4>
               <div className="grid gap-2">
-                {summary.warnings.map((w: string, i: number) => (
+                {(summary.warnings ?? []).map((w: string, i: number) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
