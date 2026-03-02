@@ -40,3 +40,14 @@ export const getTodayUTC = (): Date => {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 };
+
+/** Adds months preserving day; 31 Jan + 1 month = 28/29 Feb, not 3 Mar. */
+export function addMonthsPreservingDay(baseDate: Date, months: number): Date {
+  const d = new Date(baseDate);
+  d.setMonth(d.getMonth() + months);
+  const expectedMonth = (baseDate.getMonth() + months + 12) % 12;
+  if (d.getMonth() !== expectedMonth) {
+    d.setDate(0);
+  }
+  return d;
+}

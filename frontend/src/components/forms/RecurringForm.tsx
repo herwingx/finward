@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { DatePicker } from '@/components/DatePicker';
 import { CategorySelector } from '@/components/CategorySelector';
 import { ToggleGroup } from '@/components/Button';
-import { formatDateUTC } from '@/utils/dateUtils';
+import { formatDateUTC, addMonthsPreservingDay } from '@/utils/dateUtils';
 
 interface RecurringFormProps {
   existingTransaction?: RecurringTransaction | null;
@@ -66,24 +66,23 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
     }
   }, [existingTransaction]);
 
-  // Logic Calc
+  // Logic Calc (addMonthsPreservingDay avoids 31 Jan -> 3 Mar overflow)
   const calcNextDate = () => {
     const next = new Date(startDate);
     if (skipFirst) {
       if (frequency === 'weekly') next.setDate(next.getDate() + 7);
-      else if (frequency === 'monthly') next.setMonth(next.getMonth() + 1);
+      else if (frequency === 'monthly') return addMonthsPreservingDay(startDate, 1);
       else if (frequency === 'biweekly') next.setDate(next.getDate() + 14);
       else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
       else if (frequency === 'biweekly_15_30') {
         const day = next.getDate();
         if (day <= 15) {
-          // Last day of current month
           const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
           next.setDate(lastDay);
         } else {
-          // 15 of next month
-          next.setMonth(next.getMonth() + 1);
-          next.setDate(15);
+          const n = addMonthsPreservingDay(startDate, 1);
+          n.setDate(15);
+          return n;
         }
       }
     }
