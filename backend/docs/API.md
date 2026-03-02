@@ -68,7 +68,7 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 | GET | /api/financial-planning/summary | Resumen período (period, mode) |
 | GET | /api/financial-planning/upcoming | Próximos compromisos |
 
-**financial-planning/summary** devuelve: `periodStart`, `periodEnd`, `periodType`, `currentBalance`, `currentDebt`, `incomeTotal`, `expenseTotal`, `expectedRecurringIncome`, `expectedRecurringExpense`, `monthlyNetIncome`. El frontend usa `?? 0` / `?? []` para campos opcionales.
+**financial-planning/summary** — Query: `?period=semanal|quincenal|mensual|bimestral|semestral|anual` y `?mode=calendar|projection`. Devuelve proyección completa: `expectedIncome[]`, `expectedExpenses[]`, `msiPaymentsDue[]`, `totalPeriodIncome`, `totalCommitments`, `disposableIncome`, `projectedBalance`, `budgetAnalysis` (needs/wants/savings), `isSufficient`, `warnings`. Ver `docs/PROJECTION-ENGINE.md`.
 | GET, PUT | /api/notifications | Listar, marcar leídas |
 
 ### Loans
