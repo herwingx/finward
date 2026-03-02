@@ -98,12 +98,16 @@ router.post('/msi/:installmentId/pay', async (req: AuthRequest, res: Response) =
   if (!sourceAccount) throw AppError.notFound('Source account not found');
 
   const payDate = date ? new Date(date) : new Date();
+  const isLastInstallment = msi.paidInstallments + 1 === msi.installments;
+  const payAmount = isLastInstallment
+    ? Math.round((msi.totalAmount - msi.paidAmount) * 100) / 100
+    : msi.monthlyPayment;
 
   const tx = await createTransfer({
     userId,
     accountId: sourceAccountId,
     destinationAccountId: msi.accountId,
-    amount: msi.monthlyPayment,
+    amount: payAmount,
     description: `Pago MSI: ${msi.description} (${msi.paidInstallments + 1}/${msi.installments})`,
     date: payDate,
     installmentPurchaseId: msi.id,
@@ -112,9 +116,9 @@ router.post('/msi/:installmentId/pay', async (req: AuthRequest, res: Response) =
   await prisma.installmentPurchase.update({
     where: { id: installmentId },
     data: {
-      paidAmount: { increment: msi.monthlyPayment },
+      paidAmount: { increment: payAmount },
       paidInstallments: { increment: 1 },
-      status: msi.paidAmount + msi.monthlyPayment >= msi.totalAmount ? 'completed' : undefined,
+      status: msi.paidAmount + payAmount >= msi.totalAmount ? 'completed' : undefined,
     },
   });
 
