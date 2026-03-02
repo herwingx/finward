@@ -419,7 +419,7 @@ export const FinancialPlanningWidget: React.FC = () => {
               {summary.isSufficient ? (
                 <div className="text-right shrink-0">
                   <p className="text-[9px] md:text-[10px] uppercase font-bold text-indigo-500">Saldo proyectado</p>
-                  <p className="text-base md:text-xl font-black text-app-text font-numbers text-indigo-600 dark:text-indigo-400 leading-none">
+                  <p className="text-base md:text-xl font-black font-numbers text-indigo-600 dark:text-indigo-400 leading-none">
                     {formatCurrency(summary.disposableIncome)}
                   </p>
                 </div>
