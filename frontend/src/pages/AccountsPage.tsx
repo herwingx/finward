@@ -10,9 +10,10 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { SwipeableItem } from '@/components/SwipeableItem';
 import { SkeletonAccountsPage } from '@/components/Skeleton';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
+import { DeleteConfirmationSheet } from '@/components/DeleteConfirmationSheet';
 
 // Utils & Types
-import { toastSuccess, toastError, toast } from '@/utils/toast';
+import { toastSuccess, toastError } from '@/utils/toast';
 import { AccountType, Account } from '@/types';
 
 /* ==================================================================================
@@ -137,6 +138,7 @@ const AccountsPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { openAccountSheet } = useGlobalSheets();
     const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+    const [deleteCandidate, setDeleteCandidate] = useState<Account | null>(null);
     const isMobile = useIsMobile();
 
     // Queries & Mutations
@@ -181,43 +183,18 @@ const AccountsPage: React.FC = () => {
 
 
     // Action Handlers
-    const handleDelete = (account: Account) => {
-        toast.custom((t) => (
-            <div className="bg-app-surface border border-app-border rounded-xl shadow-float p-5 font-sans max-w-sm w-full animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
-                <div className="flex gap-4">
-                    <div className="size-10 bg-rose-100 dark:bg-rose-900/30 text-rose-600 rounded-full flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[20px]">delete_forever</span>
-                    </div>
-                    <div>
-                        <h4 className="text-app-text font-bold text-sm">¿Eliminar esta cuenta?</h4>
-                        <p className="text-xs text-app-muted mt-1 leading-relaxed">
-                            Esta acción eliminará la cuenta <strong>{account.name}</strong> y sus configuraciones. El historial podría bloquear la eliminación.
-                        </p>
-                        <div className="flex gap-3 mt-4">
-                            <button
-                                onClick={async () => {
-                                    toast.dismiss(t);
-                                    try {
-                                        await deleteAccountMutation.mutateAsync(account.id);
-                                        toastSuccess('Cuenta eliminada');
-                                        setSelectedAccount(null);
-                                    } catch (error: any) {
-                                        toastError('No se pudo eliminar', 'Probablemente tiene transacciones asociadas.');
-                                    }
-                                }}
-                                className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md transition-colors"
-                            >
-                                Sí, eliminar
-                            </button>
-                            <button onClick={() => toast.dismiss(t)} className="px-4 py-2 rounded-lg text-xs font-bold text-app-muted bg-app-subtle hover:text-app-text transition-colors">
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        ), { duration: Infinity });
+    const handleDeleteRequest = (account: Account) => setDeleteCandidate(account);
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteCandidate) return;
+        try {
+            await deleteAccountMutation.mutateAsync(deleteCandidate.id);
+            toastSuccess('Cuenta eliminada');
+            setSelectedAccount(null);
+            setDeleteCandidate(null);
+        } catch {
+            toastError('No se pudo eliminar', 'Probablemente tiene transacciones asociadas.');
+        }
     };
 
 
@@ -304,7 +281,7 @@ const AccountsPage: React.FC = () => {
                                         setTimeout(() => openAccountSheet(account), 50);
                                     }}
                                     leftAction={{ icon: 'edit', color: 'text-white', bgColor: 'bg-indigo-500', label: 'Editar' }}
-                                    onSwipeLeft={() => handleDelete(account)}
+                                    onSwipeLeft={() => handleDeleteRequest(account)}
                                     rightAction={{ icon: 'delete', color: 'text-white', bgColor: 'bg-rose-500', label: 'Eliminar' }}
                                     className="rounded-3xl"
                                     disabled={!isMobile}
@@ -383,13 +360,21 @@ const AccountsPage: React.FC = () => {
                 }}
                 onDelete={() => {
                     if (selectedAccount) {
-                        // Primero confirmamos antes de cerrar
-                        handleDelete(selectedAccount);
-                        // Cerrar sheet solo despues
+                        handleDeleteRequest(selectedAccount);
                         setSelectedAccount(null);
                     }
                 }}
                 formatCurrency={formatCurrency}
+            />
+
+            <DeleteConfirmationSheet
+                isOpen={!!deleteCandidate}
+                onClose={() => setDeleteCandidate(null)}
+                onConfirm={handleDeleteConfirm}
+                itemName={deleteCandidate?.name ?? ''}
+                warningLevel="critical"
+                warningMessage="Esta acción eliminará la cuenta y sus configuraciones. El historial podría bloquear la eliminación."
+                isDeleting={deleteAccountMutation.isPending}
             />
         </div>
     );

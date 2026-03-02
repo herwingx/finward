@@ -17,10 +17,11 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
 import { SwipeableItem } from '@/components/SwipeableItem';
-import { SkeletonFinancialAnalysis } from '@/components/Skeleton'; // Using chart skeleton as placeholder
+import { SkeletonFinancialAnalysis } from '@/components/Skeleton';
+import { DeleteConfirmationSheet } from '@/components/DeleteConfirmationSheet';
 
 // Types & Utils
-import { toastSuccess, toastError, toast } from '@/utils/toast';
+import { toastSuccess, toastError } from '@/utils/toast';
 import { SavingsGoal } from '@/types';
 
 /* ==================================================================================
@@ -362,6 +363,7 @@ const GoalsPage: React.FC = () => {
 
   // Local State
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
+  const [deleteGoal, setDeleteGoal] = useState<SavingsGoal | null>(null);
 
   // Initial Trigger
   useEffect(() => {
@@ -376,29 +378,18 @@ const GoalsPage: React.FC = () => {
   const totalSaved = useMemo(() => goals?.reduce((s, g) => s + g.currentAmount, 0) || 0, [goals]);
 
   /* Delete Logic from Swipe */
-  const handleSwipeDelete = (goal: SavingsGoal) => {
-    toast.custom((t) => (
-      <div className="flex flex-col gap-3 min-w-[260px] bg-app-surface border border-app-border p-4 rounded-3xl shadow-2xl animate-in fade-in zoom-in duration-200">
-        <span className="font-bold text-sm text-app-text">¿Borrar "{goal.name}"?</span>
-        <div className="flex gap-2">
-          <button
-            onClick={async () => {
-              toast.dismiss(t);
-              await deleteMutation.mutateAsync(goal.id);
-            }}
-            className="flex-1 px-3 py-2 bg-rose-500 text-white rounded-xl text-xs font-bold active:scale-95 transition-transform"
-          >
-            Sí, borrar
-          </button>
-          <button
-            onClick={() => toast.dismiss(t)}
-            className="flex-1 px-3 py-2 bg-app-subtle text-app-text border border-app-border rounded-xl text-xs font-bold active:scale-95 transition-transform"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    ));
+  const handleSwipeDelete = (goal: SavingsGoal) => setDeleteGoal(goal);
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteGoal) return;
+    try {
+      await deleteMutation.mutateAsync(deleteGoal.id);
+      toastSuccess('Meta eliminada');
+      setSelectedGoal(null);
+      setDeleteGoal(null);
+    } catch {
+      toastError('No se pudo borrar');
+    }
   };
 
   if (isLoading) return (
@@ -486,6 +477,15 @@ const GoalsPage: React.FC = () => {
             onClose={() => setSelectedGoal(null)}
           />
         )}
+
+        <DeleteConfirmationSheet
+          isOpen={!!deleteGoal}
+          onClose={() => setDeleteGoal(null)}
+          onConfirm={handleDeleteConfirm}
+          itemName={deleteGoal?.name ?? ''}
+          warningLevel="warning"
+          isDeleting={deleteMutation.isPending}
+        />
       </div>
     </div>
   );

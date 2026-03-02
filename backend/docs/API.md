@@ -16,10 +16,15 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 
 ## Endpoints
 
-### Auth
+### Auth (públicos, sin Bearer)
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | /api/auth/refresh | Refrescar sesión JWT |
+| GET | /api/auth/status | Health check del servicio auth |
+| POST | /api/auth/login | Login con email y contraseña (Supabase Auth) |
+| POST | /api/auth/register | Crear cuenta (Supabase Auth) |
+| POST | /api/auth/request-reset | Solicitar restablecimiento de contraseña |
+| POST | /api/auth/reset-password | Restablecer contraseña con token de recovery |
+| POST | /api/auth/refresh | Refrescar sesión JWT (requiere Bearer) |
 
 ### Profile
 | GET | PUT | /api/profile | Obtener/crear perfil | Actualizar perfil |

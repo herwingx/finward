@@ -6,7 +6,8 @@ App de finanzas personales B2C. Clean Architecture, Supabase, Ledger de doble pa
 
 ```
 finward/
-└── backend/    # API REST con Prisma, Supabase Auth, Ledger
+├── backend/    # API REST con Prisma 7, Supabase Auth, Ledger
+└── frontend/   # React + Vite, proxy /api → backend:4000
 ```
 
 ## Inicio rápido (desarrollo local)
@@ -17,6 +18,7 @@ finward/
 ./dev.sh db:push     # 2. Aplicar schema
 ./dev.sh setup-dev   # 3. Usuario demo + seed + RLS
 ./dev.sh start       # 4. Backend en http://localhost:4000
+cd frontend && npm run dev   # 5. Frontend en http://localhost:3000
 ```
 
 **Credenciales demo:** `demo@finward.dev` / `DemoFinward123!`

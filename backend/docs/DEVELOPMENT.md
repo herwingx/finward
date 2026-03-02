@@ -3,7 +3,8 @@
 ## Requisitos
 
 - Node.js 20+
-- Supabase Self-hosted + Tailscale
+- Supabase Self-hosted (o Cloud) con Auth habilitado
+- Prisma 7 con adapter-pg (conexión via `pg.Pool`)
 
 ---
 
@@ -76,6 +77,11 @@ Swagger: http://localhost:4000/api-docs
 
 ### 6. Probar frontend
 
+```bash
+cd frontend && npm run dev
+```
+
+Frontend: http://localhost:3000 (proxy /api → backend:4000)  
 Inicia sesión con `demo@finward.dev` / `DemoFinward123!`.
 
 ---

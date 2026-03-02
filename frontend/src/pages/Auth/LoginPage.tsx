@@ -16,7 +16,6 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // Reemplaza esto con tu llamada real a la API (Axios o Fetch)
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -24,13 +23,26 @@ const LoginPage: React.FC = () => {
             });
 
             if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || 'Credenciales incorrectas');
+                let errMsg = 'Credenciales incorrectas';
+                let errDesc = '';
+                try {
+                    const text = await response.text();
+                    if (text) {
+                        const err = JSON.parse(text);
+                        errMsg = err.message || errMsg;
+                    }
+                } catch {
+                    if (response.status >= 500) {
+                        errMsg = 'Error del servidor';
+                        errDesc = 'Intenta más tarde.';
+                    }
+                }
+                toastError(errMsg, errDesc || '');
+                return;
             }
 
             const data = await response.json();
 
-            // Secure storage
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -38,7 +50,12 @@ const LoginPage: React.FC = () => {
             navigate('/', { replace: true });
 
         } catch (err: any) {
-            toastError(err.message || 'Error de conexión');
+            const isNetworkError = err?.message?.includes('fetch') || err?.message === 'NetworkError' || err?.name === 'TypeError';
+            if (isNetworkError) {
+                toastError('No se pudo conectar', 'Verifica que el backend esté en ejecución (puerto 4000).');
+            } else {
+                toastError(err?.message || 'Error al iniciar sesión', '');
+            }
         } finally {
             setIsLoading(false);
         }
