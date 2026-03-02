@@ -14,7 +14,7 @@ finward/
 
 ```bash
 ./dev.sh setup       # 1. Primera vez
-# Editar backend/.env con Supabase (SUPABASE_*, DATABASE_URL, DIRECT_URL)
+# Editar backend/.env con Supabase (SUPABASE_*, DATABASE_URL, DIRECT_URL). Si el dominio no resuelve en local: USE_DIRECT_URL=true
 ./dev.sh db:push     # 2. Aplicar schema
 ./dev.sh setup-dev   # 3. Usuario demo + seed + RLS
 ./dev.sh start       # 4. Backend en http://localhost:4000
@@ -54,3 +54,4 @@ Políticas de **Row Level Security (RLS)** para Supabase Postgres. RLS filtra fi
 
 - **Inicial**: `prisma db push` (usa DIRECT_URL)
 - **Tailscale**: DIRECT_URL con `192.168.100.109:5433` (evita conflicto pooler en 5432)
+- **Desarrollo local**: Si el dominio (DATABASE_URL) no resuelve, añade `USE_DIRECT_URL=true` en `.env` para usar DIRECT_URL (IP Tailscale) en la app

@@ -45,8 +45,9 @@ Edita `backend/.env`:
 | SUPABASE_URL | SUPABASE_PUBLIC_URL del self-hosted | `https://xxx.supabase.co` |
 | SUPABASE_ANON_KEY | ANON_KEY | `eyJ...` |
 | SUPABASE_SERVICE_ROLE_KEY | SERVICE_ROLE_KEY | `eyJ...` |
-| DATABASE_URL | Pooler (puerto 6543) | `postgresql://postgres.[TENANT]:[PASS]@192.168.100.109:6543/postgres?pgbouncer=true` |
-| DIRECT_URL | Postgres directo (5433, evita pooler) | `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` |
+| DATABASE_URL | Dominio público (producción/Docker) | `postgresql://postgres:[PASS]@supabase.example.com:5433/postgres` |
+| DIRECT_URL | IP Tailscale para migraciones/seed/local | `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` |
+| USE_DIRECT_URL | Si el dominio no resuelve en local: `true` para usar DIRECT_URL en la app | `true` (opcional) |
 | SEED_USER_ID | Solo para `db:seed` manual; `setup-dev` no lo usa | `00000000-0000-0000-0000-...` |
 
 ### 3. Aplicar schema a la base de datos

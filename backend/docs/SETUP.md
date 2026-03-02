@@ -19,8 +19,8 @@
 | SUPABASE_URL | SUPABASE_PUBLIC_URL |
 | SUPABASE_ANON_KEY | ANON_KEY |
 | SUPABASE_SERVICE_ROLE_KEY | SERVICE_ROLE_KEY |
-| DATABASE_URL | Pooler `postgresql://postgres.[TENANT]:[PASS]@192.168.100.109:6543/postgres?pgbouncer=true` |
-| DIRECT_URL | Direct `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` (5433 evita pooler) |
+| DATABASE_URL | Dominio público (producción). Para local si no resuelve: `USE_DIRECT_URL=true` |
+| DIRECT_URL | IP Tailscale `postgresql://postgres:[PASS]@192.168.100.109:5433/postgres` |
 
 ## Comandos
 

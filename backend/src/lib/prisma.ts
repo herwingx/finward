@@ -3,8 +3,12 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) throw new Error('DATABASE_URL is required');
+// En local: si el dominio (DATABASE_URL) no resuelve, usar DIRECT_URL (IP Tailscale)
+const connectionString =
+  process.env.NODE_ENV === 'development' && process.env.USE_DIRECT_URL === 'true'
+    ? process.env.DIRECT_URL
+    : process.env.DATABASE_URL;
+if (!connectionString) throw new Error('DATABASE_URL (o DIRECT_URL si USE_DIRECT_URL=true) es requerido');
 
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
