@@ -87,8 +87,20 @@ export async function updateProfile(profile: Partial<Profile>): Promise<Profile>
   });
 }
 
-// Transactions
-export const getTransactions = () => apiFetch<Transaction[]>('/transactions');
+// Transactions (paginated: { data, total, take, skip })
+export interface PaginatedTransactions {
+  data: Transaction[];
+  total: number;
+  take: number;
+  skip: number;
+}
+export const getTransactions = (params?: { take?: number; skip?: number }) => {
+  const q = new URLSearchParams();
+  if (params?.take != null) q.set('take', String(params.take));
+  if (params?.skip != null) q.set('skip', String(params.skip));
+  const query = q.toString();
+  return apiFetch<PaginatedTransactions>(`/transactions${query ? `?${query}` : ''}`);
+};
 export const getTransaction = (id: string) => apiFetch<Transaction>(`/transactions/${id}`);
 export const addTransaction = (data: Omit<Transaction, 'id'>) =>
   apiFetch<Transaction>('/transactions', { method: 'POST', body: JSON.stringify(data) });
@@ -96,7 +108,13 @@ export const updateTransaction = (id: string, data: Partial<Transaction>) =>
   apiFetch<Transaction>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteTransaction = (id: string, force = false) =>
   apiFetchNoJson(`/transactions/${id}${force ? '?force=true' : ''}`, { method: 'DELETE' });
-export const getDeletedTransactions = () => apiFetch<Transaction[]>('/transactions/deleted');
+export const getDeletedTransactions = (params?: { take?: number; skip?: number }) => {
+  const q = new URLSearchParams();
+  if (params?.take != null) q.set('take', String(params.take));
+  if (params?.skip != null) q.set('skip', String(params.skip));
+  const query = q.toString();
+  return apiFetch<PaginatedTransactions>(`/transactions/deleted${query ? `?${query}` : ''}`);
+};
 export const restoreTransaction = (id: string) =>
   apiFetchNoJson(`/transactions/${id}/restore`, { method: 'POST' });
 
@@ -220,6 +238,10 @@ export const updateInvestment = (id: string, data: Partial<Omit<Investment, 'id'
   apiFetch<Investment>(`/investments/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteInvestment = (id: string) =>
   apiFetchNoJson(`/investments/${id}`, { method: 'DELETE' });
+
+export type RefreshPricesResult = { updated: number; crypto: number; stock: number; message?: string };
+export const refreshInvestmentPrices = () =>
+  apiFetch<RefreshPricesResult>('/investments/refresh-prices', { method: 'POST' });
 
 // Goals
 export const getGoals = () => apiFetch<SavingsGoal[]>('/goals');

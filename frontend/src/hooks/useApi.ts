@@ -117,8 +117,12 @@ export const useDeleteAccount = () => {
   });
 };
 
-export const useTransactions = () =>
-  useQuery({ queryKey: ['transactions'], queryFn: api.getTransactions });
+export const useTransactions = (params?: { take?: number; skip?: number }) =>
+  useQuery({
+    queryKey: ['transactions', params?.take, params?.skip],
+    queryFn: () => api.getTransactions(params),
+    staleTime: 15 * 1000,
+  });
 
 export const useTransaction = (id: string | null) =>
   useQuery({
@@ -486,6 +490,17 @@ export const useDeleteInvestment = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.deleteInvestment,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['investments'] });
+      qc.invalidateQueries({ queryKey: ['financialPeriodSummary'] });
+    },
+  });
+};
+
+export const useRefreshInvestmentPrices = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.refreshInvestmentPrices,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['investments'] });
       qc.invalidateQueries({ queryKey: ['financialPeriodSummary'] });

@@ -4,10 +4,11 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 
 // Hooks & Context
 import { useGlobalSheets } from '@/context/GlobalSheetContext';
-import { useInvestments, useDeleteInvestment } from '@/hooks/useApi';
+import { useInvestments, useDeleteInvestment, useRefreshInvestmentPrices } from '@/hooks/useApi';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableItem } from '@/components/SwipeableItem';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
@@ -22,6 +23,19 @@ import { Investment } from '@/types';
    CONSTANTS & HELPERS
    ================================================================================== */
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6', '#6366F1'];
+
+const STALE_PRICE_MS = 15 * 60 * 1000; // 15 min
+
+function formatTimeAgo(dateStr: string | undefined): string {
+  if (!dateStr) return 'Nunca';
+  const d = new Date(dateStr).getTime();
+  const now = Date.now();
+  const diff = now - d;
+  if (diff < 60_000) return 'Hace un momento';
+  if (diff < 3_600_000) return `Hace ${Math.floor(diff / 60_000)} min`;
+  if (diff < 86_400_000) return `Hace ${Math.floor(diff / 3_600_000)} h`;
+  return `Hace ${Math.floor(diff / 86_400_000)} d`;
+}
 
 enum InvestmentTypeLabel {
   STOCK = 'Acciones',
@@ -62,9 +76,7 @@ const InvestmentDetailSheet = ({
         {/* 1. HERO HEADER */}
         <div className="flex flex-col items-center mb-8 text-center">
           <div className={`size-20 rounded-3xl flex items-center justify-center text-4xl mb-4 shadow-md ${isProfitable ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
-            <span className="material-symbols-outlined text-[36px]">
-              {investment.type === 'CRYPTO' ? 'currency_bitcoin' : investment.type === 'REAL_ESTATE' ? 'home_work' : investment.type === 'STOCK' ? 'show_chart' : 'trending_up'}
-            </span>
+            <Icon name={investment.type === 'CRYPTO' ? 'currency_bitcoin' : investment.type === 'REAL_ESTATE' ? 'home_work' : investment.type === 'STOCK' ? 'show_chart' : 'trending_up'} size={36} />
           </div>
 
           <h2 className="text-xl font-bold text-app-text px-4 leading-tight mb-1">{investment.name}</h2>
@@ -123,14 +135,14 @@ const InvestmentDetailSheet = ({
             onClick={() => { onClose(); onEdit(); }}
             className="h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center gap-2 text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-95 transition-all"
           >
-            <span className="material-symbols-outlined text-[18px]">edit</span>
+            <Icon name="edit" size={18} />
             Editar
           </button>
           <button
             onClick={() => { onClose(); onDelete(); }}
             className="h-12 rounded-xl bg-rose-50 dark:bg-rose-900/10 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-2 text-sm font-bold hover:bg-rose-100 dark:hover:bg-rose-900/20 active:scale-95 transition-all"
           >
-            <span className="material-symbols-outlined text-[18px]">delete</span>
+            <Icon name="delete" size={18} />
             Eliminar
           </button>
         </div>
@@ -153,6 +165,7 @@ const InvestmentsPage: React.FC = () => {
   // Data Queries
   const { data: investments, isLoading } = useInvestments();
   const deleteInvestmentMutation = useDeleteInvestment();
+  const refreshPricesMutation = useRefreshInvestmentPrices();
 
   // Local UI State
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -164,6 +177,18 @@ const InvestmentsPage: React.FC = () => {
       openInvestmentSheet();
     }
   }, [searchParams, openInvestmentSheet]);
+
+  // Auto-refresh prices if stale (has ticker investments and last update > 15 min)
+  const withTicker = investments?.filter((i) => i.ticker?.trim()) ?? [];
+  const lastUpdate = withTicker
+    .map((i) => (i.lastPriceUpdate ? new Date(i.lastPriceUpdate).getTime() : 0))
+    .reduce((a, b) => Math.max(a, b), 0);
+  useEffect(() => {
+    if (withTicker.length === 0 || refreshPricesMutation.isPending || refreshPricesMutation.isSuccess) return;
+    if (Date.now() - lastUpdate > STALE_PRICE_MS) {
+      refreshPricesMutation.mutate();
+    }
+  }, [withTicker.length, lastUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Actions Handlers */
   const openNew = () => openInvestmentSheet();
@@ -210,7 +235,7 @@ const InvestmentsPage: React.FC = () => {
         showBackButton={true}
         rightAction={
           <button onClick={openNew} className="bg-app-text text-app-bg rounded-full size-10 flex items-center justify-center shadow-lg transition-transform active:scale-95">
-            <span className="material-symbols-outlined text-[22px]">add</span>
+            <Icon name="add" size={22} />
           </button>
         }
       />
@@ -221,7 +246,7 @@ const InvestmentsPage: React.FC = () => {
         <div className="relative overflow-hidden rounded-[28px] p-6 bg-linear-to-br from-slate-900 to-slate-800 border border-slate-700/50 text-white shadow-xl shadow-slate-900/20">
           {/* Subtle Backglow */}
           <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
-            <span className="material-symbols-outlined text-[120px]">show_chart</span>
+            <Icon name="show_chart" size={120} />
           </div>
 
           <div className="relative z-10">
@@ -248,13 +273,33 @@ const InvestmentsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-white/10">
+              <span className="text-[11px] text-slate-500">
+                {withTicker.length > 0 ? formatTimeAgo(lastUpdate ? new Date(lastUpdate).toISOString() : undefined) : null}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                refreshPricesMutation.mutate(undefined, {
+                  onSuccess: (r) => toastSuccess(r.updated > 0 ? `Precios actualizados (${r.updated} activos)` : 'Sin cambios'),
+                  onError: () => toastError('Error al actualizar precios'),
+                })
+              }
+                disabled={withTicker.length === 0 || refreshPricesMutation.isPending}
+                className="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Icon name="refresh" size={14} className={refreshPricesMutation.isPending ? 'animate-spin' : ''} />
+                {refreshPricesMutation.isPending ? 'Actualizando…' : 'Actualizar precios'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* 2. DIVERSIFICATION CHART */}
         {/* 2. DIVERSIFICATION CHART */}
         {chartData.length > 0 && (
-          <div className="bento-card p-0 bg-app-surface border border-app-border overflow-hidden shadow-sm flex flex-col items-center justify-center p-4">
+          <div className="bento-card bg-app-surface border border-app-border overflow-hidden shadow-sm flex flex-col items-center justify-center p-4">
             <div className="w-full border-b border-app-subtle pb-2 mb-2 self-start">
               <h3 className="text-xs font-bold text-app-muted uppercase tracking-wide">Diversificación</h3>
             </div>
@@ -302,7 +347,7 @@ const InvestmentsPage: React.FC = () => {
 
           {!investments || investments.length === 0 ? (
             <div className="text-center py-16 bg-app-subtle/30 border-2 border-dashed border-app-border rounded-[24px]">
-              <span className="material-symbols-outlined text-4xl text-app-muted opacity-30 mb-2">add_chart</span>
+              <Icon name="add_chart" size={36} className="text-app-muted opacity-30 mb-2" />
               <p className="text-app-text font-bold text-sm">Portafolio Vacío</p>
               <button onClick={openNew} className="mt-2 text-app-primary text-xs font-bold uppercase hover:underline tracking-wide">
                 + Registrar Primera Inversión
@@ -310,8 +355,10 @@ const InvestmentsPage: React.FC = () => {
             </div>
           ) : (
             investments.map((inv) => {
+              const cost = inv.avgBuyPrice * inv.quantity;
               const val = (inv.currentPrice || inv.avgBuyPrice) * inv.quantity;
-              const gain = val - (inv.avgBuyPrice * inv.quantity);
+              const gain = val - cost;
+              const gainPct = cost > 0 ? (gain / cost) * 100 : 0;
               const isProfitable = gain >= 0;
 
               return (
@@ -330,9 +377,7 @@ const InvestmentsPage: React.FC = () => {
                   >
                     <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
                       <div className={`size-10 md:size-11 shrink-0 rounded-xl flex items-center justify-center border shadow-sm ${isProfitable ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600'} dark:bg-app-subtle dark:border-white/5`}>
-                        <span className="material-symbols-outlined text-[20px]">
-                          {inv.type === 'CRYPTO' ? 'currency_bitcoin' : inv.type === 'REAL_ESTATE' ? 'home_work' : inv.type === 'STOCK' ? 'show_chart' : 'trending_up'}
-                        </span>
+<Icon name={inv.type === 'CRYPTO' ? 'currency_bitcoin' : inv.type === 'REAL_ESTATE' ? 'home_work' : inv.type === 'STOCK' ? 'show_chart' : 'trending_up'} size={20} />
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -344,7 +389,7 @@ const InvestmentsPage: React.FC = () => {
                           {inv.quantity} <span className="hidden sm:inline">unid</span>
                           <span className="size-0.5 bg-current rounded-full mx-0.5 opacity-50" />
                           <span className={isProfitable ? 'text-emerald-500' : 'text-rose-500'}>
-                            {isProfitable ? '+' : ''}{totalGainPercent.toFixed(1)}%
+                            {isProfitable ? '+' : ''}{gainPct.toFixed(1)}%
                           </span>
                         </p>
                       </div>
