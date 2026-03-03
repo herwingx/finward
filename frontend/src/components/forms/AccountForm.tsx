@@ -217,9 +217,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
 
           {/* C. TYPE TOGGLE */}
           <div className="space-y-3">
-            <label className="text-[11px] font-bold text-app-text uppercase tracking-wider ml-1 opacity-70">
+            <span className="text-[11px] font-bold text-app-text uppercase tracking-wider ml-1 opacity-70 block mb-2">
               Tipo de Cuenta
-            </label>
+            </span>
             <div className="flex flex-wrap justify-center gap-2">
               {([
                 { v: 'DEBIT', l: 'Débito', icon: 'account_balance_wallet' },
@@ -405,5 +405,3 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
     </div>
   );
 };
-
-export default AccountForm;

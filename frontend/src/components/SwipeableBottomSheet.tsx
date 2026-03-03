@@ -182,4 +182,4 @@ export const SwipeableBottomSheet: React.FC<SheetProps> = ({
   );
 };
 
-export default SwipeableBottomSheet;
+

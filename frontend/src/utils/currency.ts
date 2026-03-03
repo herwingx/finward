@@ -2,7 +2,7 @@
  * Currency formatting utilities - DRY helper for consistent display across the app.
  * Uses es-MX locale and MXN by default.
  */
-export interface FormatCurrencyOptions {
+interface FormatCurrencyOptions {
   currency?: string;
   maximumFractionDigits?: number;
   minimumFractionDigits?: number;

@@ -265,6 +265,9 @@ const InstallmentsPage: React.FC = () => {
                                 disabled={!isMobile}
                             >
                                 <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedItem(item); }}
                                     onClick={() => setSelectedItem(item)}
                                     className={`bento-card p-5 relative overflow-hidden group cursor-pointer transition-all hover:border-app-border-strong active:scale-[0.99] bg-app-surface`}
                                 >

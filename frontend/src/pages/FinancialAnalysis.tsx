@@ -337,7 +337,7 @@ const FinancialAnalysis: React.FC = () => {
                       if (hasActivity && cx && cy) {
                         return (
                           <circle
-                            key={`dot-${index}`}
+                            key={`dot-${cx}-${cy}`}
                             cx={cx}
                             cy={cy}
                             r={3}
@@ -396,8 +396,8 @@ const FinancialAnalysis: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 relative z-10">
-              {[...upcomingPayments.msiEnding, ...upcomingPayments.recurringEnding].map((item: any, i) => (
-                <div key={i} className="flex justify-between items-center p-3 bg-white/60 dark:bg-black/40 backdrop-blur-sm border border-white/20 rounded-xl">
+              {[...upcomingPayments.msiEnding, ...upcomingPayments.recurringEnding].map((item: any, i: number) => (
+                <div key={item.id || item.description} className="flex justify-between items-center p-3 bg-white/60 dark:bg-black/40 backdrop-blur-sm border border-white/20 rounded-xl">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <Icon name="check_circle" size={18} className="text-teal-600" />
                     <div className="min-w-0">
@@ -433,8 +433,8 @@ const FinancialAnalysis: React.FC = () => {
               {upcomingPayments.expenses.length === 0 && (
                 <p className="p-6 text-center text-xs text-app-muted">Sin gastos fijos.</p>
               )}
-              {upcomingPayments.expenses.map((e: any, i) => (
-                <div key={i} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
+              {upcomingPayments.expenses.map((e: any, i: number) => (
+                <div key={e.id || e.description} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
                   <div className="flex-1 min-w-0 pr-2">
                     <p className="text-sm font-semibold text-app-text truncate">{e.description}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -482,7 +482,7 @@ const FinancialAnalysis: React.FC = () => {
                   : 'Cargo Regular';
 
                 return (
-                  <div key={i} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
+                  <div key={e.id || desc} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
                     <div className="flex-1 min-w-0 pr-2">
                       <p className="text-sm font-semibold text-app-text truncate">{desc}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
@@ -511,7 +511,7 @@ const FinancialAnalysis: React.FC = () => {
               <div className="grid gap-2">
                 {(summary.warnings ?? []).map((w: string, i: number) => (
                   <m.div
-                    key={i}
+                    key={w}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}

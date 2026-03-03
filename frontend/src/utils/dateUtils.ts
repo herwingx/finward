@@ -30,13 +30,13 @@ export const isDateBeforeUTC = (date1: Date | string, date2: Date | string): boo
   return utc1 < utc2;
 };
 
-export const isTodayUTC = (date: Date | string): boolean => {
+const isTodayUTC = (date: Date | string): boolean => {
   const d = typeof date === 'string' ? new Date(date) : date;
   const today = new Date();
   return d.getUTCFullYear() === today.getUTCFullYear() && d.getUTCMonth() === today.getUTCMonth() && d.getUTCDate() === today.getUTCDate();
 };
 
-export const getTodayUTC = (): Date => {
+const getTodayUTC = (): Date => {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 };

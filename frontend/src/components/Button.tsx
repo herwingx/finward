@@ -3,8 +3,8 @@ import { Link, LinkProps } from 'react-router-dom';
 import { Icon } from '@/components/Icon';
 
 /* --- TYPES --- */
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface BaseButtonProps {
   variant?: ButtonVariant;
@@ -84,52 +84,7 @@ export const Button: React.FC<ButtonProps> = ({
   );
 };
 
-/* ==================================================================================
-   COMPONENT 2: Router Link Button (looks like a button)
-   ================================================================================== */
-interface LinkButtonProps extends LinkProps, BaseButtonProps { }
 
-export const LinkButton: React.FC<LinkButtonProps> = ({
-  variant, size, fullWidth, leftIcon, rightIcon, children, className, ...props
-}) => {
-  return (
-    <Link className={getButtonClasses({ variant, size, fullWidth, className })} {...props}>
-      {leftIcon && <Icon name={leftIcon} size={18} className="shrink-0" />}
-      <span>{children}</span>
-      {rightIcon && <Icon name={rightIcon} size={18} className="shrink-0" />}
-    </Link>
-  );
-};
-
-/* ==================================================================================
-   COMPONENT 3: Icon Button (Circular / Square)
-   ================================================================================== */
-interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  icon: string;
-  variant?: 'ghost' | 'surface' | 'primary' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-}
-
-export const IconButton: React.FC<IconButtonProps> = ({ icon, variant = 'ghost', size = 'md', className = '', ...props }) => {
-  const sizeCls = { sm: 'size-8 text-[18px]', md: 'size-10 text-[22px]', lg: 'size-14 text-[28px]' };
-
-  const variantCls = {
-    ghost: 'text-app-muted hover:text-app-text hover:bg-app-subtle',
-    surface: 'bg-app-surface border border-app-border text-app-text hover:border-app-strong shadow-sm',
-    primary: 'bg-app-primary text-white shadow-md shadow-app-primary/20',
-    danger: 'bg-rose-50 text-rose-500 hover:bg-rose-100',
-  };
-
-  const iconSize = size === 'sm' ? 18 : size === 'md' ? 22 : 28;
-  return (
-    <button
-      className={`flex items-center justify-center rounded-full transition-all active:scale-90 ${sizeCls[size]} ${variantCls[variant]} ${className}`}
-      {...props}
-    >
-      <Icon name={icon} size={iconSize} />
-    </button>
-  );
-};
 
 /* ==================================================================================
    COMPONENT 4: Segmented Toggle Group (Tabs)
@@ -165,7 +120,3 @@ export const ToggleGroup: React.FC<{
     </div>
   );
 };
-
-export const ToggleButtonGroup = ToggleGroup;
-
-export default Button;

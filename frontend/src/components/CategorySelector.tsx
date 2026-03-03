@@ -84,51 +84,49 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 
       {/* FULL GRID */}
       <div className={`grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 pb-safe-offset-2 overflow-y-auto max-h-[200px] custom-scrollbar`}>
-      {restCategories.map((cat) => {
-        const isSelected = selectedId === cat.id;
+        {restCategories.map((cat) => {
+          const isSelected = selectedId === cat.id;
 
-        return (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => onSelect(cat.id)}
-            className={`
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => onSelect(cat.id)}
+              className={`
               relative flex flex-col items-center justify-center min-h-[72px] min-w-[60px] p-2 rounded-2xl transition-all duration-200 outline-none select-none
               ${isSelected ? '-translate-y-1' : 'hover:bg-app-subtle/50 active:scale-95'}
             `}
-          >
-            {/* Icon Box */}
-            <div
-              className={`
+            >
+              {/* Icon Box */}
+              <div
+                className={`
                 size-12 rounded-2xl flex items-center justify-center text-[22px] transition-all duration-300
                 ${isSelected
-                  ? 'border-2 scale-105'
-                  : 'bg-app-subtle/40 border border-transparent'
-                }
+                    ? 'border-2 scale-105'
+                    : 'bg-app-subtle/40 border border-transparent'
+                  }
               `}
-              style={{
-                backgroundColor: isSelected ? `${cat.color}20` : undefined, // 20% opacity tint
-                color: cat.color,
-                borderColor: isSelected ? cat.color : 'transparent',
-                boxShadow: isSelected ? `0 4px 12px -2px ${cat.color}40` : undefined,
-              }}
-            >
-              <Icon name={getValidIcon(cat.icon)} size={22} />
-            </div>
+                style={{
+                  backgroundColor: isSelected ? `${cat.color}20` : undefined, // 20% opacity tint
+                  color: cat.color,
+                  borderColor: isSelected ? cat.color : 'transparent',
+                  boxShadow: isSelected ? `0 4px 12px -2px ${cat.color}40` : undefined,
+                }}
+              >
+                <Icon name={getValidIcon(cat.icon)} size={22} />
+              </div>
 
-            {/* Label */}
-            <span className={`
+              {/* Label */}
+              <span className={`
                 text-[10px] text-center w-full truncate font-medium transition-colors mt-1.5
                 ${isSelected ? 'text-app-text font-bold' : 'text-app-muted'}
             `}>
-              {cat.name}
-            </span>
-          </button>
-        );
-      })}
+                {cat.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 };
-
-export default CategorySelector;

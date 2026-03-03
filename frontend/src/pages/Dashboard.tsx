@@ -17,28 +17,44 @@ import { FinancialPlanningWidget } from '@/components/FinancialPlanningWidget'; 
    ======================================= */
 
 const BentoCard = React.memo<{ children: React.ReactNode; title?: string; action?: React.ReactNode; className?: string; onClick?: () => void }>(
-  ({ children, title, action, className = '', onClick }) => (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      } : undefined}
-      className={`bento-card p-5 md:p-6 flex flex-col ${onClick ? 'cursor-pointer' : ''} ${className}`}
-    >
-      {(title || action) && (
-        <div className="flex justify-between items-center mb-4 md:mb-5">
-          {title && <h3 className="text-xs font-bold text-app-muted uppercase tracking-wider">{title}</h3>}
-          {action && <div>{action}</div>}
+  ({ children, title, action, className = '', onClick }) => {
+    const contents = (
+      <>
+        {(title || action) && (
+          <div className="flex justify-between items-center mb-4 md:mb-5">
+            {title && <h3 className="text-xs font-bold text-app-muted uppercase tracking-wider">{title}</h3>}
+            {action && <div>{action}</div>}
+          </div>
+        )}
+        <div className="flex-1 relative">{children}</div>
+      </>
+    );
+
+    if (onClick) {
+      return (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClick();
+            }
+          }}
+          className={`bento-card p-5 md:p-6 flex flex-col cursor-pointer ${className}`}
+        >
+          {contents}
         </div>
-      )}
-      <div className="flex-1 relative">{children}</div>
-    </div>
-  )
+      );
+    }
+
+    return (
+      <div className={`bento-card p-5 md:p-6 flex flex-col ${className}`}>
+        {contents}
+      </div>
+    );
+  }
 );
 
 const StatWidget = React.memo<{ label: string; value: number; type: 'income' | 'expense'; format: (n: number) => string; className?: string }>(
@@ -88,6 +104,9 @@ const Dashboard: React.FC = () => {
 
   const txList = transactions?.data ?? [];
   const stats = useDashboardStats(accounts, investments, loans, goals, txList, categories, profile?.currency);
+
+  const reportsLink = React.useMemo(() => <Link to="/reports" className="text-xs font-bold text-app-primary">Ver detalle</Link>, []);
+  const historyLink = React.useMemo(() => <Link to="/history" className="text-xs font-bold text-app-primary">Ver todos</Link>, []);
 
   if (loadingTx || loadingAcc || loadingProfile) return <SkeletonDashboard />;
 
@@ -176,7 +195,7 @@ const Dashboard: React.FC = () => {
           <FinancialPlanningWidget />
         </div>
         {/* 4. Chart Grande */}
-        <BentoCard title="Tendencia" className="col-span-2 md:col-span-2 lg:col-span-3 min-h-[300px]" action={<Link to="/reports" className="text-xs font-bold text-app-primary">Ver detalle</Link>}>
+        <BentoCard title="Tendencia" className="col-span-2 md:col-span-2 lg:col-span-3 min-h-[300px]" action={reportsLink}>
           <React.Suspense fallback={<div className="h-48 bg-app-subtle/50 rounded-2xl animate-pulse" />}>
             <SpendingTrendChart transactions={txList} />
           </React.Suspense>
@@ -199,7 +218,7 @@ const Dashboard: React.FC = () => {
         </BentoCard>
 
         {/* 6. Transacciones Recientes */}
-        <BentoCard title="Últimos Movimientos" className="col-span-2 md:col-span-2 lg:col-span-4" action={<Link to="/history" className="text-xs font-bold text-app-primary">Ver todos</Link>}>
+        <BentoCard title="Últimos Movimientos" className="col-span-2 md:col-span-2 lg:col-span-4" action={historyLink}>
           <div className="flex flex-col gap-1">
             {txList.slice(0, 5).map((tx) => {
               const cat = categories?.find(c => c.id === tx.categoryId);

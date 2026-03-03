@@ -61,8 +61,8 @@ export const SkeletonDashboard = () => (
       {/* Recent Txs */}
       <div className="col-span-2 lg:col-span-4 bg-app-surface border border-app-border rounded-[32px] p-6 space-y-4">
         <PulseBox className="h-5 w-48 mb-2" />
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4 py-1">
+        {['sktx-1', 'sktx-2', 'sktx-3'].map((key) => (
+          <div key={key} className="flex items-center gap-4 py-1">
             <PulseBox className="size-12 rounded-2xl shrink-0" />
             <div className="flex-1 space-y-2">
               <PulseBox className="h-4 w-1/3" />
@@ -112,8 +112,8 @@ export const SkeletonAccountsPage = () => (
       </div>
 
       {/* List Items */}
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="flex items-center gap-4 p-4 md:p-5 bg-app-surface border border-app-border rounded-3xl h-[88px]">
+      {['acc-sk-1', 'acc-sk-2', 'acc-sk-3', 'acc-sk-4'].map((key) => (
+        <div key={key} className="flex items-center gap-4 p-4 md:p-5 bg-app-surface border border-app-border rounded-3xl h-[88px]">
           <PulseBox className="size-11 md:size-12 rounded-xl shrink-0" />
           <div className="flex-1 space-y-2">
             <div className="flex justify-between">
@@ -130,8 +130,8 @@ export const SkeletonAccountsPage = () => (
 
 export const SkeletonTransactionList = ({ count = 6 }) => (
   <div className="space-y-1 pt-2">
-    {[...Array(count)].map((_, i) => (
-      <div key={i} className="flex items-center justify-between p-3 animate-pulse border-b border-app-border/40 last:border-0">
+    {Array.from({ length: count }).map((_, val) => (
+      <div key={`tx-sk-fixed-${val}`} className="flex items-center justify-between p-3 animate-pulse border-b border-app-border/40 last:border-0">
         <div className="flex items-center gap-3 w-full">
           <PulseBox className="size-10 rounded-xl shrink-0 opacity-80" />
           <div className="space-y-2 flex-1">
@@ -170,8 +170,8 @@ export const SkeletonReports = () => (
       <div className="flex gap-6 items-center flex-1">
         <PulseBox className="size-36 rounded-full shrink-0 m-auto opacity-80 border-20px border-app-bg bg-transparent" />
         <div className="flex-1 space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="space-y-2">
+          {['rep-1', 'rep-2', 'rep-3'].map(key => (
+            <div key={key} className="space-y-2">
               <div className="flex justify-between"><PulseBox className="h-3 w-20" /><PulseBox className="h-3 w-10" /></div>
               <PulseBox className="h-2 w-full rounded-full opacity-30" />
             </div>
@@ -192,8 +192,8 @@ export const SkeletonFinancialAnalysis = () => (
 
     {/* 4 Stats */}
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {[...Array(4)].map((_, i) => (
-        <PulseBox key={i} className="h-28 bg-app-surface border border-app-border opacity-70" />
+      {['ana-1', 'ana-2', 'ana-3', 'ana-4'].map((key) => (
+        <PulseBox key={key} className="h-28 bg-app-surface border border-app-border opacity-70" />
       ))}
     </div>
 
@@ -226,8 +226,8 @@ export const SkeletonPlanningWidget = () => (
     </div>
     <PulseBox className="h-2 w-full rounded-full opacity-60" />
     <div className="grid grid-cols-4 gap-2">
-      {[...Array(4)].map((_, i) => (
-        <PulseBox key={i} className="h-16 rounded-xl bg-app-bg opacity-80" />
+      {['plan-1', 'plan-2', 'plan-3', 'plan-4'].map((key) => (
+        <PulseBox key={key} className="h-16 rounded-xl bg-app-bg opacity-80" />
       ))}
     </div>
   </div>
@@ -258,8 +258,8 @@ export const SkeletonAppLoading = () => (
 // --- Installments ---
 export const SkeletonInstallmentList = () => (
   <div className="space-y-4 max-w-3xl mx-auto pt-4 px-4">
-    {[...Array(4)].map((_, i) => (
-      <div key={i} className="bg-app-surface border border-app-border rounded-3xl p-5 animate-pulse">
+    {['ins-1', 'ins-2', 'ins-3', 'ins-4'].map((key) => (
+      <div key={key} className="bg-app-surface border border-app-border rounded-3xl p-5 animate-pulse">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-3.5">
             <PulseBox className="size-10 rounded-xl shrink-0" />
@@ -309,8 +309,8 @@ export const SkeletonInvestmentsPage = () => (
     {/* List */}
     <div className="space-y-4">
       <PulseBox className="h-4 w-32 mb-2" />
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="h-24 bg-app-surface border border-app-border rounded-3xl p-4 flex items-center justify-between">
+      {['inv-sh-1', 'inv-sh-2', 'inv-sh-3'].map((key) => (
+        <div key={key} className="h-24 bg-app-surface border border-app-border rounded-3xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <PulseBox className="size-10 rounded-xl" />
             <div className="space-y-2">
@@ -332,5 +332,3 @@ export const SkeletonInvestmentsPage = () => (
 export const Skeleton = ({ className = '' }: { className?: string }) => (
   <PulseBox className={className} />
 );
-
-export default Skeleton;

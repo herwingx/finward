@@ -108,13 +108,13 @@ const ResetPasswordPage: React.FC = () => {
 
             {/* Password Field */}
             <div>
-              <label className="block text-xs font-bold uppercase text-app-muted tracking-wider mb-1.5 ml-1">
+              <label htmlFor="reset-new-password" className="block text-xs font-bold uppercase text-app-muted tracking-wider mb-1.5 ml-1">
                 Contraseña Nueva
               </label>
               <div className="relative group">
-                <Icon name="lock" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
+                <Icon name="lock" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors" />
                 <input
-                  id="password"
+                  id="reset-new-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -128,13 +128,13 @@ const ResetPasswordPage: React.FC = () => {
 
             {/* Confirm Password Field */}
             <div>
-              <label className="block text-xs font-bold uppercase text-app-muted tracking-wider mb-1.5 ml-1">
+              <label htmlFor="reset-confirm-password" className="block text-xs font-bold uppercase text-app-muted tracking-wider mb-1.5 ml-1">
                 Confirmar
               </label>
               <div className="relative group">
-                <Icon name="lock_reset" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
+                <Icon name="lock_clock" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors" />
                 <input
-                  id="confirmPassword"
+                  id="reset-confirm-password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

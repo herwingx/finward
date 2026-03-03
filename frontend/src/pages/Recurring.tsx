@@ -253,6 +253,9 @@ const Recurring: React.FC = () => {
                                 disabled={!isMobile}
                             >
                                 <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedItem(item); }}
                                     onClick={() => setSelectedItem(item)}
                                     className={`
                                         bento-card p-4 relative overflow-hidden bg-app-surface cursor-pointer active:scale-[0.99] transition-all hover:border-app-border-strong

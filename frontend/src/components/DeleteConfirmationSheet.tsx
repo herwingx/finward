@@ -5,14 +5,14 @@ import { Icon } from '@/components/Icon';
 /* ==================================================================================
    TYPES
    ================================================================================== */
-export type WarningLevel = 'critical' | 'warning' | 'normal';
+type WarningLevel = 'critical' | 'warning' | 'normal';
 
-export interface ImpactDetail {
+interface ImpactDetail {
   account?: string;
   balanceChange?: number;
 }
 
-export interface DeleteConfirmOptions {
+interface DeleteConfirmOptions {
   revertBalance: boolean;
 }
 
@@ -33,7 +33,7 @@ interface DeleteConfirmationSheetProps {
   isDeleting?: boolean;
   showRevertOption?: boolean;
   revertOptionLabel?: string;
-  defaultRevertState?: boolean;
+  initialRevertState?: boolean;
 }
 
 /* ==================================================================================
@@ -80,20 +80,20 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
   isDeleting = false,
   showRevertOption = false,
   revertOptionLabel = "Revertir impacto en saldos",
-  defaultRevertState = true,
+  initialRevertState = true,
 }) => {
   const [confirmationText, setConfirmationText] = useState('');
   const [acknowledge, setAcknowledge] = useState(false);
-  const [revertBalance, setRevertBalance] = useState(defaultRevertState);
+  const [revertBalance, setRevertBalance] = useState(initialRevertState);
 
   // Reset state when opening
   useEffect(() => {
     if (isOpen) {
       setConfirmationText('');
       setAcknowledge(false);
-      setRevertBalance(defaultRevertState);
+      setRevertBalance(initialRevertState);
     }
-  }, [isOpen, defaultRevertState]);
+  }, [isOpen, initialRevertState]);
 
   const styles = getStyles(warningLevel);
   const canSubmit = requireConfirmation ? (confirmationText === 'ELIMINAR' && acknowledge) : true;
@@ -132,7 +132,7 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
                 <p className="font-bold mb-1">{warningMessage}</p>
                 {warningDetails.length > 0 && (
                   <ul className="list-disc list-inside space-y-0.5 opacity-90">
-                    {warningDetails.map((detail, idx) => <li key={idx}>{detail}</li>)}
+                    {warningDetails.map((detail) => <li key={detail}>{detail}</li>)}
                   </ul>
                 )}
               </div>
@@ -141,9 +141,10 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
 
           {/* 2. Revert Toggle Option */}
           {showRevertOption && (
-            <label className="flex gap-3 p-3 rounded-2xl border border-app-border bg-app-subtle/50 hover:bg-app-subtle hover:border-app-border-strong cursor-pointer transition-all group active:scale-[0.99]">
+            <label htmlFor="revert-toggle" aria-label={revertOptionLabel} className="flex gap-3 p-3 rounded-2xl border border-app-border bg-app-subtle/50 hover:bg-app-subtle hover:border-app-border-strong cursor-pointer transition-all group active:scale-[0.99]">
               <div className="relative flex items-center pt-1">
                 <input
+                  id="revert-toggle"
                   type="checkbox"
                   checked={revertBalance}
                   onChange={e => setRevertBalance(e.target.checked)}
@@ -182,10 +183,11 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold text-rose-500 mb-2 block tracking-wider">
+                <label htmlFor="confirm-input" className="text-[10px] uppercase font-bold text-rose-500 mb-2 block tracking-wider">
                   Escribe "ELIMINAR" para confirmar
                 </label>
                 <input
+                  id="confirm-input"
                   type="text"
                   value={confirmationText}
                   onChange={e => setConfirmationText(e.target.value.toUpperCase())}

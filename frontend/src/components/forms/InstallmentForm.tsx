@@ -205,8 +205,9 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
 
             {/* Category */}
             <div className="flex-1 min-h-0 flex flex-col">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</label>
+              <label htmlFor="installment-category" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</label>
               <CategorySelector
+                id="installment-category"
                 categories={expenseCats}
                 selectedId={catId}
                 onSelect={setCatId}

@@ -171,5 +171,3 @@ const NavItem = ({ to, icon, label, isActive, onClick }: any) => (
     </span>
   </Link>
 );
-
-export default BottomNav;

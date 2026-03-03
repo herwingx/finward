@@ -221,7 +221,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 const FALLBACK_ICON = Tag;
 
-export interface IconProps {
+interface IconProps {
   name: string;
   size?: number;
   className?: string;
@@ -255,13 +255,8 @@ export const Icon: React.FC<IconProps> = ({
   );
 };
 
-/** Check if icon name is supported */
-export function isValidIcon(name: string): boolean {
-  return !!ICON_MAP[name?.trim().toLowerCase() || ''];
-}
-
 /** Get valid icon name or fallback */
-export function getValidIcon(name: string | undefined | null, fallback = 'category'): string {
+function getValidIcon(name: string | undefined | null, fallback = 'category'): string {
   if (!name) return fallback;
   const n = name.trim().toLowerCase();
   return ICON_MAP[n] ? n : fallback;

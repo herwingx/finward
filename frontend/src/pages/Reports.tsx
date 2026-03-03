@@ -174,8 +174,8 @@ const Reports: React.FC = () => {
                                         cornerRadius={6}
                                         stroke="none"
                                     >
-                                        {chartData.map((e, i) => (
-                                            <Cell key={i} fill={e.color} />
+                                        {chartData.map((e) => (
+                                            <Cell key={e.name} fill={e.color} />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<CustomTooltip formatter={formatCurrency} />} />
@@ -243,8 +243,8 @@ const Reports: React.FC = () => {
                 {summary.warnings && summary.warnings.length > 0 && (
                     <div className="space-y-3 pt-2">
                         <h3 className="px-1 text-xs font-bold text-app-muted uppercase tracking-wider">Avisos Importantes</h3>
-                        {summary.warnings.map((w: string, i: number) => (
-                            <div key={i} className="bento-card p-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30">
+                        {summary.warnings.map((w: string) => (
+                            <div key={w} className="bento-card p-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30">
                                 <Icon name="warning" size={20} className="text-amber-500 mt-0.5 shrink-0" />
                                 <p className="text-sm text-amber-900 dark:text-amber-100">{w}</p>
                             </div>

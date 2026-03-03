@@ -160,5 +160,3 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
     </SwipeableBottomSheet>
   );
 };
-
-export default TransactionDetailSheet;

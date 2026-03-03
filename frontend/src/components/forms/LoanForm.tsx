@@ -206,7 +206,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
             {/* Dates Grid */}
             <div className="grid grid-cols-2 gap-3 shrink-0">
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Fecha</label>
+                <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Fecha</span>
                 <DatePicker
                   date={formData.loanDate}
                   onDateChange={d => d && setFormData(p => ({ ...p, loanDate: d }))}
@@ -215,9 +215,9 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
               </div>
 
               <div>
-                <label className={`text-[10px] font-bold ml-1 mb-1 block uppercase tracking-wide opacity-70 ${formData.expectedPayDate ? 'text-app-primary' : 'text-app-text'}`}>
+                <span className={`text-[10px] font-bold ml-1 mb-1 block uppercase tracking-wide opacity-70 ${formData.expectedPayDate ? 'text-app-primary' : 'text-app-text'}`}>
                   Vencimiento
-                </label>
+                </span>
                 <div className="flex gap-2">
                   <DatePicker
                     date={formData.expectedPayDate}
@@ -237,7 +237,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
             {/* D. LINK TO WALLET - Compact */}
             <div className="pt-2 border-t border-app-border/40 mt-2 space-y-3">
               <div className="flex items-center justify-between px-1">
-                <label className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-70">Afectar Saldo de Caja</label>
+                <span className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-70">Afectar Saldo de Caja</span>
                 <ToggleGroup
                   options={[{ value: 'true', label: 'Sí' }, { value: 'false', label: 'No' }]}
                   value={String(formData.affectBalance)}

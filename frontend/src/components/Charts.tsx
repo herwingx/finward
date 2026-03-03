@@ -18,8 +18,8 @@ const ModernTooltip = ({ active, payload, label }: any) => {
       <div className="bg-app-surface border border-app-border rounded-lg p-2.5 shadow-lg min-w-[140px]">
         <p className="text-[10px] text-app-muted uppercase tracking-wider mb-1.5 font-bold">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex justify-between items-center text-xs">
+          {payload.map((entry: any) => (
+            <div key={entry.name} className="flex justify-between items-center text-xs">
               <span className="font-medium capitalize text-app-text flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }}></span>
                 {entry.name}
@@ -210,8 +210,8 @@ export const CategoryDistributionChart: React.FC<{ transactions: Transaction[], 
     <div className="flex items-center h-[200px]">
       {/* Legend Custom */}
       <div className="w-1/3 flex flex-col gap-2 pr-2">
-        {data.map((item, i) => (
-          <div key={i} className="flex items-center gap-1.5 overflow-hidden">
+        {data.map((item) => (
+          <div key={item.name} className="flex items-center gap-1.5 overflow-hidden">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
             <span className="text-[10px] text-app-muted truncate" title={item.name}>{item.name}</span>
           </div>
@@ -232,7 +232,7 @@ export const CategoryDistributionChart: React.FC<{ transactions: Transaction[], 
               dataKey="value"
               cornerRadius={4}
             >
-              {data.map((e, i) => <Cell key={i} fill={e.color} stroke="var(--bg-surface)" strokeWidth={2} />)}
+              {data.map((e) => <Cell key={e.name} fill={e.color} stroke="var(--bg-surface)" strokeWidth={2} />)}
             </Pie>
             <Tooltip content={<ModernTooltip />} />
           </PieChart>

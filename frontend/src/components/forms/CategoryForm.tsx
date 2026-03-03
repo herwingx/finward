@@ -108,7 +108,7 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
 
               {/* Color Picker */}
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-2 block uppercase opacity-70">Color</label>
+                <span className="text-[10px] font-bold text-app-text ml-1 mb-2 block uppercase opacity-70">Color</span>
                 <div className="flex flex-wrap gap-3 px-1.5 py-1">
                   {PRESET_COLORS.map(c => (
                     <button
@@ -127,9 +127,8 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
 
               {/* Icon Grid */}
               <div>
-                <label htmlFor="cat-icon" className="text-[10px] font-bold text-app-text ml-1 mb-2 block uppercase opacity-70">Icono</label>
+                <span className="text-[10px] font-bold text-app-text ml-1 mb-2 block uppercase opacity-70">Icono</span>
                 <IconSelector
-                  id="cat-icon"
                   icons={VALID_ICONS}
                   selectedIcon={icon}
                   onSelect={setIcon}
@@ -142,7 +141,7 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
             {/* 3. BUDGET RULES (Expenses Only) */}
             {type === 'expense' && (
               <div className="pt-4 border-t border-app-border/50">
-                <label className="text-[10px] uppercase font-bold text-app-text mb-3 block text-center opacity-70 tracking-wider">Regla 50 / 30 / 20</label>
+                <span className="text-[10px] uppercase font-bold text-app-text mb-3 block text-center opacity-70 tracking-wider">Regla 50 / 30 / 20</span>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: 'need', label: 'Necesidad', desc: '50%' },

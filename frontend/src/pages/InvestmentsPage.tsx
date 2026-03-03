@@ -282,11 +282,11 @@ const InvestmentsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() =>
-                refreshPricesMutation.mutate(undefined, {
-                  onSuccess: (r) => toastSuccess(r.updated > 0 ? `Precios actualizados (${r.updated} activos)` : 'Sin cambios'),
-                  onError: () => toastError('Error al actualizar precios'),
-                })
-              }
+                  refreshPricesMutation.mutate(undefined, {
+                    onSuccess: (r) => toastSuccess(r.updated > 0 ? `Precios actualizados (${r.updated} activos)` : 'Sin cambios'),
+                    onError: () => toastError('Error al actualizar precios'),
+                  })
+                }
                 disabled={withTicker.length === 0 || refreshPricesMutation.isPending}
                 className="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -318,7 +318,7 @@ const InvestmentsPage: React.FC = () => {
                   stroke="none"
                 >
                   {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -373,12 +373,15 @@ const InvestmentsPage: React.FC = () => {
                   disabled={!isMobile}
                 >
                   <div
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedInvestment(inv); }}
                     onClick={() => setSelectedInvestment(inv)}
                     className="bento-card p-4 md:p-5 flex justify-between items-center hover:border-app-border-strong cursor-pointer active:scale-[0.99] transition-all bg-app-surface group"
                   >
                     <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
                       <div className={`size-10 md:size-11 shrink-0 rounded-xl flex items-center justify-center border shadow-sm ${isProfitable ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600'} dark:bg-app-subtle dark:border-white/5`}>
-<Icon name={inv.type === 'CRYPTO' ? 'currency_bitcoin' : inv.type === 'REAL_ESTATE' ? 'home_work' : inv.type === 'STOCK' ? 'show_chart' : 'trending_up'} size={20} />
+                        <Icon name={inv.type === 'CRYPTO' ? 'currency_bitcoin' : inv.type === 'REAL_ESTATE' ? 'home_work' : inv.type === 'STOCK' ? 'show_chart' : 'trending_up'} size={20} />
                       </div>
 
                       <div className="flex-1 min-w-0">

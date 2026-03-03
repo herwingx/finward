@@ -69,5 +69,3 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
     </div>
   );
 };
-
-export default IconSelector;

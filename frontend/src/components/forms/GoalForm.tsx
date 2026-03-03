@@ -88,6 +88,9 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
           <div className="flex flex-col items-center shrink-0">
             {/* Icon Circle */}
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { const icons = VALID_ICONS; const idx = icons.indexOf(icon as any); const nextIdx = (idx + 1) % icons.length; setIcon(icons[nextIdx]); } }}
               className="size-20 rounded-full flex items-center justify-center text-4xl mb-4 transition-all shadow-lg border-4 border-app-surface group cursor-pointer active:scale-95"
               style={{ backgroundColor: color, color: '#fff', boxShadow: `0 8px 20px -6px ${color}60` }}
               onClick={() => { const icons = VALID_ICONS; const idx = icons.indexOf(icon as any); const nextIdx = (idx + 1) % icons.length; setIcon(icons[nextIdx]); }}
@@ -135,12 +138,11 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
             </div>
 
             <div>
-              <label htmlFor="goal-deadline" className={`text-[10px] font-bold ml-1 mb-1 block uppercase tracking-wide opacity-70 ${deadline ? 'text-app-primary' : 'text-app-text'}`}>
+              <span className={`text-[10px] font-bold ml-1 mb-1 block uppercase tracking-wide opacity-70 ${deadline ? 'text-app-primary' : 'text-app-text'}`}>
                 Fecha Límite (Opcional)
-              </label>
+              </span>
               <div className="flex gap-2">
                 <DatePicker
-                  id="goal-deadline"
                   date={deadline}
                   placeholder="Sin fecha definida"
                   onDateChange={setDeadline}
@@ -159,9 +161,8 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
             </div>
 
             <div className="pb-2">
-              <label htmlFor="goal-icon" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Icono</label>
+              <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Icono</span>
               <IconSelector
-                id="goal-icon"
                 icons={[...VALID_ICONS]}
                 selectedIcon={icon}
                 selectedColor={color}

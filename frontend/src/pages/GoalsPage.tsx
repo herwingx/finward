@@ -66,6 +66,9 @@ const GoalCard = ({
     >
       <div
         onClick={onSelect}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(); }}
+        tabIndex={0}
+        role="button"
         className="group bento-card p-5 relative overflow-hidden bg-app-surface border border-app-border cursor-pointer hover:border-app-primary/30 active:scale-[0.99] transition-all shadow-sm"
       >
         {/* Background Decoration (Progress based tint) */}
@@ -250,7 +253,7 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
               {goal.contributions?.length ? (
                 <div className="bg-app-subtle/40 rounded-2xl p-1 space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
                   {goal.contributions.slice(0, 5).map((c, i) => (
-                    <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-app-surface border border-app-border/50">
+                    <div key={c.id || c.date || i} className="flex justify-between items-center p-3 rounded-xl bg-app-surface border border-app-border/50">
                       <div className="flex items-center gap-3">
                         <div className="size-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
                           <Icon name="arrow_upward" size={14} />
@@ -301,10 +304,11 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
             <div className="space-y-6">
               {/* Amount Input */}
               <div className="bg-app-surface p-4 rounded-2xl border border-app-border shadow-sm focus-within:ring-2 focus-within:ring-app-primary/50 transition-shadow">
-                <label className="text-[10px] uppercase font-bold text-app-muted tracking-wider block mb-2">Monto</label>
+                <label htmlFor="goal-amount" className="text-[10px] uppercase font-bold text-app-muted tracking-wider block mb-2">Monto</label>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl text-app-muted font-light">$</span>
                   <input
+                    id="goal-amount"
                     type="number"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}

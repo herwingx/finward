@@ -138,8 +138,8 @@ const More: React.FC = () => {
 
         {/* 2. MENU SECTIONS */}
         <div className="space-y-6">
-          {menuConfig.map((section, idx) => (
-            <div key={idx} className="space-y-2">
+          {menuConfig.map((section) => (
+            <div key={section.title} className="space-y-2">
               <h3 className="px-1 text-[11px] font-bold text-app-muted uppercase tracking-wider">
                 {section.title}
               </h3>

@@ -242,6 +242,9 @@ const History: React.FC = () => {
                         disabled={!isMobile}
                       >
                         <div
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedTx(tx); }}
                           onClick={() => setSelectedTx(tx)}
                           className="bento-card p-4 flex items-center gap-3.5 hover:border-app-border-strong cursor-pointer active:scale-[0.99] transition-all bg-app-surface"
                         >

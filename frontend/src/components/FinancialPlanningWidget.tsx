@@ -161,7 +161,7 @@ const CreditCardGroup = ({
       ${isExpanded ? 'ring-2 ring-app-primary/20 border-app-primary/40 z-10' : 'border-app-border hover:border-app-border-strong'}
     `}>
       {/* CARD HEADER (Always Visible) */}
-      <div onClick={onToggleExpand} className="p-4 cursor-pointer select-none">
+      <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggleExpand(); }} onClick={onToggleExpand} className="p-4 cursor-pointer select-none">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Icon */}
@@ -210,7 +210,7 @@ const CreditCardGroup = ({
               {/* Payment Action Row */}
               <div className="flex gap-2 items-end">
                 <div className="flex-1 min-w-0">
-                  <label className="block text-[10px] uppercase font-bold text-app-muted mb-1.5">Cuenta de retiro</label>
+                  <span className="block text-[10px] uppercase font-bold text-app-muted mb-1.5">Cuenta de retiro</span>
                   <select
                     value={selectedSourceAccount}
                     onChange={(e) => onSourceAccountChange(e.target.value)}
@@ -235,7 +235,7 @@ const CreditCardGroup = ({
               {/* Items List */}
               <div className="rounded-xl border border-app-border bg-app-surface divide-y divide-app-border overflow-hidden">
                 {msiItems.concat(regularItems).map((item: any, idx: number) => (
-                  <div key={`${item.id}-${idx}`} className="group flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
+                  <div key={item.id || item.originalId || `${item.description}-${idx}`} className="group flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
                     <div className="min-w-0 flex-1 pr-3">
                       <div className="flex items-center gap-2">
                         {item.isOverdue && <span className="text-[10px] bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 px-1 rounded font-bold">Vencido</span>}
@@ -488,8 +488,8 @@ export const FinancialPlanningWidget: React.FC = () => {
             Ingresos por Recibir
           </h3>
           <div className="rounded-2xl border border-app-border bg-app-surface overflow-hidden shadow-sm">
-            {(showAllIncome ? summary.expectedIncome : summary.expectedIncome.slice(0, 3)).map((item: any, idx: number) => (
-              <SwipeableActionRow key={`income-${item.id}-${idx}`} actionType="receive" onAction={() => executePayAction(item.id, item.amount, item.description, 'receive')}>
+            {(showAllIncome ? summary.expectedIncome : summary.expectedIncome.slice(0, 3)).map((item: any) => (
+              <SwipeableActionRow key={item.id || item.description} actionType="receive" onAction={() => executePayAction(item.id, item.amount, item.description, 'receive')}>
                 <div className="flex justify-between items-center p-3.5">
                   <div className="flex items-center gap-3">
                     <div className="size-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
@@ -533,7 +533,7 @@ export const FinancialPlanningWidget: React.FC = () => {
           <div className="space-y-2">
             {cardKeys.map((key, idx) => (
               <CreditCardGroup
-                key={`card-${key}-${idx}`}
+                key={`card-${key}`}
                 groupKey={key}
                 group={groupedCards[key]}
                 isExpanded={expandedCard === key}
@@ -633,7 +633,7 @@ export const FinancialPlanningWidget: React.FC = () => {
               const diff = Math.ceil((due.getTime() - now.getTime()) / 86400000);
 
               return (
-                <SwipeableActionRow key={`expense-${item.id}-${idx}`} actionType="pay" onAction={() => executePayAction(item.id, item.amount, item.description, 'pay')}>
+                <SwipeableActionRow key={`expense-${item.id}`} actionType="pay" onAction={() => executePayAction(item.id, item.amount, item.description, 'pay')}>
                   <div className="flex justify-between items-center p-3.5">
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-lg flex items-center justify-center bg-app-subtle text-app-muted">
@@ -676,5 +676,3 @@ export const FinancialPlanningWidget: React.FC = () => {
     </div>
   );
 };
-
-export default FinancialPlanningWidget;

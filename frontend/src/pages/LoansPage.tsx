@@ -219,6 +219,9 @@ const LoansPage: React.FC = () => {
         disabled={!isMobile}
       >
         <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedLoan(loan); }}
           onClick={() => setSelectedLoan(loan)}
           className="bento-card p-4 flex items-center gap-4 cursor-pointer hover:border-app-border-strong active:scale-[0.99] transition-all bg-app-surface group"
         >
@@ -365,7 +368,7 @@ const LoansPage: React.FC = () => {
           // Show revert toggle ONLY for unpaid loans to offer refund
           showRevertOption={loanToDelete.status !== 'paid'}
           revertOptionLabel={loanToDelete.loanType === 'lent' ? 'Devolver el dinero a mi saldo' : 'Restaurar deuda original'}
-          defaultRevertState={true}
+          initialRevertState={true}
           isDeleting={deleteMutation.isPending}
         />
       )}

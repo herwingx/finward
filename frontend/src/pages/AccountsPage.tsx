@@ -293,6 +293,9 @@ const AccountsPage: React.FC = () => {
                                     disabled={!isMobile}
                                 >
                                     <div
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedAccount(account); }}
                                         onClick={() => setSelectedAccount(account)}
                                         className="bento-card p-4 md:p-5 flex gap-4 items-center group cursor-pointer hover:border-app-border-strong active:scale-[0.99]"
                                     >

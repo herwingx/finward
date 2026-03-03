@@ -70,6 +70,9 @@ export const MobileFAB: React.FC = () => {
       {/* Backdrop */}
       {isMenuOpen && (
         <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsMenuOpen(false); }}
           className="lg:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] touch-none"
           onClick={() => setIsMenuOpen(false)}
         />
@@ -139,4 +142,4 @@ export const MobileFAB: React.FC = () => {
   );
 };
 
-export default MobileFAB;
+

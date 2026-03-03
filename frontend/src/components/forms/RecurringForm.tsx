@@ -183,9 +183,10 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
 
             {/* Freq */}
             <div className="shrink-0">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Frecuencia</label>
+              <label htmlFor="recurring-freq" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Frecuencia</label>
               <div className="relative">
                 <select
+                  id="recurring-freq"
                   value={frequency}
                   onChange={(e) => setFrequency(e.target.value as FrequencyType)}
                   className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
@@ -203,7 +204,7 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
             {/* Dates & Account */}
             <div className="grid grid-cols-2 gap-3 shrink-0">
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Inicia</label>
+                <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Inicia</span>
                 <DatePicker
                   date={startDate}
                   onDateChange={(d) => d && setStartDate(d)}
@@ -211,9 +212,10 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Cuenta</label>
+                <label htmlFor="recurring-account" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Cuenta</label>
                 <div className="relative">
                   <select
+                    id="recurring-account"
                     value={accountId} onChange={e => setAccountId(e.target.value)}
                     className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
                   >
@@ -226,7 +228,7 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
 
             {/* Category */}
             <div className="flex-1 min-h-0 flex flex-col">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</label>
+              <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</span>
               <CategorySelector
                 categories={filteredCats}
                 selectedId={categoryId}
@@ -242,19 +244,19 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
             <p className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-50 mb-1">Opciones Avanzadas</p>
 
             {/* Skip First */}
-            <div className="flex justify-between items-center px-1 h-8">
-              <span className="text-xs text-app-text font-medium">Saltar primer cobro</span>
-              <label className="relative inline-flex items-center cursor-pointer scale-75 origin-right">
+            <label className="flex justify-between items-center px-1 h-8 cursor-pointer group">
+              <span className="text-xs text-app-text font-medium transition-colors">Saltar primer cobro</span>
+              <div className="relative inline-flex items-center scale-75 origin-right">
                 <input type="checkbox" checked={skipFirst} onChange={e => setSkipFirst(e.target.checked)} className="sr-only peer" />
                 <div className="w-11 h-6 bg-app-subtle peer-focus:ring-2 peer-focus:ring-app-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-app-primary"></div>
-              </label>
-            </div>
+              </div>
+            </label>
 
             {/* End Date Toggle */}
             <div className="flex flex-col gap-1">
-              <div className="flex justify-between items-center px-1 h-8">
-                <span className="text-xs text-app-text font-medium">¿Tiene fecha límite?</span>
-                <label className="relative inline-flex items-center cursor-pointer scale-75 origin-right">
+              <label className="flex justify-between items-center px-1 h-8 cursor-pointer group">
+                <span className="text-xs text-app-text font-medium transition-colors">¿Tiene fecha límite?</span>
+                <div className="relative inline-flex items-center scale-75 origin-right">
                   <input type="checkbox" checked={hasEnd} onChange={() => {
                     setHasEnd(!hasEnd);
                     if (!hasEnd && !endDate) {
@@ -262,8 +264,8 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
                     }
                   }} className="sr-only peer" />
                   <div className="w-11 h-6 bg-app-subtle peer-focus:ring-2 peer-focus:ring-app-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-app-primary"></div>
-                </label>
-              </div>
+                </div>
+              </label>
 
               {hasEnd && (
                 <div className="px-1 animate-fade-in pt-1">

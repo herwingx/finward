@@ -91,6 +91,75 @@ const CategoryDetailSheet = ({ category, onClose, onEdit, onDelete }: any) => {
 };
 
 /* ==================================================================================
+   SUB-COMPONENT: CATEGORY GROUP
+   ================================================================================== */
+const CategoryGroup = React.memo<{
+    title: string;
+    list: Category[];
+    isMobile: boolean;
+    onEdit: (cat: Category) => void;
+    onDeleteClick: (cat: Category) => void;
+    onSelect: (cat: Category) => void;
+}>(({ title, list, isMobile, onEdit, onDeleteClick, onSelect }) => (
+    <div className="mb-8 md:mb-12">
+        <h3 className="px-1 mb-4 md:mb-6 text-xs font-bold text-app-muted uppercase tracking-wider flex items-center gap-2">
+            {title}
+            <span className="bg-app-subtle px-1.5 py-0.5 rounded text-[10px] text-app-text">{list.length}</span>
+        </h3>
+
+        <div className="space-y-3">
+            {list.length > 0 ? list.map(cat => (
+                <SwipeableItem
+                    key={cat.id}
+                    leftAction={{ icon: 'edit', color: 'text-white', bgColor: 'bg-indigo-500', label: 'Editar' }}
+                    onSwipeRight={() => onEdit(cat)}
+                    rightAction={{ icon: 'delete', color: 'text-white', bgColor: 'bg-rose-500', label: 'Borrar' }}
+                    onSwipeLeft={() => onDeleteClick(cat)}
+                    className="rounded-3xl"
+                    disabled={!isMobile}
+                >
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(cat); }}
+                        onClick={() => onSelect(cat)}
+                        className="bento-card p-4 flex items-center gap-3.5 hover:border-app-border-strong cursor-pointer active:scale-[0.99] transition-all bg-app-surface"
+                    >
+                        <div
+                            className="size-10 rounded-xl flex items-center justify-center text-lg shadow-sm border border-black/5"
+                            style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
+                        >
+                            <Icon name={cat.icon || 'category'} size={20} />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-app-text truncate">{cat.name}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                {/* Small Dot Color */}
+                                <div className="size-1.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                                {cat.budgetType && (
+                                    <p className="text-[10px] font-medium text-app-muted uppercase tracking-wide">
+                                        {cat.budgetType === 'need' ? 'Necesidad' : cat.budgetType === 'want' ? 'Deseo' : 'Ahorro'}
+                                    </p>
+                                )}
+                                {!cat.budgetType && <p className="text-[10px] text-app-muted italic">General</p>}
+                            </div>
+                        </div>
+
+                        <Icon name="chevron_right" size={18} className="text-app-border -mr-1" />
+                    </div>
+                </SwipeableItem>
+            )) : (
+                <div className="p-8 border-2 border-dashed border-app-border rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
+                    <Icon name="folder_off" size={30} className="mb-2 text-app-muted" />
+                    <p className="text-xs text-app-muted">Sin categorías.</p>
+                </div>
+            )}
+        </div>
+    </div>
+));
+
+/* ==================================================================================
    MAIN COMPONENT
    ================================================================================== */
 
@@ -174,61 +243,6 @@ const Categories: React.FC = () => {
     };
 
 
-    const renderGroup = (title: string, list: Category[]) => (
-        <div className="mb-8 md:mb-12">
-            <h3 className="px-1 mb-4 md:mb-6 text-xs font-bold text-app-muted uppercase tracking-wider flex items-center gap-2">
-                {title}
-                <span className="bg-app-subtle px-1.5 py-0.5 rounded text-[10px] text-app-text">{list.length}</span>
-            </h3>
-
-            <div className="space-y-3">
-                {list.length > 0 ? list.map(cat => (
-                    <SwipeableItem
-                        key={cat.id}
-                        leftAction={{ icon: 'edit', color: 'text-white', bgColor: 'bg-indigo-500', label: 'Editar' }}
-                        onSwipeRight={() => handleEdit(cat)}
-                        rightAction={{ icon: 'delete', color: 'text-white', bgColor: 'bg-rose-500', label: 'Borrar' }}
-                        onSwipeLeft={() => handleDeleteClick(cat)}
-                        className="rounded-3xl"
-                        disabled={!isMobile}
-                    >
-                        <div
-                            onClick={() => setSelectedCategory(cat)}
-                            className="bento-card p-4 flex items-center gap-3.5 hover:border-app-border-strong cursor-pointer active:scale-[0.99] transition-all bg-app-surface"
-                        >
-                            <div
-                                className="size-10 rounded-xl flex items-center justify-center text-lg shadow-sm border border-black/5"
-                                style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
-                            >
-                                <Icon name={getValidIcon(cat.icon)} size={20} />
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-app-text truncate">{cat.name}</p>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    {/* Small Dot Color */}
-                                    <div className="size-1.5 rounded-full" style={{ backgroundColor: cat.color }} />
-                                    {cat.budgetType && (
-                                        <p className="text-[10px] font-medium text-app-muted uppercase tracking-wide">
-                                            {cat.budgetType === 'need' ? 'Necesidad' : cat.budgetType === 'want' ? 'Deseo' : 'Ahorro'}
-                                        </p>
-                                    )}
-                                    {!cat.budgetType && <p className="text-[10px] text-app-muted italic">General</p>}
-                                </div>
-                            </div>
-
-                            <Icon name="chevron_right" size={18} className="text-app-border -mr-1" />
-                        </div>
-                    </SwipeableItem>
-                )) : (
-                    <div className="p-8 border-2 border-dashed border-app-border rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
-                        <Icon name="folder_off" size={30} className="mb-2 text-app-muted" />
-                        <p className="text-xs text-app-muted">Sin categorías.</p>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
 
 
     return (
@@ -249,8 +263,8 @@ const Categories: React.FC = () => {
             <div className="max-w-xl mx-auto px-4 py-4 animate-fade-in pb-20">
                 {isLoading ? <SkeletonTransactionList count={6} /> : (
                     <>
-                        {renderGroup('Gastos & Egresos', expenses)}
-                        {renderGroup('Ingresos & Entradas', incomes)}
+                        <CategoryGroup title="Gastos & Egresos" list={expenses} isMobile={isMobile} onEdit={handleEdit} onDeleteClick={handleDeleteClick} onSelect={setSelectedCategory} />
+                        <CategoryGroup title="Ingresos & Entradas" list={incomes} isMobile={isMobile} onEdit={handleEdit} onDeleteClick={handleDeleteClick} onSelect={setSelectedCategory} />
                     </>
                 )}
 

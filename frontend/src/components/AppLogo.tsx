@@ -23,5 +23,5 @@ export const AppLogo: React.FC<AppLogoProps> = ({ size = 40, className = '' }) =
   />
 );
 
-export default AppLogo;
+
 

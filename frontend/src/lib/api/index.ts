@@ -239,7 +239,7 @@ export const updateInvestment = (id: string, data: Partial<Omit<Investment, 'id'
 export const deleteInvestment = (id: string) =>
   apiFetchNoJson(`/investments/${id}`, { method: 'DELETE' });
 
-export type RefreshPricesResult = { updated: number; crypto: number; stock: number; message?: string };
+type RefreshPricesResult = { updated: number; crypto: number; stock: number; message?: string };
 export const refreshInvestmentPrices = () =>
   apiFetch<RefreshPricesResult>('/investments/refresh-prices', { method: 'POST' });
 

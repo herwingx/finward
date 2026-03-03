@@ -151,7 +151,7 @@ export const InvestmentForm: React.FC<{
 
             {/* Current Price */}
             <div className="shrink-0">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Precio Actual (Opcional)</label>
+              <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Precio Actual (Opcional)</span>
               <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all h-11 flex items-center">
                 <span className="text-app-muted text-xs mr-1">$</span>
                 <input type="number" step="any" value={currentPrice} onChange={e => setCurrentPrice(e.target.value)} placeholder="Igual a precio compra" className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60" />
@@ -168,7 +168,7 @@ export const InvestmentForm: React.FC<{
                 <div className="relative">
                   <select
                     id="inv-source"
-                    value={sourceAccountId} onChange={e => setSourceAccountId(e.target.value)}
+                    value={sourceAccountId}
                     onChange={(e) => setSourceAccountId(e.target.value)}
                     className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
                   >

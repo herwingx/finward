@@ -3,7 +3,7 @@ import { m, useMotionValue, useTransform, animate, PanInfo } from 'framer-motion
 import { Icon } from '@/components/Icon';
 
 // Definición de las acciones visuales
-export interface SwipeActionConfig {
+interface SwipeActionConfig {
   icon: string;    // Nombre del icono Material Symbols
   color: string;   // Clase de texto Tailwind (ej: 'text-white')
   bgColor: string; // Clase de fondo Tailwind (ej: 'bg-red-500')
