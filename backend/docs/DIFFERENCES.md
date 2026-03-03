@@ -93,7 +93,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 - Módulo `investments/` con rutas limpias
 - Misma lógica: crear Investment + opcionalmente CreateExpense
 - Categoría "Inversiones" creada bajo demanda
-- **Precios automáticos**: `POST /investments/refresh-prices` actualiza crypto (CoinGecko) + stock (Yahoo Finance). Ver [COINGECKO.md](COINGECKO.md), [YAHOO_FINANCE.md](YAHOO_FINANCE.md)
+- **Precios automáticos**: `POST /investments/refresh-prices` actualiza crypto (CoinGecko) + stock (Yahoo Finance). Frontend: botón "Actualizar precios", indicador "Actualizado hace X min", auto-refresh si >15 min. Ver [COINGECKO.md](COINGECKO.md), [YAHOO_FINANCE.md](YAHOO_FINANCE.md)
 
 ---
 

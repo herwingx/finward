@@ -40,13 +40,17 @@ Requiere `backend/.env` con Supabase. No usa Postgres local (Supabase externo).
 
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md) - Optimizaciones de rendimiento (auditoría 2025)
 - [docs/UX-UI.md](docs/UX-UI.md) - Guía UX/UI, componentes, validación y touch targets
+- [docs/PROJECTION-ENGINE.md](docs/PROJECTION-ENGINE.md) - Motor de proyección financiera
+- [backend/docs/API.md](backend/docs/API.md) - Referencia API REST
 - [backend/docs/DOMAIN.md](backend/docs/DOMAIN.md) - Dominio financiero
 - [backend/docs/SETUP.md](backend/docs/SETUP.md) - Instalación
 - [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) - Flujo de desarrollo local
 - [backend/docs/RLS.md](backend/docs/RLS.md) - Row Level Security (qué es, para qué sirve)
+- [backend/docs/SECURITY.md](backend/docs/SECURITY.md) - Seguridad y buenas prácticas
 - [backend/docs/SEED.md](backend/docs/SEED.md) - Seed de datos de prueba
 - [backend/docs/ARCHITECTURE.md](backend/docs/ARCHITECTURE.md) - Arquitectura
 - [backend/docs/STORAGE.md](backend/docs/STORAGE.md) - Uploads (Supabase Storage)
+- [backend/docs/DIFFERENCES.md](backend/docs/DIFFERENCES.md) - Diferencias Finward vs legacy
 - [backend/docs/COINGECKO.md](backend/docs/COINGECKO.md) - Precios crypto (CoinGecko)
 - [backend/docs/YAHOO_FINANCE.md](backend/docs/YAHOO_FINANCE.md) - Precios acciones/ETFs (Yahoo Finance)
 
