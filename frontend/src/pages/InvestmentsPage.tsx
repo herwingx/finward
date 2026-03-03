@@ -37,14 +37,15 @@ function formatTimeAgo(dateStr: string | undefined): string {
   return `Hace ${Math.floor(diff / 86_400_000)} d`;
 }
 
-enum InvestmentTypeLabel {
-  STOCK = 'Acciones',
-  CRYPTO = 'Cripto',
-  ETF = 'ETF',
-  REAL_ESTATE = 'Inmuebles',
-  BOND = 'Bonos',
-  OTHER = 'Otro'
-}
+const InvestmentTypeLabel: Record<string, string> = {
+  STOCK: 'Acciones',
+  CRYPTO: 'Cripto',
+  ETF: 'ETF',
+  FUND: 'Fondos',
+  REAL_ESTATE: 'Inmuebles',
+  BOND: 'Bonos',
+  OTHER: 'Otro'
+};
 
 /* ==================================================================================
    SUB-COMPONENT: DETAIL SHEET
@@ -321,7 +322,7 @@ const InvestmentsPage: React.FC = () => {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => `$${value.toLocaleString()}`}
+                  formatter={(value: number | undefined) => `$${(value ?? 0).toLocaleString()}`}
                   contentStyle={{
                     borderRadius: '12px',
                     border: '1px solid var(--border-default)',

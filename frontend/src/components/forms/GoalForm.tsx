@@ -51,15 +51,15 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
     const payload = {
       name,
       targetAmount: val,
-      // Fix: Send null instead of undefined to ensure backend clears the date
-      deadline: deadline ? deadline.toISOString() : null,
+      deadline: deadline ? deadline.toISOString() : undefined,
       icon,
-      color
+      color,
+      status: 'active' as const,
+      priority: 1
     };
 
     try {
       if (isEditing && existingGoal) {
-        // Fix: Spread payload to avoid nesting it under 'goal' property
         await updateMutation.mutateAsync({ id: existingGoal.id, ...payload });
         toastSuccess('Meta actualizada');
       } else {

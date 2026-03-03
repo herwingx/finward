@@ -211,7 +211,7 @@ const History: React.FC = () => {
 
                 <div className="space-y-3">
                   {groupTxs.map(tx => {
-                    const cat = getCategoryInfo(tx.categoryId);
+                    const cat = getCategoryInfo(tx.categoryId ?? null);
                     const accName = getAccountName(tx.accountId);
 
                     const isExpense = tx.type === 'expense';
@@ -299,7 +299,7 @@ const History: React.FC = () => {
         isOpen={!!selectedTx}
         onClose={() => setSelectedTx(null)}
         transaction={selectedTx}
-        category={selectedTx ? getCategoryInfo(selectedTx.categoryId) : undefined}
+        category={selectedTx ? getCategoryInfo(selectedTx.categoryId ?? null) : undefined}
         account={selectedTx ? accountMap.get(selectedTx.accountId) : undefined}
         destinationAccount={selectedTx?.destinationAccountId ? accountMap.get(selectedTx.destinationAccountId) : undefined}
         onEdit={(tx) => { setSelectedTx(null); handleEdit(tx); }}

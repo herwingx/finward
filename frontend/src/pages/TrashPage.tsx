@@ -93,10 +93,10 @@ const TrashPage: React.FC = () => {
               <p className="text-sm font-medium text-app-text">La papelera está vacía</p>
             </div>
           ) : (
-            deletedList.map(tx => {
+            deletedList.map((tx: Transaction) => {
               const daysLeft = getDaysLeft(tx.deletedAt);
               const isExp = tx.type === 'expense';
-              const cat = getCategoryInfo(tx.categoryId);
+              const cat = getCategoryInfo(tx.categoryId ?? null);
 
               return (
                 <SwipeableItem

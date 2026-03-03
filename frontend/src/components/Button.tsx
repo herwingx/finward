@@ -24,7 +24,13 @@ const getButtonClasses = ({
   fullWidth = false,
   isLoading = false,
   className = ''
-}: any) => {
+}: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+  isLoading?: boolean;
+  className?: string;
+}) => {
 
   // Core Layout & Animation
   const base = "inline-flex items-center justify-center gap-2 font-bold rounded-2xl transition-all duration-200 active:scale-[0.98] outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 relative overflow-hidden";

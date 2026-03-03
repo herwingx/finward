@@ -102,12 +102,12 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
       ...formData,
       originalAmount: val,
       loanDate: formData.loanDate.toISOString(),
-      expectedPayDate: formData.expectedPayDate ? formData.expectedPayDate.toISOString() : null,
-      borrowerPhone: formData.borrowerPhone || null,
-      borrowerEmail: formData.borrowerEmail || null,
-      reason: formData.reason || null,
-      notes: formData.notes || null,
-      accountId: formData.accountId || null,
+      expectedPayDate: formData.expectedPayDate ? formData.expectedPayDate.toISOString() : undefined,
+      borrowerPhone: formData.borrowerPhone || undefined,
+      borrowerEmail: formData.borrowerEmail || undefined,
+      reason: formData.reason || undefined,
+      notes: formData.notes || undefined,
+      accountId: formData.accountId || undefined,
       affectBalance: formData.affectBalance
     };
 
@@ -277,7 +277,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
               variant={isLent ? 'primary' : 'danger'}
               isLoading={addM.isPending || updateM.isPending}
               disabled={addM.isPending || updateM.isPending}
-              className={isLent ? '!bg-violet-600 !shadow-violet-500/30 hover:!bg-violet-700' : ''}
+              className={isLent ? 'bg-violet-600! shadow-violet-500/30! hover:bg-violet-700!' : ''}
             >
               {isEditing ? 'Guardar Cambios' : (isLent ? 'Registrar Préstamo' : 'Confirmar Deuda')}
             </Button>

@@ -63,10 +63,12 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
     const val = parseFloat(total);
     if (!desc || val <= 0 || !accId) return toastError('Completa la información');
 
+    const installs = parseInt(installments) || 1;
     const payload = {
       description: desc,
       totalAmount: val,
-      installments: parseInt(installments),
+      installments: installs,
+      monthlyPayment: val / installs,
       purchaseDate: date.toISOString(),
       accountId: accId,
       categoryId: catId,

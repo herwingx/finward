@@ -184,9 +184,10 @@ export const SpendingTrendChart: React.FC<SpendingTrendProps> = ({ transactions 
 export const CategoryDistributionChart: React.FC<{ transactions: Transaction[], categories: Category[] }> = ({ transactions, categories }) => {
   const data = useMemo(() => {
     const totals = transactions
-      .filter(tx => tx.type === 'expense')
+      .filter(tx => tx.type === 'expense' && tx.categoryId)
       .reduce((acc, tx) => {
-        acc[tx.categoryId] = (acc[tx.categoryId] || 0) + tx.amount;
+        const cid = tx.categoryId!;
+        acc[cid] = (acc[cid] || 0) + tx.amount;
         return acc;
       }, {} as Record<string, number>);
 

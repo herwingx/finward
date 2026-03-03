@@ -21,7 +21,7 @@ const updateSW = registerSW({
   onOfflineReady() {
     sileo.success({ title: 'App lista para usar sin conexión', duration: 3000 });
   },
-  onRegisteredSW(swUrl, registration) {
+  onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
     if (registration) {
       setInterval(() => registration.update(), 60 * 1000);
     }
