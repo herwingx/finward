@@ -36,8 +36,12 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 ### Transactions, Accounts, Categories
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| GET, POST | /api/transactions | Listar, crear transacciones |
-| GET | /api/transactions/deleted | Listar transacciones borradas |
+| GET, POST | /api/transactions | Listar (paginado), crear transacciones |
+| GET | /api/transactions/deleted | Listar transacciones borradas (paginado) |
+
+**Paginación:** `GET /transactions` y `GET /transactions/deleted` aceptan `?take=100&skip=0` (take: 1-500, default 100). Respuesta: `{ data: Transaction[], total, take, skip }`.
+
+**Importante:** El balance de cuentas no es editable vía `PUT /accounts/:id`; se calcula desde el libro mayor.
 | GET, PUT, DELETE | /api/transactions/:id | Obtener, actualizar, borrar (soft) |
 | POST | /api/transactions/:id/restore | Restaurar transacción borrada |
 | GET, POST | /api/accounts | Listar, crear cuentas |
@@ -63,7 +67,7 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | GET, POST | /api/investments | CRUD inversiones |
-| POST | /api/investments/refresh-prices | Actualizar precios crypto (CoinGecko) + stock (Yahoo Finance) |
+| POST | /api/investments/refresh-prices | Actualizar precios crypto (CoinGecko) + stock (Yahoo Finance). Sin body. Resp: `{ updated, crypto, stock }`. Ver [COINGECKO.md](COINGECKO.md), [YAHOO_FINANCE.md](YAHOO_FINANCE.md) |
 | GET, POST | /api/recurring | CRUD recurrentes + pay/skip |
 | GET | /api/financial-planning/summary | Resumen período (period, mode) |
 | GET | /api/financial-planning/upcoming | Próximos compromisos |

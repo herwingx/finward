@@ -1,6 +1,12 @@
-# CoinGecko API - Crypto
+# CoinGecko API - Precios Crypto
 
-Usamos la **API pública de CoinGecko** para actualizar `currentPrice` en inversiones tipo **crypto**. Para **acciones/ETFs**, ver [YAHOO_FINANCE.md](YAHOO_FINANCE.md).
+## Propósito y función
+
+CoinGecko se usa para **actualizar automáticamente el precio actual** (`currentPrice`) de las inversiones tipo **CRYPTO** en Finward. La API no lista ni busca monedas; solo provee precios cuando ya tienes una inversión registrada con su CoinGecko ID.
+
+**Flujo:** (1) Creas inversión con `type: "CRYPTO"` y `ticker` = CoinGecko ID (ej. `bitcoin`). (2) Llamas a `POST /api/investments/refresh-prices`. (3) El backend consulta CoinGecko en lote y actualiza `currentPrice` en la BD.
+
+Para **acciones y ETFs**, ver [YAHOO_FINANCE.md](YAHOO_FINANCE.md).
 
 ## Gratis, uso personal
 
@@ -8,11 +14,17 @@ Usamos la **API pública de CoinGecko** para actualizar `currentPrice` en invers
 - **Con API key** (opcional): `COINGECKO_API_KEY` en `.env` → Pro API, rate limit mayor
 - **Uso**: personal, no comercial (ver [Términos CoinGecko](https://www.coingecko.com/en/api_terms))
 
-## Cómo funciona
+## Cómo agregar cripto en la app
 
-1. **Inversión crypto**: `type: "crypto"` y `ticker` = CoinGecko ID (ej. `bitcoin`, `ethereum`)
-2. **POST /api/investments/refresh-prices**: refresca `currentPrice` para todas tus inversiones crypto con ticker
-3. Una llamada a CoinGecko por lote (batch) → respetamos rate limit
+No hay buscador de monedas. Debes ingresar el **CoinGecko ID** en el campo **Ticker** al crear/editar:
+
+1. Inversiones → Nuevo Activo
+2. Tipo **Cripto**
+3. **Nombre**: ej. "Bitcoin"
+4. **Ticker**: CoinGecko ID en minúsculas (ej. `bitcoin`, `ethereum`)
+5. Cantidad, Precio compra, guardar
+
+Tras guardar, `refresh-prices` actualiza los precios desde CoinGecko.
 
 ## CoinGecko IDs comunes
 
@@ -24,8 +36,11 @@ Usamos la **API pública de CoinGecko** para actualizar `currentPrice` en invers
 | XRP | `ripple` |
 | Solana | `solana` |
 | BNB | `binancecoin` |
+| Dogecoin | `dogecoin` |
+| Cardano | `cardano` |
+| Polkadot | `polkadot` |
 
-IDs completos: [CoinGecko /coins/list](https://api.coingecko.com/api/v3/coins/list) o busca en [coingecko.com](https://www.coingecko.com/).
+IDs completos: [api.coingecko.com/api/v3/coins/list](https://api.coingecko.com/api/v3/coins/list). Búsqueda: [coingecko.com](https://www.coingecko.com/).
 
 ## Moneda
 
@@ -33,18 +48,26 @@ Precios en **MXN** (esquema default). CoinGecko soporta `usd`, `eur`, etc.; por 
 
 ## Rate limit (429)
 
-Si llamas `refresh-prices` muchas veces seguidas, CoinGecko puede devolver 429. Espera ~1 minuto y reintenta. Para uso personal, un refresh al abrir la pantalla de inversiones suele bastar.
+Si llamas `refresh-prices` muchas veces seguidas, CoinGecko puede devolver 429. Espera ~1 minuto y reintenta. El frontend limita las llamadas: auto-refresh solo si han pasado >15 min y botón manual con feedback.
 
-## Integración con frontend
+## Integración técnica
 
-El frontend puede llamar `POST /api/investments/refresh-prices` al cargar la pantalla de inversiones para obtener precios actualizados antes de listar. No requiere body ni query params.
+**Endpoint:** `POST /api/investments/refresh-prices` (sin body ni query).
 
 ```http
 POST /api/investments/refresh-prices
 Authorization: Bearer <token>
 ```
 
-Respuesta: `{ updated: number, crypto: number, stock: number }`
+**Respuesta:** `{ updated, crypto, stock }` (updated = inversiones actualizadas).
+
+**Implementación backend:** `backend/src/lib/coingecko.ts` → `fetchPrices(ids, vsCurrency)`. La ruta en `investmentRoutes.ts` agrupa todas las crypto del usuario, hace una llamada batch a CoinGecko `/simple/price?ids=...&vs_currencies=mxn`, y actualiza cada inversión con el precio devuelto.
+
+### Frontend (InvestmentsPage)
+
+- **Botón "Actualizar precios"**: actualización manual. Llama al endpoint e invalida la query de inversiones. Muestra toast al completar.
+- **Indicador "Actualizado hace X min"**: usa el `lastPriceUpdate` más reciente de inversiones con ticker (crypto o stock). Muestra "Hace un momento", "Hace 5 min", etc.
+- **Auto-refresh**: si hay inversiones con ticker y la última actualización es mayor a 15 min, se llama automáticamente al abrir la página.
 
 ## Variables de entorno
 
@@ -59,5 +82,5 @@ COINGECKO_API_KEY=cg_xxxxx
 
 ## Qué NO cubre CoinGecko
 
-- Acciones, ETFs → usamos [Yahoo Finance](YAHOO_FINANCE.md)
-- CETES, bonos → sin API gratuita, `currentPrice` manual
+- **Acciones, ETFs** → [Yahoo Finance](YAHOO_FINANCE.md)
+- **CETES, bonos** → sin API gratuita; `currentPrice` manual
