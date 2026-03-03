@@ -1,12 +1,12 @@
-# Finward vs Finanzas Pro - Diferencias y Mejoras
+# Finward - Diferencias con sistema legacy
 
-Este documento explica las diferencias arquitectónicas, de diseño y funcionales entre Finward (nuevo backend) y Finanzas Pro (legacy).
+Este documento explica las diferencias arquitectónicas, de diseño y funcionales entre Finward y el sistema legacy previo.
 
 ---
 
 ## 1. Arquitectura
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Estructura plana: `routes/`, `controllers/`, `services/` globales
 - Controladores separados de rutas
 - Servicios monolíticos con múltiples responsabilidades
@@ -28,7 +28,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 2. Autenticación y Base de Datos
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Auth manual con JWT propio o middleware custom
 - User con `password` en DB (credenciales en backend)
 - Validaciones de `userId` manuales en cada ruta
@@ -43,7 +43,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 3. Contabilidad (Ledger)
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Balance calculado vía `increment`/`decrement` en `Account`
 - Riesgo de desincronización si hay errores parciales
 - Sin trazabilidad de movimientos
@@ -58,7 +58,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 4. Tarjetas de Crédito y MSI
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Lógica de corte/pago en controlador grande (~400 líneas)
 - Cálculo de MSI y pagos mezclado con UI/HTTP
 - Self-healing manual para corregir desincronizaciones
@@ -73,7 +73,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 5. Transacciones Recurrentes
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Lógica de frecuencia compleja (biweekly_15_30, etc.)
 - Cálculo de próximas fechas en servicio compartido
 
@@ -86,7 +86,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 6. Inversiones
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Controlador separado, crea transacción de gasto si `sourceAccountId`
 
 ### Finward (Nuevo)
@@ -99,7 +99,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 7. Planificación Financiera
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Controlador ~1000 líneas con lógica de períodos, MSI, 50/30/20
 - Mucha lógica de fechas y timezone
 - Warnings y budget analysis integrados
@@ -113,7 +113,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 8. Notificaciones y Perfil
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - Notificaciones con SmartAlertService
 - Profile con multer para avatar (uploads locales)
 
@@ -126,7 +126,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 9. Uploads
 
-### Finanzas Pro (Legacy)
+### Sistema legacy
 - multer + carpeta `uploads/` en servidor
 
 ### Finward (Nuevo)
@@ -138,7 +138,7 @@ Este documento explica las diferencias arquitectónicas, de diseño y funcionale
 
 ## 10. Resumen de Mejoras
 
-| Aspecto | Finanzas Pro | Finward |
+| Aspecto | Legacy | Finward |
 |---------|--------------|---------|
 | Estructura | routes/controllers/services | modules/domain/useCases/infrastructure |
 | Auth | Manual, password en DB | Supabase Auth, RLS |

@@ -165,7 +165,7 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 <div className="text-center text-[10px] text-app-muted/60">
-                    &copy; 2026 Finanzas Pro. Secure SSL Encrypted.
+                    &copy; 2026 Finward. Secure SSL Encrypted.
                 </div>
 
             </div>

@@ -182,7 +182,7 @@ const ResetPasswordPage: React.FC = () => {
         </div>
 
         <p className="mt-8 text-center text-[10px] text-app-muted/50">
-          Finanzas Pro Security
+          Finward Security
         </p>
       </div>
     </div>

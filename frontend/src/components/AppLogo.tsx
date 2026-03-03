@@ -12,7 +12,7 @@ interface AppLogoProps {
 export const AppLogo: React.FC<AppLogoProps> = ({ size = 40, className = '' }) => (
   <img
     src="/icon.svg"
-    alt="Finanzas Pro Logo"
+    alt="Finward Logo"
     width={size}
     height={size}
     className={className}

@@ -341,7 +341,7 @@ const Profile: React.FC = () => {
 
           <div className="text-[10px] text-app-muted/40 font-mono text-center leading-none">
             Build 2026.01.15.r2<br />
-            FinanzasPro PWA
+            Finward PWA
           </div>
         </div>
 

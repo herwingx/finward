@@ -1,6 +1,6 @@
 {
-  "name": "Finanzas Pro - Gestor de Finanzas Personales",
-  "short_name": "Finanzas Pro",
+  "name": "Finward - Gestor de Finanzas Personales",
+  "short_name": "Finward",
   "description": "Aplicación completa para gestionar tus finanzas personales: presupuestos, transacciones, cuentas y más.",
   "start_url": "/",
   "display": "standalone",

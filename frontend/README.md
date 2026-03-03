@@ -1,6 +1,6 @@
 # Finward Frontend
 
-> Frontend de **Finanzas Pro / Finward** — React 19, Vite 7, diseño premium estilo Vercel/Resend.
+> Frontend de **Finward** — React 19, Vite 7, diseño premium estilo Vercel/Resend.
 
 ## Requisitos
 

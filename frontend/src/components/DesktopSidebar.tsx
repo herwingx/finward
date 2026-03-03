@@ -46,7 +46,7 @@ export const DesktopSidebar = () => {
             <AppLogo size={28} />
           </div>
           <div>
-            <span className="block text-sm font-black text-app-text tracking-tight leading-none">FINANZAS PRO</span>
+            <span className="block text-sm font-black text-app-text tracking-tight leading-none">FINWARD</span>
           </div>
         </div>
       </div>
