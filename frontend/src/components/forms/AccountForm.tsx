@@ -171,12 +171,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
 
           {/* A. HERO BALANCE INPUT */}
           <div className="flex flex-col items-center mb-4">
-            <label className="text-[10px] font-bold text-app-text uppercase tracking-widest opacity-60 mb-2">
+            <label htmlFor="acc-balance" className="text-[10px] font-bold text-app-text uppercase tracking-widest opacity-60 mb-2">
               {type === 'CREDIT' ? 'Deuda Actual' : 'Saldo Inicial'}
             </label>
             <div className="relative group">
               <span className="absolute -left-5 top-2 text-2xl text-app-muted font-light opacity-30">$</span>
               <input
+                id="acc-balance"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -200,15 +201,15 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
 
           {/* B. NAME INPUT */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-app-text uppercase tracking-wider ml-1 opacity-70">
+            <label htmlFor="acc-name" className="text-[11px] font-bold text-app-text uppercase tracking-wider ml-1 opacity-70">
               Nombre de la Cuenta
             </label>
             <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-3 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all shadow-sm">
               <input
+                id="acc-name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Ej. Nómina, Efectivo, Tarjeta..."
-                autoFocus={!isEditMode}
                 className="w-full bg-transparent text-sm font-bold outline-none text-app-text placeholder:text-app-muted/40"
               />
             </div>
@@ -254,9 +255,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-app-muted uppercase ml-1">Corte (Día)</label>
+                  <label htmlFor="acc-cutoff" className="text-[10px] font-bold text-app-muted uppercase ml-1">Corte (Día)</label>
                   <div className="bg-app-surface border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                     <input
+                      id="acc-cutoff"
                       type="number"
                       placeholder="Ej. 14"
                       value={cutoff}
@@ -266,9 +268,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-app-muted uppercase ml-1">Límite Pago</label>
+                  <label htmlFor="acc-payday" className="text-[10px] font-bold text-app-muted uppercase ml-1">Límite Pago</label>
                   <div className="bg-app-surface border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                     <input
+                      id="acc-payday"
                       type="number"
                       placeholder="Ej. 4"
                       value={payDay}
@@ -278,9 +281,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-app-muted uppercase ml-1">Límite Crédito</label>
+                  <label htmlFor="acc-limit" className="text-[10px] font-bold text-app-muted uppercase ml-1">Límite Crédito</label>
                   <div className="bg-app-surface border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                     <input
+                      id="acc-limit"
                       type="number"
                       placeholder="$"
                       value={limit}
@@ -290,9 +294,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-app-muted uppercase ml-1">Interés ANUAL %</label>
+                  <label htmlFor="acc-rate" className="text-[10px] font-bold text-app-muted uppercase ml-1">Interés ANUAL %</label>
                   <div className="bg-app-surface border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                     <input
+                      id="acc-rate"
                       type="number"
                       placeholder="%"
                       value={rate}
@@ -342,7 +347,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-app-muted opacity-30">$</span>
                 <input
                   type="number"
-                  autoFocus
                   value={adjAmount}
                   onChange={e => setAdjAmount(e.target.value)}
                   className="w-full h-16 bg-app-subtle border-2 border-app-border focus:border-app-primary rounded-2xl text-center text-3xl font-black text-app-text outline-none transition-all"

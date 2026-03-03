@@ -95,12 +95,13 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
             {/* 2. BASICS */}
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] uppercase font-bold text-app-text ml-1 mb-1 block opacity-70">Nombre de Categoría</label>
+                <label htmlFor="cat-name" className="text-[10px] uppercase font-bold text-app-text ml-1 mb-1 block opacity-70">Nombre de Categoría</label>
                 <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                   <input
+                    id="cat-name"
                     value={name} onChange={e => setName(e.target.value)}
                     className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60"
-                    placeholder="Ej. Restaurantes, Salario..." autoFocus={!isEditing}
+                    placeholder="Ej. Restaurantes, Salario..."
                   />
                 </div>
               </div>
@@ -126,8 +127,9 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
 
               {/* Icon Grid */}
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-2 block uppercase opacity-70">Icono</label>
+                <label htmlFor="cat-icon" className="text-[10px] font-bold text-app-text ml-1 mb-2 block uppercase opacity-70">Icono</label>
                 <IconSelector
+                  id="cat-icon"
                   icons={VALID_ICONS}
                   selectedIcon={icon}
                   onSelect={setIcon}

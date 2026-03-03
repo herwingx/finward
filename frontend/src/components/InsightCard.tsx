@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '@/components/Icon';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 /* ==================================================================================
    TYPES & CONFIG
@@ -48,7 +48,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
   const cfg = TYPE_CONFIG[type] || TYPE_CONFIG.INFO;
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, scale: 0.9, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -87,6 +87,6 @@ export const InsightCard: React.FC<InsightCardProps> = ({
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 };

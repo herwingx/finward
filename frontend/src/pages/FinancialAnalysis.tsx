@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 // Components
@@ -510,7 +510,7 @@ const FinancialAnalysis: React.FC = () => {
               <h4 className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-3">Atención Requerida</h4>
               <div className="grid gap-2">
                 {(summary.warnings ?? []).map((w: string, i: number) => (
-                  <motion.div
+                  <m.div
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -519,7 +519,7 @@ const FinancialAnalysis: React.FC = () => {
                   >
                     <Icon name="priority_high" size={18} className="text-rose-600" />
                     <p className="text-xs font-medium text-rose-900 dark:text-rose-100">{w}</p>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             </div>

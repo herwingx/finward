@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '@/components/Icon';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
 import { useNotifications, useDismissNotification, useMarkAllNotificationsRead, useAddTransaction } from '@/hooks/useApi';
 import { toastSuccess, toastError, toastInfo } from '@/utils/toast';
@@ -69,7 +69,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
               const isDue = n.type === 'PAYMENT_DUE';
 
               return (
-                <motion.div
+                <m.div
                   key={n.id}
                   layout
                   initial={{ opacity: 0, x: -20 }}
@@ -113,7 +113,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               );
             })}
           </AnimatePresence>

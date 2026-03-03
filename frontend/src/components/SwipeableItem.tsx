@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, useMotionValue, useTransform, animate, PanInfo } from 'framer-motion';
+import { m, useMotionValue, useTransform, animate, PanInfo } from 'framer-motion';
 import { Icon } from '@/components/Icon';
 
 // Definición de las acciones visuales
@@ -84,37 +84,37 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
 
         {/* Left Action (Drag Right) */}
         {leftAction && (
-          <motion.div
+          <m.div
             className={`absolute inset-0 flex items-center justify-start pl-6 ${leftAction.bgColor}`}
             style={{ opacity: leftBgOpacity }}
           >
-            <motion.div
+            <m.div
               style={{ opacity: leftIconOpacity, scale: iconScale }}
               className={`flex flex-col items-center gap-1 font-bold ${leftAction.color}`}
             >
               <Icon name={leftAction.icon} size={24} />
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
 
         {/* Right Action (Drag Left) */}
         {rightAction && (
-          <motion.div
+          <m.div
             className={`absolute inset-0 flex items-center justify-end pr-6 ${rightAction.bgColor}`}
             style={{ opacity: rightBgOpacity }}
           >
-            <motion.div
+            <m.div
               style={{ opacity: rightIconOpacity, scale: iconScale }}
               className={`flex flex-col items-center gap-1 font-bold ${rightAction.color}`}
             >
               <Icon name={rightAction.icon} size={24} />
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </div>
 
       {/* FOREGROUND CONTENT (Card) - Z-index 10 (delante) */}
-      <motion.div
+      <m.div
         drag={disabled ? false : "x"}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
@@ -127,7 +127,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
         style={{ x, touchAction: 'pan-y' }}
       >
         {children}
-      </motion.div>
+      </m.div>
     </div>
   );
 };

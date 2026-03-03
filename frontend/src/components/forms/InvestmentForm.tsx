@@ -135,16 +135,16 @@ export const InvestmentForm: React.FC<{
             {/* Qty & Price Grid */}
             <div className="grid grid-cols-2 gap-3 shrink-0">
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Cantidad</label>
+                <label htmlFor="inv-qty" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Cantidad</label>
                 <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all h-11 flex items-center">
-                  <input type="number" step="any" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="0.00" className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60" />
+                  <input id="inv-qty" type="number" step="any" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="0.00" className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60" />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Precio Compra</label>
+                <label htmlFor="inv-buy" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Precio Compra</label>
                 <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all h-11 flex items-center">
                   <span className="text-app-muted text-xs mr-1">$</span>
-                  <input type="number" step="any" value={avgBuyPrice} onChange={e => setAvgBuyPrice(e.target.value)} placeholder="0.00" className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60" />
+                  <input id="inv-buy" type="number" step="any" value={avgBuyPrice} onChange={e => setAvgBuyPrice(e.target.value)} placeholder="0.00" className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60" />
                 </div>
               </div>
             </div>
@@ -162,12 +162,13 @@ export const InvestmentForm: React.FC<{
             {!existingInvestment && (
               <div className="pt-2 shrink-0">
                 <div className="flex justify-between items-center mb-1 ml-1">
-                  <label className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-70">Origen de Fondos</label>
+                  <label htmlFor="inv-source" className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-70">Origen de Fondos</label>
                   <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold">Registrar Gasto</span>
                 </div>
                 <div className="relative">
                   <select
-                    value={sourceAccountId}
+                    id="inv-source"
+                    value={sourceAccountId} onChange={e => setSourceAccountId(e.target.value)}
                     onChange={(e) => setSourceAccountId(e.target.value)}
                     className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
                   >

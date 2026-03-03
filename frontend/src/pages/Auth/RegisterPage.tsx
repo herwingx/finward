@@ -68,10 +68,11 @@ const RegisterPage: React.FC = () => {
 
                         {/* Name Input */}
                         <div className="group">
-                            <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Nombre</label>
+                            <label htmlFor="register-name" className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Nombre</label>
                             <div className="relative">
                                 <Icon name="badge" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                                 <input
+                                    id="register-name"
                                     type="text"
                                     required
                                     value={name}
@@ -84,10 +85,11 @@ const RegisterPage: React.FC = () => {
 
                         {/* Email Input */}
                         <div className="group">
-                            <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Correo</label>
+                            <label htmlFor="register-email" className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Correo</label>
                             <div className="relative">
                                 <Icon name="mail" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                                 <input
+                                    id="register-email"
                                     type="email"
                                     required
                                     value={email}
@@ -100,10 +102,11 @@ const RegisterPage: React.FC = () => {
 
                         {/* Password Input */}
                         <div className="group">
-                            <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Contraseña</label>
+                            <label htmlFor="register-password" className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Contraseña</label>
                             <div className="relative">
                                 <Icon name="lock_outline" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                                 <input
+                                    id="register-password"
                                     type="password"
                                     required
                                     minLength={6}

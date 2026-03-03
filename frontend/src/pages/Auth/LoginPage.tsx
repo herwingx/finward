@@ -91,10 +91,11 @@ const LoginPage: React.FC = () => {
 
                         {/* Email Field */}
                         <div className="space-y-2">
-                            <label className="block text-[11px] font-bold text-app-muted uppercase tracking-wider ml-1">Correo Electrónico</label>
+                            <label htmlFor="email" className="block text-[11px] font-bold text-app-muted uppercase tracking-wider ml-1">Correo Electrónico</label>
                             <div className="relative group">
                                 <Icon name="alternate_email" size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors" />
                                 <input
+                                    id="email"
                                     type="email"
                                     required
                                     value={email}
@@ -109,7 +110,7 @@ const LoginPage: React.FC = () => {
                         {/* Password Field */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
-                                <label className="text-[11px] font-bold text-app-muted uppercase tracking-wider">Contraseña</label>
+                                <label htmlFor="password" className="text-[11px] font-bold text-app-muted uppercase tracking-wider">Contraseña</label>
                                 <Link to="/forgot-password" className="text-[11px] font-bold text-app-primary hover:text-app-primary-dark transition-colors">
                                     ¿Olvidaste tu contraseña?
                                 </Link>
@@ -117,6 +118,7 @@ const LoginPage: React.FC = () => {
                             <div className="relative group">
                                 <Icon name="lock" size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors" />
                                 <input
+                                    id="password"
                                     type="password"
                                     required
                                     value={password}

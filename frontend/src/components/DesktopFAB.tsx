@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '@/components/Icon';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 
 // Context
 import { useGlobalSheets } from '@/context/GlobalSheetContext';
@@ -63,7 +63,7 @@ export const DesktopFAB: React.FC = () => {
       {/* 1. BACKDROP OVERLAY */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -81,7 +81,7 @@ export const DesktopFAB: React.FC = () => {
           {isOpen && (
             <div className="flex flex-col items-end gap-3 mb-4 pr-1">
               {visibleActions.map((action, i) => (
-                <motion.div
+                <m.div
                   key={action.id}
                   initial={{ opacity: 0, x: 20, scale: 0.8 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -101,7 +101,7 @@ export const DesktopFAB: React.FC = () => {
                   >
                     <Icon name={action.icon} size={24} />
                   </button>
-                </motion.div>
+                </m.div>
               ))}
             </div>
           )}

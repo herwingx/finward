@@ -306,7 +306,6 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
                   <span className="text-2xl text-app-muted font-light">$</span>
                   <input
                     type="number"
-                    autoFocus
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
                     placeholder="0.00"

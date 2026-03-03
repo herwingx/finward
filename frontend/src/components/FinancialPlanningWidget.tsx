@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, useAnimation, PanInfo } from 'framer-motion';
+import { m, AnimatePresence, useMotionValue, useTransform, useAnimation, PanInfo } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { sileo } from 'sileo';
 
@@ -94,21 +94,21 @@ const SwipeableActionRow = ({
       <div className="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center pl-6 pointer-events-none">
 
         {/* Capa de color sólido que aparece progresivamente */}
-        <motion.div
+        <m.div
           style={{ opacity: bgOpacity }}
           className="absolute inset-0 bg-emerald-500 flex items-center pl-6"
         >
-          <motion.div style={{ scale: iconScale }} className="flex items-center gap-2 text-white font-bold">
+          <m.div style={{ scale: iconScale }} className="flex items-center gap-2 text-white font-bold">
             <Icon name="check" size={20} className="bg-white text-emerald-600 rounded-full p-0.5 shadow-sm" />
             <span className="text-xs tracking-wider uppercase font-black">
               {actionType === 'pay' ? 'PAGADO' : 'RECIBIDO'}
             </span>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
 
       {/* Foreground Content */}
-      <motion.div
+      <m.div
         drag="x"
         dragConstraints={{ left: 0, right: threshold + 20 }} // Permitir un poco de overdrag
         dragElastic={{ left: 0, right: 0.1 }}
@@ -119,7 +119,7 @@ const SwipeableActionRow = ({
         className="relative bg-app-surface active:bg-app-subtle/50 transition-colors touch-pan-y cursor-grab active:cursor-grabbing"
       >
         {children}
-      </motion.div>
+      </m.div>
     </div>
   );
 };
@@ -199,7 +199,7 @@ const CreditCardGroup = ({
       {/* EXPANDED CONTENT AREA */}
       <AnimatePresence>
         {isExpanded && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -274,7 +274,7 @@ const CreditCardGroup = ({
               </div>
 
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -407,7 +407,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                   <span>{total - passed} días restantes</span>
                 </div>
                 <div className="h-2 w-full bg-app-subtle rounded-full overflow-hidden">
-                  <motion.div
+                  <m.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}

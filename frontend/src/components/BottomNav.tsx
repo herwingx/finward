@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/Icon';
 
 // Context & Types
@@ -66,7 +66,7 @@ const BottomNav: React.FC = () => {
       {/* --- OVERLAY BACKDROP --- */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -79,7 +79,7 @@ const BottomNav: React.FC = () => {
       {/* --- QUICK ACTION BUBBLE MENU --- */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
+          <m.div
             className="fixed bottom-[84px] left-4 right-4 z-50 max-w-sm mx-auto lg:hidden"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -108,7 +108,7 @@ const BottomNav: React.FC = () => {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -157,7 +157,7 @@ const NavItem = ({ to, icon, label, isActive, onClick }: any) => (
   >
     <div className="relative px-5 py-1 rounded-2xl">
       {isActive && (
-        <motion.div
+        <m.div
           layoutId="nav-pill"
           className="absolute inset-0 bg-app-primary/10 rounded-2xl"
           initial={false}

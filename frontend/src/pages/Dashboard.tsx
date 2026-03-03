@@ -9,7 +9,7 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 // Components
 import { Icon } from '@/components/Icon';
 import { SkeletonDashboard } from '@/components/Skeleton';
-import { SpendingTrendChart } from '@/components/Charts';
+const SpendingTrendChart = React.lazy(() => import('@/components/Charts').then(m => ({ default: m.SpendingTrendChart })));
 import { NotificationsSheet } from '@/components/dashboard/NotificationsSheet'; // <--- IMPORTADO NUEVO
 import { FinancialPlanningWidget } from '@/components/FinancialPlanningWidget'; // <--- IMPORTADO NUEVO
 /* =======================================
@@ -18,7 +18,18 @@ import { FinancialPlanningWidget } from '@/components/FinancialPlanningWidget'; 
 
 const BentoCard = React.memo<{ children: React.ReactNode; title?: string; action?: React.ReactNode; className?: string; onClick?: () => void }>(
   ({ children, title, action, className = '', onClick }) => (
-    <div onClick={onClick} className={`bento-card p-5 md:p-6 flex flex-col ${onClick ? 'cursor-pointer' : ''} ${className}`}>
+    <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+      className={`bento-card p-5 md:p-6 flex flex-col ${onClick ? 'cursor-pointer' : ''} ${className}`}
+    >
       {(title || action) && (
         <div className="flex justify-between items-center mb-4 md:mb-5">
           {title && <h3 className="text-xs font-bold text-app-muted uppercase tracking-wider">{title}</h3>}
@@ -166,7 +177,9 @@ const Dashboard: React.FC = () => {
         </div>
         {/* 4. Chart Grande */}
         <BentoCard title="Tendencia" className="col-span-2 md:col-span-2 lg:col-span-3 min-h-[300px]" action={<Link to="/reports" className="text-xs font-bold text-app-primary">Ver detalle</Link>}>
-          <SpendingTrendChart transactions={txList} />
+          <React.Suspense fallback={<div className="h-48 bg-app-subtle/50 rounded-2xl animate-pulse" />}>
+            <SpendingTrendChart transactions={txList} />
+          </React.Suspense>
         </BentoCard>
 
         {/* 5. Placeholder Presupuesto */}

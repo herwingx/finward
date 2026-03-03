@@ -161,7 +161,7 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
               <input
                 type="number" step="0.01" inputMode="decimal"
                 value={amount} onChange={e => setAmount(e.target.value)}
-                placeholder="0.00" autoFocus={!isEditMode}
+                placeholder="0.00"
                 className="text-center text-4xl font-black bg-transparent text-app-text w-40 outline-none placeholder:text-app-muted/20 py-1 transition-colors"
               />
             </div>

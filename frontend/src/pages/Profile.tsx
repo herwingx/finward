@@ -175,7 +175,6 @@ const Profile: React.FC = () => {
               onChange={e => setName(e.target.value)}
               className="text-2xl font-bold text-center bg-transparent border-b-2 border-app-border focus:border-app-primary outline-none px-2 w-full max-w-[300px]"
               placeholder="Nombre Completo"
-              autoFocus
             />
           ) : (
             <h2 className="text-2xl font-bold text-app-text">{profile?.name}</h2>

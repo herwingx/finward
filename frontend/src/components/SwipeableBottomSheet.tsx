@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Icon } from '@/components/Icon';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
+import { m, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
 
 // --- Types ---
 interface SheetProps {
@@ -106,7 +106,7 @@ export const SwipeableBottomSheet: React.FC<SheetProps> = ({
         <div className="fixed inset-0 z-50 grid place-items-end md:place-items-center pointer-events-auto">
 
           {/* 1. BACKDROP (Click to close) */}
-          <motion.div
+          <m.div
             className="absolute inset-0 bg-black/60 md:bg-black/40 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -115,7 +115,7 @@ export const SwipeableBottomSheet: React.FC<SheetProps> = ({
           />
 
           {/* 2. SHEET CONTAINER */}
-          <motion.div
+          <m.div
             className={`
                bg-app-surface w-full overflow-hidden flex flex-col shadow-2xl
                will-change-transform backface-hidden transform-gpu
@@ -174,7 +174,7 @@ export const SwipeableBottomSheet: React.FC<SheetProps> = ({
               {children}
             </div>
 
-          </motion.div>
+          </m.div>
         </div>
       )}
     </AnimatePresence>,

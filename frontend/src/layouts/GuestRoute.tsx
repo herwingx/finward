@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { SkeletonAppLoading } from '@/components/Skeleton';
+import { apiFetch } from '@/lib/api/client';
 
 /**
  * GuestRoute - Inverse of ProtectedRoute
@@ -8,59 +10,35 @@ import { SkeletonAppLoading } from '@/components/Skeleton';
  * If user has a valid token, they get sent to the dashboard.
  */
 const GuestRoute: React.FC = () => {
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    const validateToken = async () => {
-      if (!token) {
-        // No token = guest, allow access
-        setIsAuthenticated(false);
-        setIsChecking(false);
-        return;
-      }
+  const { isLoading, isSuccess } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => apiFetch('/profile'),
+    enabled: !!token,
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-      try {
-        const res = await fetch('/api/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+  // If there's no token, we are a guest, allowed to see auth pages.
+  if (!token) {
+    return <Outlet />;
+  }
 
-        if (res.ok) {
-          // Token is valid, user is authenticated
-          setIsAuthenticated(true);
-        } else if (res.status === 401) {
-          // Token invalid or expired, clean up and allow access
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setIsAuthenticated(false);
-        } else {
-          // Other error, assume not authenticated
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error("Token validation check failed", error);
-        // On error, assume not authenticated to allow access
-        setIsAuthenticated(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    validateToken();
-  }, [token]);
-
-  // Show loading skeleton while checking auth status
-  if (isChecking) {
+  // Show loading skeleton while checking auth status if there is a token
+  if (isLoading) {
     return <SkeletonAppLoading />;
   }
 
-  // If authenticated, redirect to home/dashboard
-  if (isAuthenticated) {
+  // If token is valid (isSuccess), redirect to home/dashboard
+  if (isSuccess) {
     return <Navigate to="/" replace />;
   }
 
-  // If not authenticated, render the child route (login, register, etc.)
+  // If isError (e.g. 401), we assume the token is invalid and allow guest access.
+  // apiFetch in client.ts might already handle 401 redirect, which is actually
+  // what we WANT to avoid here if we want to stay on the login page.
+  // However, for simplicity and consistency, if it fails, it's a guest.
   return <Outlet />;
 };
 

@@ -123,22 +123,24 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
           {/* 2. FORM FIELDS */}
           <div className="flex-1 overflow-y-auto space-y-4 pt-2">
             <div>
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Nombre de la Meta</label>
+              <label htmlFor="goal-name" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Nombre de la Meta</label>
               <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                 <input
+                  id="goal-name"
                   value={name} onChange={e => setName(e.target.value)}
-                  placeholder="Ej. Viaje Japón, Coche Nuevo" autoFocus={!isEditing}
+                  placeholder="Ej. Viaje Japón, Coche Nuevo"
                   className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60"
                 />
               </div>
             </div>
 
             <div>
-              <label className={`text-[10px] font-bold ml-1 mb-1 block uppercase tracking-wide opacity-70 ${deadline ? 'text-app-primary' : 'text-app-text'}`}>
+              <label htmlFor="goal-deadline" className={`text-[10px] font-bold ml-1 mb-1 block uppercase tracking-wide opacity-70 ${deadline ? 'text-app-primary' : 'text-app-text'}`}>
                 Fecha Límite (Opcional)
               </label>
               <div className="flex gap-2">
                 <DatePicker
+                  id="goal-deadline"
                   date={deadline}
                   placeholder="Sin fecha definida"
                   onDateChange={setDeadline}
@@ -157,8 +159,9 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
             </div>
 
             <div className="pb-2">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Icono</label>
+              <label htmlFor="goal-icon" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Icono</label>
               <IconSelector
+                id="goal-icon"
                 icons={[...VALID_ICONS]}
                 selectedIcon={icon}
                 selectedColor={color}

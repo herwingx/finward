@@ -108,7 +108,7 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
               <input
                 type="number" step="0.01"
                 value={total} onChange={e => setTotal(e.target.value)}
-                placeholder="0.00" autoFocus={!isEditMode}
+                placeholder="0.00"
                 className="text-center text-4xl font-black bg-transparent text-app-text w-40 outline-none placeholder:text-app-muted/20 py-1 transition-colors"
               />
             </div>
@@ -134,9 +134,10 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
             {/* Account & Details Grid */}
             <div className="grid grid-cols-2 gap-3 shrink-0">
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Tarjeta</label>
+                <label htmlFor="installment-account" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Tarjeta</label>
                 <div className="relative">
                   <select
+                    id="installment-account"
                     value={accId} onChange={e => setAccId(e.target.value)}
                     className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
                   >
@@ -147,9 +148,10 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Plazo</label>
+                <label htmlFor="installment-months" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Plazo</label>
                 <div className="relative">
                   <select
+                    id="installment-months"
                     value={installments} onChange={e => setInstallments(e.target.value)}
                     className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
                   >
@@ -161,8 +163,9 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
             </div>
 
             <div className="shrink-0">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Fecha de Compra</label>
+              <label htmlFor="installment-date" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Fecha de Compra</label>
               <DatePicker
+                id="installment-date"
                 date={date}
                 onDateChange={d => d && setDate(d)}
                 className="bg-app-subtle border-app-border h-11 rounded-xl px-3 text-sm font-bold shadow-sm hover:bg-app-subtle w-full"
@@ -173,7 +176,7 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
             {!isEditMode && (
               <div className="shrink-0 bg-app-subtle/50 border border-app-border/50 rounded-xl p-3">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-70">¿Es una compra antigua?</label>
+                  <label htmlFor="installment-paid-months" className="text-[10px] font-bold text-app-text uppercase tracking-wide opacity-70">¿Es una compra antigua?</label>
                   {parseInt(paidMonths) > 0 && (
                     <span className="text-[10px] font-bold text-app-primary bg-app-primary/10 px-1.5 py-0.5 rounded">
                       Deuda Restante: ${(parseFloat(total || '0') - (parseFloat(total || '0') / parseInt(installments || '1') * parseInt(paidMonths))).toFixed(2)}
@@ -182,6 +185,7 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <input
+                    id="installment-paid-months"
                     type="number"
                     value={paidMonths}
                     onChange={e => {

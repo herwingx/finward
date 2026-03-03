@@ -1,50 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { SkeletonAppLoading } from '@/components/Skeleton';
+import { apiFetch } from '@/lib/api/client';
 
 const ProtectedRoute: React.FC = () => {
-    const [isChecking, setIsChecking] = useState(true);
-    const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
-    useEffect(() => {
-        const validateToken = async () => {
-            if (!token) {
-                setIsChecking(false);
-                return;
-            }
+  const { isLoading, isError, error } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => apiFetch('/profile'),
+    enabled: !!token,
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-            try {
-                const res = await fetch('/api/profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-                if (res.status === 401) {
-                    // Token invalid or user deleted
-                    localStorage.removeItem('token');
-                    window.location.href = '/login';
-                    return;
-                }
-            } catch (error) {
-                console.error("Token validation check failed", error);
-            } finally {
-                setIsChecking(false);
-            }
-        };
+  if (isLoading) {
+    return <SkeletonAppLoading />;
+  }
 
-        validateToken();
-    }, [token]);
+  if (isError) {
+    // apiFetch already handles 401 by redirecting, but for other errors or if redirect failed
+    console.error("Token validation check failed", error);
+    return <Navigate to="/login" replace />;
+  }
 
-    if (!token) {
-        return <Navigate to="/login" replace />;
-    }
-
-    if (isChecking) {
-        return (
-            <SkeletonAppLoading />
-        );
-    }
-
-    return <Outlet />;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

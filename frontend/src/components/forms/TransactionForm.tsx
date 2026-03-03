@@ -249,7 +249,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 value={amount}
                 onChange={(e) => { setAmount(e.target.value); clearFieldError('amount'); }}
                 placeholder="0.00"
-                autoFocus={!isEditing}
                 className={`w-40 bg-transparent text-center text-4xl font-black text-app-text outline-none placeholder:text-app-muted/20 caret-app-primary no-spin-button transition-colors py-1 ${fieldErrors.amount ? 'text-rose-600' : ''}`}
               />
             </div>
@@ -287,9 +286,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
             {type === 'transfer' && (
               <div className="p-3 bg-app-subtle/50 rounded-xl border border-app-border/60">
-                <label className="text-[10px] font-bold text-app-text mb-1 block uppercase tracking-wide opacity-70">Destino</label>
+                <label htmlFor="tx-destination" className="text-[10px] font-bold text-app-text mb-1 block uppercase tracking-wide opacity-70">Destino</label>
                 <div className="relative mb-2">
                   <select
+                    id="tx-destination"
                     value={destAccountId}
                     onChange={(e) => { setDestAccountId(e.target.value); clearFieldError('destAccount'); }}
                     className={`w-full bg-app-subtle border min-h-[44px] h-12 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 transition-all ${fieldErrors.destAccount ? 'border-rose-500' : 'border-app-border'}`}
@@ -335,8 +335,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           {/* E. CATEGORY - Quick picks + full grid (except transfers) */}
           {type !== 'transfer' && (
             <div className="flex-1 min-h-0 flex flex-col">
-              <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</label>
+              <label htmlFor="tx-category" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</label>
               <CategorySelector
+                id="tx-category"
                 categories={categories?.filter(c => c.type === type) || []}
                 selectedId={categoryId}
                 onSelect={(id) => { setCategoryId(id); clearFieldError('category'); }}
@@ -349,8 +350,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
           {/* F. DATE PICKER */}
           <div>
-            <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Fecha</label>
+            <label htmlFor="tx-date" className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Fecha</label>
             <DatePicker
+              id="tx-date"
               date={date}
               onDateChange={(d) => d && setDate(d)}
               className="bg-app-subtle border-app-border min-h-[44px] h-12 rounded-xl px-3 text-sm font-bold shadow-sm hover:bg-app-subtle"

@@ -65,6 +65,8 @@ const getStyles = (level: WarningLevel) => {
 /* ==================================================================================
    COMPONENT
    ================================================================================== */
+const EMPTY_WARNING_DETAILS: string[] = [];
+
 export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = ({
   isOpen,
   onClose,
@@ -72,7 +74,7 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
   itemName,
   warningLevel = 'normal',
   warningMessage,
-  warningDetails = [],
+  warningDetails = EMPTY_WARNING_DETAILS,
   impactPreview,
   requireConfirmation = false,
   isDeleting = false,

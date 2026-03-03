@@ -173,7 +173,6 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
                 value={formData.originalAmount}
                 onChange={e => setFormData({ ...formData, originalAmount: e.target.value })}
                 placeholder="0.00"
-                autoFocus={!isEditing}
                 className={`text-center text-4xl font-black bg-transparent w-40 outline-none placeholder:text-app-muted/20 py-1 transition-colors ${isLent ? 'text-violet-500' : 'text-rose-500'}`}
               />
             </div>

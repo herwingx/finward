@@ -75,7 +75,6 @@ const ForgotPasswordPage: React.FC = () => {
                   className="w-full bg-app-subtle border-2 border-transparent focus:border-app-primary/20 rounded-2xl py-3.5 pl-12 pr-4 text-app-text outline-none transition-all placeholder:text-app-muted/50 font-medium text-sm focus:bg-white dark:focus:bg-black/20"
                   placeholder="ejemplo@correo.com"
                   required
-                  autoFocus
                   disabled={status === 'loading' || status === 'success'}
                 />
               </div>
