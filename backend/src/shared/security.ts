@@ -15,6 +15,7 @@ export const corsMiddleware = () => {
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
       if ((origins as string[]).includes(origin)) return cb(null, true);
+      console.error('[CORS] Rejected origin:', origin, 'allowed:', origins);
       cb(new Error('Not allowed by CORS'), false);
     },
     credentials: true,

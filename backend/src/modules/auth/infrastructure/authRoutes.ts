@@ -20,11 +20,13 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
     const supabase = createSupabaseClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) console.error('[auth/login] Supabase error:', error.message, error.status);
     if (error) {
       res.status(401).json({ message: error.message === 'Invalid login credentials' ? 'Credenciales incorrectas' : error.message });
       return;
     }
     if (!data.session || !data.user) {
+      console.error('[auth/login] Supabase sin session/user:', { hasSession: !!data.session, hasUser: !!data.user });
       res.status(500).json({ message: 'Error al iniciar sesión' });
       return;
     }
@@ -37,7 +39,9 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (err) {
-    res.status(500).json({ message: err instanceof Error ? err.message : 'Error interno' });
+    const msg = err instanceof Error ? err.message : 'Error interno';
+    console.error('[auth/login] 500:', err);
+    res.status(500).json({ message: msg });
   }
 });
 

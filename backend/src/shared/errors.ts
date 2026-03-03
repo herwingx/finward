@@ -83,6 +83,8 @@ export function errorHandler(
   const message =
     process.env.NODE_ENV === 'development' && isConnectionError
       ? 'Error de conexión a la base de datos. Revisa DATABASE_URL/DIRECT_URL y USE_DIRECT_URL.'
-      : 'Internal server error';
+      : process.env.NODE_ENV === 'development' && err instanceof Error
+        ? err.message
+        : 'Internal server error';
   res.status(500).json({ error: message, code: 'INTERNAL_ERROR' });
 }
