@@ -87,6 +87,40 @@ body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Main page scrollbar (html/body) - thin, rounded, theme-aware */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+html::-webkit-scrollbar { width: 6px; height: 6px; }
+html::-webkit-scrollbar-track { background: transparent; }
+html::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 9999px; }
+html::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Custom scrollbar - thin, rounded, theme-aware (for components) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
 .bento-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
@@ -126,7 +160,20 @@ body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+.animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-shake { animation: shake 0.5s ease-in-out; }
 
 button { cursor: pointer; touch-action: manipulation; }
 button:active { transform: scale(0.96); }
