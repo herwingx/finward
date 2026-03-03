@@ -4,11 +4,20 @@ import { calculateNextDueDate } from '../../recurring/domain/nextDueDate';
 
 export async function restoreTransaction(userId: string, transactionId: string) {
   const tx = await prisma.transaction.findFirst({
-    where: { id: transactionId, userId, deletedAt: { not: null } },
+    where: { id: transactionId, userId },
     include: { account: true, destinationAccount: true },
   });
 
-  if (!tx) throw AppError.notFound('Deleted transaction not found');
+  if (!tx) {
+    console.error(`[Restore] Transaction ${transactionId} not found for user ${userId}`);
+    throw AppError.notFound('Transaction not found at all');
+  }
+
+  if (tx.deletedAt === null) {
+    console.error(`[Restore] Transaction ${transactionId} is not deleted (deletedAt is null)`);
+    throw AppError.badRequest('Transaction is not deleted');
+  }
+
   if (!tx.accountId || !tx.account) throw AppError.badRequest('Account no longer exists');
   const accountId: string = tx.accountId!;
   if (tx.type === 'transfer' && tx.destinationAccountId && !tx.destinationAccount) {

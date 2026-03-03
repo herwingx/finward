@@ -71,9 +71,17 @@ export function expandRecurringInPeriod(
   const events: { date: Date; amount: number }[] = [];
   let current = new Date(recurring.nextDueDate);
 
-  while (current <= periodEnd) {
+  const start = periodStart.getTime();
+  const end = periodEnd.getTime();
+  const today = new Date().getTime();
+
+  while (current.getTime() <= end) {
     if (recurring.endDate && current > recurring.endDate) break;
-    if (current >= periodStart) {
+
+    const isOverdue = current.getTime() < start && current.getTime() < today;
+
+    // Si la fecha cae en el periodo o si es un pago vencido que el usuario no ha completado
+    if (current.getTime() >= start || isOverdue) {
       events.push({ date: new Date(current), amount: recurring.amount });
     }
     current = calculateNextDueDate(current, recurring.frequency);
@@ -81,6 +89,7 @@ export function expandRecurringInPeriod(
 
   return events;
 }
+
 
 /** Genera eventos MSI dentro del período. */
 export function expandMsiInPeriod(
@@ -106,18 +115,26 @@ export function expandMsiInPeriod(
   const remaining = purchase.totalAmount - purchase.paidAmount;
   const lastInstallmentAmount = Math.round((remaining - (unpaidCount - 1) * purchase.monthlyPayment) * 100) / 100;
 
+  const start = periodStart.getTime();
+  const end = periodEnd.getTime();
+  const today = new Date().getTime();
+
   for (let i = 1; i <= unpaidCount; i++) {
     const installmentNum = purchase.paidInstallments + i;
     const dueDate = getPaymentDateForInstallment(
       { purchaseDate: purchase.purchaseDate, account: purchase.account },
       installmentNum
     );
-    if (dueDate >= periodStart && dueDate <= periodEnd) {
+
+    const time = dueDate.getTime();
+    const isOverdue = time < start && time < today;
+
+    if ((time >= start && time <= end) || isOverdue) {
       const isLast = i === unpaidCount;
       events.push({
         id: `${purchase.id}-${installmentNum}`,
         originalId: purchase.id,
-        uniqueId: `${purchase.id}-${installmentNum}-${dueDate.getTime()}`,
+        uniqueId: `${purchase.id}-${installmentNum}-${time}`,
         description: `Cuota ${installmentNum}/${purchase.installments} - ${purchase.description}`,
         purchaseName: purchase.description,
         amount: isLast ? lastInstallmentAmount : purchase.monthlyPayment,

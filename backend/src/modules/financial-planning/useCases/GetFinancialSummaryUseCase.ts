@@ -42,6 +42,12 @@ export interface FinancialSummaryInput {
     account?: { cutoffDay: number | null; paymentDay: number | null } | null;
     category?: { id: string; name: string; icon: string; color: string };
   }>;
+  creditCardRegularPayments?: Array<{
+    accountId: string;
+    accountName: string;
+    amount: number;
+    dueDate: Date;
+  }>;
   monthlyNetIncome: number | null;
 }
 
@@ -71,7 +77,7 @@ export interface FinancialSummaryOutput {
 }
 
 export function getFinancialSummary(input: FinancialSummaryInput): FinancialSummaryOutput {
-  const { periodStart, periodEnd, liquidBalance, debtBalance, transactions, recurring, loans, installments, monthlyNetIncome } = input;
+  const { periodStart, periodEnd, liquidBalance, debtBalance, transactions, recurring, loans, installments, creditCardRegularPayments = [], monthlyNetIncome } = input;
 
   const expectedIncome: FinancialSummaryOutput['expectedIncome'] = [];
   const expectedExpenses: FinancialSummaryOutput['expectedExpenses'] = [];
@@ -96,8 +102,16 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
 
   for (const l of loans) {
     if (!l.expectedPayDate) continue;
+
     const due = new Date(l.expectedPayDate);
-    if (due >= periodStart && due <= periodEnd) {
+    const start = periodStart.getTime();
+    const end = periodEnd.getTime();
+    const today = new Date().getTime();
+    const time = due.getTime();
+
+    const isOverdue = time < start && time < today;
+
+    if ((time >= start && time <= end) || isOverdue) {
       const item = {
         id: l.id,
         uniqueId: `loan-${l.id}-${due.getTime()}`,
@@ -121,6 +135,28 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
         ...ev,
         dueDate: ev.dueDate.toISOString(),
         category: ev.category,
+      });
+    }
+  }
+
+  for (const cp of creditCardRegularPayments) {
+    if (cp.amount <= 0) continue;
+    const due = new Date(cp.dueDate);
+    const start = periodStart.getTime();
+    const end = periodEnd.getTime();
+    const today = new Date().getTime();
+    const time = due.getTime();
+
+    const isOverdue = time < start && time < today;
+
+    if ((time >= start && time <= end) || isOverdue) {
+      expectedExpenses.push({
+        id: `ccp-${cp.accountId}`,
+        uniqueId: `ccp-${cp.accountId}-${time}`,
+        description: `Pago Tarjeta: ${cp.accountName}`,
+        amount: cp.amount,
+        dueDate: due.toISOString(),
+        category: undefined,
       });
     }
   }

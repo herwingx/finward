@@ -37,7 +37,9 @@ const LoanFormPage = React.lazy(() => import('@/pages/LoanFormPage'));
 const InvestmentsPage = React.lazy(() => import('@/pages/InvestmentsPage'));
 const GoalsPage = React.lazy(() => import('@/pages/GoalsPage'));
 
-// Components
+// Hooks
+import { useProfile } from '@/hooks/useApi';
+import { useRealtime } from '@/hooks/useRealtime';
 import BottomNav from '@/components/BottomNav';
 import { AppLogo } from '@/components/AppLogo';
 import { DesktopFAB } from '@/components/DesktopFAB';
@@ -164,6 +166,9 @@ const GlobalSheetsContainer = () => {
 };
 
 const MainAppContent: React.FC = () => {
+  const { data: profile } = useProfile();
+  useRealtime(profile?.id);
+
   const location = useLocation();
   const isMainNavPage = MAIN_NAV_PAGES.includes(location.pathname);
 
@@ -182,34 +187,34 @@ const MainAppContent: React.FC = () => {
       >
         <div className="w-full max-w-[1200px] mx-auto animate-fade-in h-full">
           <Suspense fallback={<div className="min-h-dvh flex items-center justify-center"><SkeletonDashboard /></div>}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/analysis" element={<FinancialAnalysis />} />
-            <Route path="/new" element={<NewTransaction />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/more" element={<More />} />
-            <Route path="/recurring" element={<Recurring />} />
-            <Route path="/recurring/new" element={<NewRecurringPage />} />
-            <Route path="/recurring/edit/:id" element={<NewRecurringPage />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/categories/new" element={<UpsertCategoryPage />} />
-            <Route path="/categories/edit/:id" element={<UpsertCategoryPage />} />
-            <Route path="/accounts" element={<AccountsPage />} />
-            <Route path="/accounts/new" element={<UpsertAccountPage />} />
-            <Route path="/accounts/edit/:id" element={<UpsertAccountPage />} />
-            <Route path="/installments" element={<InstallmentsPage />} />
-            <Route path="/installments/new" element={<UpsertInstallmentPage />} />
-            <Route path="/installments/edit/:id" element={<UpsertInstallmentPage />} />
-            <Route path="/loans" element={<LoansPage />} />
-            <Route path="/loans/new" element={<LoanFormPage />} />
-            <Route path="/loans/:id" element={<LoanFormPage />} />
-            <Route path="/investments" element={<InvestmentsPage />} />
-            <Route path="/goals" element={<GoalsPage />} />
-            <Route path="/trash" element={<TrashPage />} />
-          </Routes>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/analysis" element={<FinancialAnalysis />} />
+              <Route path="/new" element={<NewTransaction />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/more" element={<More />} />
+              <Route path="/recurring" element={<Recurring />} />
+              <Route path="/recurring/new" element={<NewRecurringPage />} />
+              <Route path="/recurring/edit/:id" element={<NewRecurringPage />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/categories/new" element={<UpsertCategoryPage />} />
+              <Route path="/categories/edit/:id" element={<UpsertCategoryPage />} />
+              <Route path="/accounts" element={<AccountsPage />} />
+              <Route path="/accounts/new" element={<UpsertAccountPage />} />
+              <Route path="/accounts/edit/:id" element={<UpsertAccountPage />} />
+              <Route path="/installments" element={<InstallmentsPage />} />
+              <Route path="/installments/new" element={<UpsertInstallmentPage />} />
+              <Route path="/installments/edit/:id" element={<UpsertInstallmentPage />} />
+              <Route path="/loans" element={<LoansPage />} />
+              <Route path="/loans/new" element={<LoanFormPage />} />
+              <Route path="/loans/:id" element={<LoanFormPage />} />
+              <Route path="/investments" element={<InvestmentsPage />} />
+              <Route path="/goals" element={<GoalsPage />} />
+              <Route path="/trash" element={<TrashPage />} />
+            </Routes>
           </Suspense>
         </div>
       </main>

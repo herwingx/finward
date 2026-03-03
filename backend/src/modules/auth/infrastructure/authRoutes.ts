@@ -61,18 +61,36 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       password,
       options: { data: { name: name ?? email.split('@')[0] } },
     });
+
     if (error) {
       res.status(400).json({ message: error.message });
       return;
     }
+
+    // CREATE USER IN PRISMA TO SATISFY FOREIGN KEYS
+    if (data.user) {
+      const { prisma } = await import('../../../lib/prisma');
+      const existingUser = await prisma.user.findUnique({ where: { id: data.user.id } });
+      if (!existingUser) {
+        await prisma.user.create({
+          data: {
+            id: data.user.id,
+            email: data.user.email ?? email,
+            name: name ?? email.split('@')[0],
+          }
+        });
+      }
+    }
+
     if (!data.session && !data.user) {
       res.status(201).json({ message: 'Revisa tu email para confirmar la cuenta' });
       return;
     }
+
     res.status(201).json({
       token: data.session?.access_token ?? '',
       user: data.user
-        ? { id: data.user.id, email: data.user.email ?? '', name: (data.user.user_metadata?.name as string) ?? email.split('@')[0] }
+        ? { id: data.user.id, email: data.user.email ?? email, name: name ?? email.split('@')[0] }
         : undefined,
     });
   } catch (err) {

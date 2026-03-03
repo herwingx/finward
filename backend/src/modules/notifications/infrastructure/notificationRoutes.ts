@@ -47,4 +47,20 @@ router.put('/:id/read', async (req: AuthRequest, res: Response) => {
   res.json({ success: true });
 });
 
+router.post('/debug-trigger', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+
+  const notification = await prisma.notification.create({
+    data: {
+      userId,
+      type: 'DEBUG',
+      title: '🚀 Prueba Realtime',
+      body: 'Si ves esto, tu conexión por WebSockets de Supabase está funcionando perfectamente.',
+      data: { timestamp: new Date().toISOString() },
+    },
+  });
+
+  res.json(notification);
+});
+
 export default router;

@@ -109,6 +109,14 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   throw AppError.badRequest('Invalid type: must be income, expense, or transfer');
 });
 
+// Move specific routes BEFORE generic ones
+router.post('/:id/restore', async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const id = req.params.id as string;
+  const tx = await restoreTransaction(userId, id);
+  res.json(tx);
+});
+
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
@@ -142,13 +150,6 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const force = req.query.force === 'true';
   await deleteTransaction(userId, id, force);
   res.status(204).send();
-});
-
-router.post('/:id/restore', async (req: AuthRequest, res: Response) => {
-  const userId = req.user!.id;
-  const id = req.params.id as string;
-  const tx = await restoreTransaction(userId, id);
-  res.json(tx);
 });
 
 export default router;

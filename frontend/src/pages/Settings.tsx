@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 // Hooks
-import { useTheme } from '@/hooks/useTheme';
-import { useProfile, useUpdateProfile } from '@/hooks/useApi';
+import { useThemeContext } from '@/context/ThemeContext';
+import { useProfile, useUpdateProfile, useTriggerDebugNotification } from '@/hooks/useApi';
 
 // Components
 import { Icon } from '@/components/Icon';
@@ -76,13 +76,23 @@ const SettingRow: React.FC<SettingRowProps> = ({ icon, label, description, contr
    ================================================================================== */
 const Settings: React.FC = () => {
   // Hooks
-  const [theme, setTheme] = useTheme();
+  const { theme, setTheme, isDark } = useThemeContext();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
 
   // Local State
   const [notifications, setNotifications] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
+  const triggerDebug = useTriggerDebugNotification();
+
+  const handleDebugTest = async () => {
+    try {
+      await triggerDebug.mutateAsync();
+      toastSuccess('Petición de notificación enviada');
+    } catch (e) {
+      toastError('Error al probar notificación');
+    }
+  };
 
   // Sync Logic
   useEffect(() => {
@@ -101,7 +111,6 @@ const Settings: React.FC = () => {
   };
 
   const handleThemeToggle = (val: boolean) => setTheme(val ? 'dark' : 'light');
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
     <div className="min-h-dvh bg-app-bg text-app-text font-sans pb-safe">
@@ -139,6 +148,21 @@ const Settings: React.FC = () => {
               label="Biometría"
               description="Protección con FaceID / Huella"
               control={<Switch checked={biometrics} onChange={setBiometrics} />}
+            />
+
+            <SettingRow
+              icon="bolt"
+              label="Probar Realtime"
+              description="Envía una notificación de prueba"
+              control={
+                <button
+                  onClick={handleDebugTest}
+                  disabled={triggerDebug.isPending}
+                  className="bg-app-primary text-white text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg active:scale-95 transition-transform"
+                >
+                  {triggerDebug.isPending ? 'Enviando...' : 'Probar'}
+                </button>
+              }
               isLast
             />
           </div>

@@ -3,6 +3,7 @@ import { prisma } from '../../../lib/prisma';
 import { parseSafeInt } from '../../../shared/validation';
 import { addDays, addMonths, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
 import { getFinancialSummary } from '../useCases/GetFinancialSummaryUseCase';
+import { getBillingCycle } from '../../credit-cards/domain/billingCycle';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -84,7 +85,7 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
       where: {
         userId,
         status: { in: ['active', 'partial'] },
-        expectedPayDate: { gte: periodStart, lte: periodEnd },
+        expectedPayDate: { lte: periodEnd }, // SE INCLUYEN VENCIDOS
       },
     }),
     prisma.installmentPurchase.findMany({
@@ -100,6 +101,53 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
   const debtBalance = accounts
     .filter((a) => ['CREDIT', 'LOAN'].includes(a.type))
     .reduce((s, a) => s + Math.abs(a.balance), 0);
+
+  const creditAccounts = accounts.filter(a => a.type === 'CREDIT' && a.cutoffDay && a.paymentDay);
+  const creditCardRegularPayments = [];
+
+  for (const acc of creditAccounts) {
+    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay!, paymentDay: acc.paymentDay! });
+
+    // Obtener compras regulares en este ciclo
+    const aggResult = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        accountId: acc.id,
+        type: 'expense',
+        installmentPurchaseId: null,
+        deletedAt: null,
+        date: { gte: cycle.cycleStartDate, lte: cycle.cutoffDate }
+      }
+    });
+
+    const regularAmount = aggResult._sum.amount ?? 0;
+
+    if (regularAmount > 0) {
+      // Obtener pagos (abonos/transferencias) realizados desde el inicio del ciclo
+      const paidAgg = await prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          destinationAccountId: acc.id,
+          type: 'transfer',
+          deletedAt: null,
+          date: { gte: cycle.cycleStartDate }
+        }
+      });
+      const paidAmount = paidAgg._sum.amount ?? 0;
+
+      // La porción regular que falta pagar en este ciclo
+      const remainingRegular = Math.max(0, regularAmount - paidAmount);
+
+      if (remainingRegular > 0) {
+        creditCardRegularPayments.push({
+          accountId: acc.id,
+          accountName: acc.name,
+          amount: remainingRegular,
+          dueDate: cycle.paymentDate
+        });
+      }
+    }
+  }
 
   const summary = getFinancialSummary({
     periodStart,
@@ -144,6 +192,7 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
       account: i.account,
       category: i.category,
     })),
+    creditCardRegularPayments,
     monthlyNetIncome: user?.monthlyNetIncome ?? null,
   });
 
@@ -159,12 +208,12 @@ router.get('/upcoming', async (req: AuthRequest, res: Response) => {
   const now = new Date();
   const endDate = addDays(now, days);
 
-  const [recurring, loans] = await Promise.all([
+  const [recurring, loans, accounts, installments] = await Promise.all([
     prisma.recurringTransaction.findMany({
       where: {
         userId,
         active: true,
-        nextDueDate: { gte: now, lte: endDate },
+        nextDueDate: { lte: endDate }, // SE INCLUYEN VENCIDOS
       },
       include: { category: true },
     }),
@@ -172,10 +221,87 @@ router.get('/upcoming', async (req: AuthRequest, res: Response) => {
       where: {
         userId,
         status: { in: ['active', 'partial'] },
-        expectedPayDate: { gte: now, lte: endDate },
+        expectedPayDate: { lte: endDate }, // SE INCLUYEN VENCIDOS
       },
     }),
+    prisma.account.findMany({
+      where: { userId, type: 'CREDIT' },
+    }),
+    prisma.installmentPurchase.findMany({
+      where: { userId },
+      include: { account: true, category: true },
+    })
   ]);
+
+  const creditCardRegularPayments = [];
+  const msiPayments = [];
+
+  // Expandir MSI para encontrar los vencidos y próximos a vencer
+  const { expandMsiInPeriod } = await import('../domain/projectionEngine');
+  const activeInstallments = installments.filter((i) => i.paidAmount < i.totalAmount);
+
+  for (const m of activeInstallments) {
+    const events = expandMsiInPeriod(m, now, endDate);
+    for (const ev of events) {
+      msiPayments.push({
+        id: ev.uniqueId,
+        type: 'msi' as const,
+        description: ev.description,
+        amount: ev.amount,
+        dueDate: ev.dueDate,
+        category: ev.category,
+      });
+    }
+  }
+
+  for (const acc of accounts) {
+    if (!acc.cutoffDay || !acc.paymentDay) continue;
+
+    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay, paymentDay: acc.paymentDay });
+
+    // Si la fecha de pago está después del endDate de upcoming, no lo mostramos (pero si está antes o vencido, sí)
+    if (cycle.paymentDate > endDate) continue;
+
+    // Obtener compras regulares en este ciclo
+    const aggResult = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        accountId: acc.id,
+        type: 'expense',
+        installmentPurchaseId: null,
+        deletedAt: null,
+        date: { gte: cycle.cycleStartDate, lte: cycle.cutoffDate }
+      }
+    });
+
+    const regularAmount = aggResult._sum.amount ?? 0;
+
+    if (regularAmount > 0) {
+      // Obtener pagos
+      const paidAgg = await prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          destinationAccountId: acc.id,
+          type: 'transfer',
+          deletedAt: null,
+          date: { gte: cycle.cycleStartDate }
+        }
+      });
+      const paidAmount = paidAgg._sum.amount ?? 0;
+
+      const remainingRegular = Math.max(0, regularAmount - paidAmount);
+
+      if (remainingRegular > 0) {
+        creditCardRegularPayments.push({
+          id: `ccp-${acc.id}`,
+          type: 'credit_card' as const,
+          description: `Pago Tarjeta: ${acc.name}`,
+          amount: remainingRegular,
+          dueDate: cycle.paymentDate,
+        });
+      }
+    }
+  }
 
   const upcoming = [
     ...recurring.map((r) => ({
@@ -193,6 +319,8 @@ router.get('/upcoming', async (req: AuthRequest, res: Response) => {
       amount: l.remainingAmount,
       dueDate: l.expectedPayDate,
     })),
+    ...creditCardRegularPayments,
+    ...msiPayments,
   ].sort((a, b) => {
     const da = a.dueDate ? new Date(a.dueDate).getTime() : 0;
     const db = b.dueDate ? new Date(b.dueDate).getTime() : 0;

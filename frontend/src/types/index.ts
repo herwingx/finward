@@ -78,6 +78,7 @@ export interface Account {
 }
 
 export interface Profile {
+  id: string;
   name: string;
   email: string;
   currency: 'USD' | 'EUR' | 'GBP' | 'MXN';

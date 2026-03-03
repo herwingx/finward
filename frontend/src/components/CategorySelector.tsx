@@ -45,46 +45,11 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     );
   }
 
-  const quickCategories = quickCount > 0 ? categories.slice(0, quickCount) : [];
-  const restCategories = quickCount > 0 ? categories.slice(quickCount) : categories;
-
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
-      {/* QUICK CATEGORIES (first N as large buttons for 1-tap selection) */}
-      {quickCategories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {quickCategories.map((cat) => {
-            const isSelected = selectedId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => onSelect(cat.id)}
-                className={`
-                  min-h-[44px] px-4 py-2.5 rounded-2xl flex items-center gap-2.5
-                  transition-all duration-200 outline-none border-2
-                  ${isSelected
-                    ? 'scale-[1.02] shadow-md'
-                    : 'bg-app-subtle/60 border-transparent hover:bg-app-subtle active:scale-95'
-                  }
-                `}
-                style={{
-                  backgroundColor: isSelected ? `${cat.color}20` : undefined,
-                  borderColor: isSelected ? cat.color : undefined,
-                  color: isSelected ? cat.color : undefined,
-                }}
-              >
-                <Icon name={getValidIcon(cat.icon)} size={20} />
-                <span className="text-sm font-bold">{cat.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* FULL GRID */}
-      <div className={`grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 pb-safe-offset-2 overflow-y-auto max-h-[200px] custom-scrollbar`}>
-        {restCategories.map((cat) => {
+      {/* FULL UNIFIED GRID */}
+      <div className={`grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 pb-safe-offset-2 overflow-y-auto max-h-[300px] custom-scrollbar`}>
+        {categories.map((cat) => {
           const isSelected = selectedId === cat.id;
 
           return (

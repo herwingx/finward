@@ -433,20 +433,26 @@ const FinancialAnalysis: React.FC = () => {
               {upcomingPayments.expenses.length === 0 && (
                 <p className="p-6 text-center text-xs text-app-muted">Sin gastos fijos.</p>
               )}
-              {upcomingPayments.expenses.map((e: any, i: number) => (
-                <div key={e.id || e.description} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-sm font-semibold text-app-text truncate">{e.description}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] bg-app-subtle px-1.5 py-0.5 rounded text-app-muted font-medium font-mono">
-                        {formatDateUTC(e.dueDate, { day: 'numeric', month: 'short' })}
-                      </span>
-                      {e.count > 1 && <span className="text-[10px] text-app-primary font-bold">x{e.count}</span>}
+              {upcomingPayments.expenses.map((e: any, i: number) => {
+                const now = new Date();
+                const diffDays = Math.ceil((new Date(e.dueDate).getTime() - now.getTime()) / 86400000);
+                const isOverdue = diffDays < 0;
+
+                return (
+                  <div key={e.id || e.description} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <p className="text-sm font-semibold text-app-text truncate">{e.description}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium font-mono ${isOverdue ? 'bg-rose-500/10 text-rose-600 font-bold' : 'bg-app-subtle text-app-muted'}`}>
+                          {isOverdue ? 'Vencido' : formatDateUTC(e.dueDate, { day: 'numeric', month: 'short' })}
+                        </span>
+                        {e.count > 1 && <span className="text-[10px] text-app-primary font-bold">x{e.count}</span>}
+                      </div>
                     </div>
+                    <span className="text-sm font-bold font-numbers">-{formatCurrency(e.totalAmount)}</span>
                   </div>
-                  <span className="text-sm font-bold font-numbers">-{formatCurrency(e.totalAmount)}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -481,13 +487,17 @@ const FinancialAnalysis: React.FC = () => {
                     : 'Cuota'
                   : 'Cargo Regular';
 
+                const now = new Date();
+                const diffDays = Math.ceil((new Date(e.dueDate).getTime() - now.getTime()) / 86400000);
+                const isOverdue = diffDays < 0;
+
                 return (
                   <div key={e.id || desc} className="flex justify-between items-center p-3 hover:bg-app-subtle/50 transition-colors">
                     <div className="flex-1 min-w-0 pr-2">
                       <p className="text-sm font-semibold text-app-text truncate">{desc}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] bg-app-subtle px-1.5 py-0.5 rounded text-app-muted font-medium font-mono">
-                          {formatDateUTC(e.dueDate, { day: 'numeric', month: 'short' })}
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium font-mono ${isOverdue ? 'bg-rose-500/10 text-rose-600 font-bold' : 'bg-app-subtle text-app-muted'}`}>
+                          {isOverdue ? 'Vencido' : formatDateUTC(e.dueDate, { day: 'numeric', month: 'short' })}
                         </span>
                         <span className={`text-[10px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-bold`}>
                           {isMsi ? `${label} de ${e.totalInstallments}` : label}
