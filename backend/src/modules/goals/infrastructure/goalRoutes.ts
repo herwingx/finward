@@ -1,6 +1,11 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import {
+  parseAndValidateAmount,
+  parseSafeInt,
+  validateName,
+} from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import { createIncome } from '../../transactions/useCases/CreateIncomeUseCase';
 import type { AuthRequest } from '../../../shared/types';
@@ -21,12 +26,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const { name, targetAmount, currentAmount, deadline, icon, color, priority } = req.body ?? {};
   if (!name || !targetAmount) throw AppError.badRequest('Missing: name, targetAmount');
+  validateName(name);
   const goal = await prisma.savingsGoal.create({
     data: {
       userId,
       name,
-      targetAmount: parseFloat(targetAmount),
-      currentAmount: parseFloat(currentAmount) ?? 0,
+      targetAmount: parseAndValidateAmount(targetAmount, 'targetAmount'),
+      currentAmount: currentAmount != null ? parseAndValidateAmount(currentAmount, 'currentAmount') : 0,
       deadline: deadline ? new Date(deadline) : null,
       icon,
       color,
@@ -48,11 +54,11 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     where: { id },
     data: {
       name: name ?? goal.name,
-      targetAmount: targetAmount !== undefined ? parseFloat(targetAmount) : goal.targetAmount,
+      targetAmount: targetAmount !== undefined ? parseAndValidateAmount(targetAmount, 'targetAmount') : goal.targetAmount,
       deadline: deadline === null ? null : deadline ? new Date(deadline) : goal.deadline,
       icon: icon ?? goal.icon,
       color: color ?? goal.color,
-      priority: priority !== undefined ? parseInt(priority, 10) : goal.priority,
+      priority: priority !== undefined ? parseSafeInt(priority, 'priority') : goal.priority,
       status: status ?? goal.status,
     },
   });
@@ -80,6 +86,7 @@ router.post('/:id/contribute', async (req: AuthRequest, res: Response) => {
   const goal = await prisma.savingsGoal.findFirst({ where: { id, userId } });
   if (!goal) throw AppError.notFound('Goal not found');
 
+  const amt = parseAndValidateAmount(amount, 'amount');
   let cat = await prisma.category.findFirst({ where: { userId, name: { contains: 'Ahorro', mode: 'insensitive' } } });
   if (!cat) {
     cat = await prisma.category.create({
@@ -91,14 +98,15 @@ router.post('/:id/contribute', async (req: AuthRequest, res: Response) => {
     userId,
     accountId: sourceAccountId,
     categoryId: cat.id,
-    amount: parseFloat(amount),
+    amount: amt,
     description: `Ahorro: ${goal.name}`,
     date: date ? new Date(date) : new Date(),
   });
+  if (!tx) throw AppError.badRequest('Failed to create transaction');
 
   await prisma.savingsContribution.create({
     data: {
-      amount: parseFloat(amount),
+      amount: amt,
       date: date ? new Date(date) : new Date(),
       notes: notes ?? null,
       savingsGoalId: id,
@@ -108,10 +116,10 @@ router.post('/:id/contribute', async (req: AuthRequest, res: Response) => {
 
   const updated = await prisma.savingsGoal.update({
     where: { id },
-    data: { currentAmount: { increment: parseFloat(amount) } },
+    data: { currentAmount: { increment: amt } },
   });
 
-  res.status(201).json({ contribution: { amount: parseFloat(amount) }, goal: updated });
+  res.status(201).json({ contribution: { amount: amt }, goal: updated });
 });
 
 router.post('/:id/withdraw', async (req: AuthRequest, res: Response) => {
@@ -124,7 +132,7 @@ router.post('/:id/withdraw', async (req: AuthRequest, res: Response) => {
   const goal = await prisma.savingsGoal.findFirst({ where: { id, userId } });
   if (!goal) throw AppError.notFound('Goal not found');
 
-  const withdrawAmount = parseFloat(amount);
+  const withdrawAmount = parseAndValidateAmount(amount, 'amount');
   if (goal.currentAmount < withdrawAmount) throw AppError.badRequest('Insufficient funds in goal');
 
   let cat = await prisma.category.findFirst({

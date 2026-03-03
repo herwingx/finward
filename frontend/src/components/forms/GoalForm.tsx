@@ -6,6 +6,8 @@ import { SavingsGoal } from '@/types';
 // Components
 import { DatePicker } from '@/components/DatePicker';
 import { IconSelector } from '@/components/IconSelector';
+import { Button } from '@/components/Button';
+import { Icon } from '@/components/Icon';
 import { VALID_ICONS } from '@/utils/icons';
 
 interface GoalFormProps {
@@ -90,7 +92,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
               style={{ backgroundColor: color, color: '#fff', boxShadow: `0 8px 20px -6px ${color}60` }}
               onClick={() => { const icons = VALID_ICONS; const idx = icons.indexOf(icon as any); const nextIdx = (idx + 1) % icons.length; setIcon(icons[nextIdx]); }}
             >
-              <span className="material-symbols-outlined select-none">{icon}</span>
+              <Icon name={icon} size={36} className="select-none" />
             </div>
 
             {/* Color Dots */}
@@ -148,7 +150,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
                     onClick={() => setDeadline(undefined)}
                     className="size-11 rounded-xl border border-app-border flex items-center justify-center text-app-muted hover:bg-rose-50 hover:text-rose-500 transition-colors bg-app-surface shrink-0"
                   >
-                    <span className="material-symbols-outlined text-sm">close</span>
+                    <Icon name="close" size={16} />
                   </button>
                 )}
               </div>
@@ -168,14 +170,16 @@ export const GoalForm: React.FC<GoalFormProps> = ({ existingGoal, onClose, isShe
 
           {/* 3. FOOTER */}
           <div className="pt-2 pb-10 mt-auto shrink-0 touch-none">
-            <button
+            <Button
               type="submit"
+              fullWidth
+              size="lg"
+              variant="primary"
+              isLoading={isSaving}
               disabled={isSaving}
-              className="w-full py-3.5 bg-app-primary text-white text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl shadow-app-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isSaving && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {isEditing ? 'Guardar Cambios' : 'Crear Alcancía'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

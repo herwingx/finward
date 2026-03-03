@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction } from '@/types';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableItem } from '@/components/SwipeableItem';
 import { SkeletonTransactionList } from '@/components/Skeleton';
@@ -13,6 +14,7 @@ import { SkeletonTransactionList } from '@/components/Skeleton';
 // Utils
 import { toastSuccess, toastError, toast } from '@/utils/toast';
 import { formatDateUTC } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/currency';
 
 const TrashPage: React.FC = () => {
   // Query
@@ -25,12 +27,13 @@ const TrashPage: React.FC = () => {
   const permDeleteTx = usePermanentDeleteTransaction();
   const isMobile = useIsMobile();
 
+  const deletedList = deletedTransactions?.data ?? [];
+
   /* Logic & Memos */
   const categoryMap = useMemo(() => new Map(categories?.map(c => [c.id, c])), [categories]);
 
   const getCategoryInfo = (id: string | null) => categoryMap.get(id || '') || { icon: 'delete', color: 'var(--text-muted)', name: 'General' };
   const getAccount = (id: string | null) => accounts?.find(a => a.id === id);
-  const formatCurrency = (val: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
 
   const getDaysLeft = (dateStr?: string) => {
     if (!dateStr) return 0;
@@ -72,7 +75,7 @@ const TrashPage: React.FC = () => {
         {/* 1. INFO CARD */}
         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex gap-3 items-start">
           <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full p-1.5 shrink-0">
-            <span className="material-symbols-outlined text-lg">auto_delete</span>
+            <Icon name="auto_delete" size={18} />
           </div>
           <div>
             <p className="text-xs text-amber-900 dark:text-amber-100 font-bold mb-0.5">Purgado Automático</p>
@@ -84,13 +87,13 @@ const TrashPage: React.FC = () => {
 
         {/* 2. LIST */}
         <div className="space-y-3">
-          {deletedTransactions?.length === 0 ? (
+          {deletedList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 opacity-40 border-2 border-dashed border-app-border rounded-3xl">
-              <span className="material-symbols-outlined text-5xl mb-2 text-app-muted">recycling</span>
+              <Icon name="recycling" size={48} className="mb-2 text-app-muted" />
               <p className="text-sm font-medium text-app-text">La papelera está vacía</p>
             </div>
           ) : (
-            deletedTransactions?.map(tx => {
+            deletedList.map(tx => {
               const daysLeft = getDaysLeft(tx.deletedAt);
               const isExp = tx.type === 'expense';
               const cat = getCategoryInfo(tx.categoryId);
@@ -107,7 +110,7 @@ const TrashPage: React.FC = () => {
                 >
                   <div className="bento-card p-4 flex items-center gap-4 bg-app-surface/60 opacity-85 hover:opacity-100 hover:border-app-border-strong transition-all grayscale-30 hover:grayscale-0">
                     <div className="size-10 rounded-xl bg-app-subtle border border-app-border flex items-center justify-center text-app-muted">
-                      <span className="material-symbols-outlined text-lg">{cat.icon}</span>
+                      <Icon name={cat.icon} size={18} />
                     </div>
 
                     <div className="flex-1 min-w-0">

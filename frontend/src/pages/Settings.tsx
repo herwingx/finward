@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useProfile, useUpdateProfile } from '@/hooks/useApi';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 
 // Utils
@@ -57,7 +58,7 @@ const SettingRow: React.FC<SettingRowProps> = ({ icon, label, description, contr
   <div className={`flex items-center justify-between p-4 ${!isLast ? 'border-b border-app-border/50' : ''}`}>
     <div className="flex items-center gap-4">
       <div className="size-9 rounded-lg bg-app-subtle flex items-center justify-center shrink-0 text-app-text">
-        <span className="material-symbols-outlined text-[20px]">{icon}</span>
+        <Icon name={icon} size={20} />
       </div>
       <div>
         <p className="font-semibold text-sm text-app-text leading-tight">{label}</p>

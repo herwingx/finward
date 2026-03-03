@@ -11,6 +11,7 @@ import { SwipeableItem } from '@/components/SwipeableItem';
 import { SkeletonAccountsPage } from '@/components/Skeleton';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
 import { DeleteConfirmationSheet } from '@/components/DeleteConfirmationSheet';
+import { Icon } from '@/components/Icon';
 
 // Utils & Types
 import { toastSuccess, toastError } from '@/utils/toast';
@@ -67,7 +68,7 @@ const AccountDetailSheet = ({
                 {/* Identity Block */}
                 <div className="flex flex-col items-center mb-8 animate-fade-in">
                     <div className={`size-20 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-sm ${conf.bg} ${conf.text}`}>
-                        <span className="material-symbols-outlined text-[32px]">{conf.icon}</span>
+                        <Icon name={conf.icon} size={32} />
                     </div>
                     <h2 className="text-2xl font-bold text-app-text leading-tight text-center">{account.name}</h2>
                     <span className="mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-app-subtle text-app-muted border border-app-border">
@@ -117,11 +118,11 @@ const AccountDetailSheet = ({
                 {/* Actions Grid */}
                 <div className="hidden md:grid grid-cols-2 gap-3">
                     <button onClick={onEdit} className="h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm font-bold">
-                        <span className="material-symbols-outlined text-[18px]">settings</span>
+                        <Icon name="settings" size={18} />
                         Configurar
                     </button>
                     <button onClick={onDelete} className="h-12 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/10 dark:hover:bg-rose-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm font-bold text-rose-600 dark:text-rose-400">
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                        <Icon name="delete" size={18} />
                         Eliminar
                     </button>
                 </div>
@@ -151,10 +152,15 @@ const AccountsPage: React.FC = () => {
 
     // Deep Linking Handler
     useEffect(() => {
-        if (searchParams.get('action') === 'new') {
+        const action = searchParams.get('action');
+        const editId = searchParams.get('id');
+        if (action === 'new') {
             openAccountSheet();
+        } else if (action === 'edit' && editId && accounts?.length) {
+            const account = accounts.find((a) => a.id === editId);
+            if (account) openAccountSheet(account);
         }
-    }, [searchParams, openAccountSheet]);
+    }, [searchParams, openAccountSheet, accounts]);
 
     // Formatters & Calcs
     const formatCurrency = useMemo(() => (value: number) => {
@@ -227,7 +233,7 @@ const AccountsPage: React.FC = () => {
                 title="Cartera"
                 action={
                     <button onClick={() => openAccountSheet()} className="bg-app-text text-app-bg rounded-full size-10 flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
-                        <span className="material-symbols-outlined text-[22px]">add</span>
+                        <Icon name="add" size={22} />
                     </button>
                 }
             />
@@ -239,7 +245,7 @@ const AccountsPage: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="col-span-2 bento-card p-5 bg-linear-to-br from-app-surface to-app-subtle dark:from-zinc-900 dark:to-black">
                             <div className="flex items-center gap-2 mb-1 opacity-70">
-                                <span className="material-symbols-outlined text-[16px]">account_balance</span>
+                                <Icon name="account_balance" size={16} />
                                 <span className="text-[10px] uppercase font-bold tracking-widest">Patrimonio Neto</span>
                             </div>
                             <div className={`text-4xl font-black tabular-nums tracking-tight ${kpiData.net >= 0 ? 'text-app-text' : 'text-rose-600'}`}>
@@ -291,7 +297,7 @@ const AccountsPage: React.FC = () => {
                                         className="bento-card p-4 md:p-5 flex gap-4 items-center group cursor-pointer hover:border-app-border-strong active:scale-[0.99]"
                                     >
                                         <div className={`size-11 md:size-12 shrink-0 rounded-xl flex items-center justify-center ${ui.bg} ${ui.text}`}>
-                                            <span className="material-symbols-outlined text-[24px]">{ui.icon}</span>
+                                            <Icon name={ui.icon} size={24} />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
@@ -333,7 +339,7 @@ const AccountsPage: React.FC = () => {
                         }) : (
                             <div className="flex flex-col items-center justify-center py-16 opacity-50 border-2 border-dashed border-app-border rounded-2xl bg-app-subtle/20">
                                 <div className="size-16 rounded-full bg-app-subtle flex items-center justify-center mb-4">
-                                    <span className="material-symbols-outlined text-3xl text-app-muted">account_balance</span>
+                                    <Icon name="account_balance" size={32} className="text-app-muted" />
                                 </div>
                                 <p className="text-sm font-bold text-app-text">Sin Cuentas</p>
                                 <p className="text-xs text-app-muted max-w-[200px] text-center mt-1">

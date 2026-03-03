@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@/components/Icon';
 import { Transaction, Category, Account } from '@/types';
 import { SwipeableBottomSheet } from './SwipeableBottomSheet';
 import { formatDateUTC } from '@/utils/dateUtils'; // Ensure correct path or use helper below if utils not available
@@ -53,9 +54,7 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
               color: displayColor || undefined
             }}
           >
-            <span className={`material-symbols-outlined text-[40px] ${!displayColor ? typeStyle.color : ''}`}>
-              {displayIcon}
-            </span>
+            <Icon name={displayIcon} size={40} className={!displayColor ? typeStyle.color : ''} />
           </div>
 
           <h2 className="text-xl font-bold text-app-text text-center leading-snug px-4">
@@ -86,7 +85,7 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
           <div className="flex items-center justify-between p-3 rounded-2xl bg-app-surface border border-app-border">
             <div className="flex items-center gap-3">
               <div className="size-10 bg-app-subtle rounded-xl flex items-center justify-center text-app-muted">
-                <span className="material-symbols-outlined">account_balance_wallet</span>
+                <Icon name="account_balance_wallet" />
               </div>
               <div>
                 <p className="text-[10px] font-bold text-app-muted uppercase">
@@ -102,7 +101,7 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
             <div className="flex items-center justify-between p-3 rounded-2xl bg-app-surface border border-app-border">
               <div className="flex items-center gap-3">
                 <div className="size-10 bg-app-subtle rounded-xl flex items-center justify-center text-app-muted">
-                  <span className="material-symbols-outlined">login</span>
+                  <Icon name="login" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-app-muted uppercase">Destino</p>
@@ -117,7 +116,7 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
             <div className="flex items-center justify-between p-3 rounded-2xl bg-app-surface border border-app-border">
               <div className="flex items-center gap-3">
                 <div className="size-10 bg-app-subtle rounded-xl flex items-center justify-center text-app-muted">
-                  <span className="material-symbols-outlined">category</span>
+                  <Icon name="category" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-app-muted uppercase">Categoría</p>
@@ -130,7 +129,7 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
           {/* Linked MSI */}
           {transaction.installmentPurchaseId && (
             <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 flex items-center gap-3">
-              <span className="material-symbols-outlined text-indigo-500">link</span>
+              <Icon name="link" className="text-indigo-500" />
               <div>
                 <p className="text-[10px] font-bold text-indigo-800 dark:text-indigo-200 uppercase">Vinculado a Plan</p>
                 <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Este movimiento es el pago de una cuota MSI.</p>
@@ -145,14 +144,14 @@ export const TransactionDetailSheet: React.FC<TransactionDetailSheetProps> = ({
             onClick={() => onEdit(transaction)}
             className="h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center gap-2 text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-95 transition-all"
           >
-            <span className="material-symbols-outlined text-[18px]">edit</span>
+            <Icon name="edit" size={18} />
             Editar
           </button>
           <button
             onClick={() => onDelete(transaction)}
             className="h-12 rounded-xl bg-rose-50 dark:bg-rose-900/10 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-2 text-sm font-bold hover:bg-rose-100 dark:hover:bg-rose-900/20 active:scale-95 transition-all"
           >
-            <span className="material-symbols-outlined text-[18px]">delete</span>
+            <Icon name="delete" size={18} />
             Borrar
           </button>
         </div>

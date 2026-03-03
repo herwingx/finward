@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { validateName } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -15,6 +16,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const { name, icon, color, type, budgetType } = req.body ?? {};
   if (!name || !icon || !color || !type) throw AppError.badRequest('Missing: name, icon, color, type');
+  validateName(name);
 
   const category = await prisma.category.create({
     data: { userId, name, icon, color, type, budgetType },
@@ -31,7 +33,10 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   if (!existing) throw AppError.notFound('Category not found');
 
   const data: Record<string, unknown> = {};
-  if (name != null) data.name = name;
+  if (name != null) {
+    validateName(name);
+    data.name = name;
+  }
   if (icon != null) data.icon = icon;
   if (color != null) data.color = color;
   if (type != null) data.type = type;

@@ -1,6 +1,12 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import {
+  parseAndValidateAmount,
+  parseSafeFloat,
+  parseSafeInt,
+  validateDescription,
+} from '../../../shared/validation';
 import { createInstallmentPurchase } from '../useCases/CreateInstallmentPurchaseUseCase';
 import { payInstallment } from '../useCases/PayInstallmentUseCase';
 import { getNextPaymentDate } from '../domain/nextPaymentDate';
@@ -46,15 +52,16 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     throw AppError.badRequest('Missing: description, totalAmount, installments, purchaseDate, accountId, categoryId');
   }
 
+  validateDescription(description);
   const purchase = await createInstallmentPurchase({
     userId,
     description,
-    totalAmount: parseFloat(totalAmount),
-    installments: parseInt(installments, 10),
+    totalAmount: parseAndValidateAmount(totalAmount, 'totalAmount'),
+    installments: parseSafeInt(installments, 'installments'),
     purchaseDate: new Date(purchaseDate),
     accountId,
     categoryId,
-    initialPaidInstallments: initialPaidInstallments ? parseInt(initialPaidInstallments, 10) : undefined,
+    initialPaidInstallments: initialPaidInstallments != null ? parseSafeInt(initialPaidInstallments, 'initialPaidInstallments') : undefined,
   });
   res.status(201).json(purchase);
 });
@@ -67,13 +74,20 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   const purchase = await prisma.installmentPurchase.findFirst({ where: { id, userId }, include: { account: true } });
   if (!purchase) throw AppError.notFound('Installment purchase not found');
 
-  const newTotal = totalAmount ?? purchase.totalAmount;
-  const newInstallments = installments ?? purchase.installments;
+  if (description !== undefined) validateDescription(description);
+  if (categoryId !== undefined) {
+    const cat = await prisma.category.findFirst({ where: { id: categoryId, userId } });
+    if (!cat) throw AppError.notFound('Category not found');
+  }
+
+  const newTotal = totalAmount != null ? parseAndValidateAmount(totalAmount, 'totalAmount') : purchase.totalAmount;
+  const newInstallments = installments != null ? parseSafeInt(installments, 'installments') : purchase.installments;
+  if (newInstallments < 1) throw AppError.badRequest('installments must be at least 1');
   const currentPaid = purchase.paidAmount;
   if (currentPaid > 0 && newTotal < currentPaid - 0.01) {
     throw AppError.badRequest('Cannot reduce total below paid amount');
   }
-  const newMonthlyPayment = parseFloat((newTotal / newInstallments).toFixed(2));
+  const newMonthlyPayment = parseSafeFloat(Number((newTotal / newInstallments).toFixed(2)), 'monthlyPayment');
   let recalcPaid = purchase.paidInstallments;
   if (currentPaid > 0 && (totalAmount !== undefined || installments !== undefined)) {
     recalcPaid = Math.min(newInstallments, Math.floor(currentPaid / newMonthlyPayment));
@@ -102,32 +116,43 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 
   const purchase = await prisma.installmentPurchase.findFirst({
     where: { id, userId },
-    include: { account: true, transactions: true },
+    include: { account: true },
   });
   if (!purchase) throw AppError.notFound('Installment purchase not found');
 
   await prisma.$transaction(async (db) => {
-    const txs = await db.transaction.findMany({ where: { installmentPurchaseId: id, deletedAt: null } });
-    for (const tr of txs) {
-      const entries = await db.ledgerEntry.findMany({ where: { transactionId: tr.id } });
-      for (const e of entries) {
-        await db.account.update({
-          where: { id: e.accountId },
-          data: { balance: { increment: -e.amount } },
-        });
-      }
-      if (revert && tr.type === 'transfer' && tr.accountId && tr.destinationAccountId === purchase.accountId) {
-        const src = await db.account.findFirst({ where: { id: tr.accountId } });
-        if (src) {
+    const txs = await db.transaction.findMany({
+      where: { installmentPurchaseId: id, deletedAt: null },
+      include: { account: true },
+    });
+    const entries = await db.ledgerEntry.findMany({
+      where: { transactionId: { in: txs.map((t) => t.id) } },
+    });
+
+    const balanceDeltas = new Map<string, number>();
+    for (const e of entries) {
+      balanceDeltas.set(e.accountId, (balanceDeltas.get(e.accountId) ?? 0) - e.amount);
+    }
+    if (revert) {
+      for (const tr of txs) {
+        if (tr.type === 'transfer' && tr.accountId && tr.destinationAccountId === purchase.accountId && tr.account) {
           const amt = tr.amount;
-          await db.account.update({
-            where: { id: tr.accountId },
-            data: { balance: { increment: src.type === 'CREDIT' ? -amt : amt } },
-          });
+          const delta = tr.account.type === 'CREDIT' ? -amt : amt;
+          balanceDeltas.set(tr.accountId, (balanceDeltas.get(tr.accountId) ?? 0) + delta);
         }
       }
-      await db.ledgerEntry.deleteMany({ where: { transactionId: tr.id } });
     }
+
+    for (const [accountId, delta] of balanceDeltas) {
+      if (delta !== 0) {
+        await db.account.update({
+          where: { id: accountId },
+          data: { balance: { increment: delta } },
+        });
+      }
+    }
+
+    await db.ledgerEntry.deleteMany({ where: { transactionId: { in: txs.map((t) => t.id) } } });
     await db.transaction.deleteMany({ where: { installmentPurchaseId: id } });
     await db.installmentPurchase.delete({ where: { id } });
   });
@@ -146,7 +171,7 @@ router.post('/:id/pay', async (req: AuthRequest, res: Response) => {
   const tx = await payInstallment({
     userId,
     installmentPurchaseId: id,
-    amount: parseFloat(amount),
+    amount: parseAndValidateAmount(amount, 'amount'),
     date: new Date(date),
     sourceAccountId: accountId,
     description,

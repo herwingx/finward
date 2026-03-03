@@ -131,3 +131,21 @@ Los errores conocidos se convierten en HTTP:
 - P2003 (foreign key) → 400 Bad Request
 - P2025 (record not found) → 404 Not Found
 
+---
+
+## Solución de problemas
+
+### `Cannot find module '.prisma/client/default'`
+
+El cliente Prisma no está generado. **Solución:**
+
+```bash
+# Desde raíz
+./dev.sh generate
+
+# O desde backend/
+npx prisma generate
+```
+
+Este paso se ejecuta automáticamente con `./dev.sh setup` o con `prisma db push`. Si saltaste el setup y ejecutaste solo `npm install` + `npm run dev`, regenera el cliente.
+

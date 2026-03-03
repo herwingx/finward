@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Icon } from '@/components/Icon';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
 
@@ -146,7 +147,7 @@ export const SwipeableBottomSheet: React.FC<SheetProps> = ({
                   className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-app-subtle text-app-text rounded-full hover:bg-app-elevated hover:scale-105 active:scale-95 transition-all duration-200 border border-app-border shadow-sm group"
                   aria-label="Cerrar"
                 >
-                  <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-300">close</span>
+                  <Icon name="close" size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                 </button>
               )}
 

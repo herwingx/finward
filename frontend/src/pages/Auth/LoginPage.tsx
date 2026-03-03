@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 // Assets & Utils
 import { toastSuccess, toastError } from '@/utils/toast';
 import { AppLogo } from '@/components/AppLogo';
+import { Icon } from '@/components/Icon';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -92,7 +93,7 @@ const LoginPage: React.FC = () => {
                         <div className="space-y-2">
                             <label className="block text-[11px] font-bold text-app-muted uppercase tracking-wider ml-1">Correo Electrónico</label>
                             <div className="relative group">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors text-[22px]">alternate_email</span>
+                                <Icon name="alternate_email" size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors" />
                                 <input
                                     type="email"
                                     required
@@ -114,7 +115,7 @@ const LoginPage: React.FC = () => {
                                 </Link>
                             </div>
                             <div className="relative group">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors text-[22px]">lock</span>
+                                <Icon name="lock" size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted/70 group-focus-within:text-app-primary transition-colors" />
                                 <input
                                     type="password"
                                     required
@@ -141,7 +142,7 @@ const LoginPage: React.FC = () => {
                             ) : (
                                 <>
                                     <span>Entrar a mi cuenta</span>
-                                    <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                                    <Icon name="arrow_forward" size={20} />
                                 </>
                             )}
                         </button>

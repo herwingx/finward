@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@/components/Icon';
 import { motion } from 'framer-motion';
 
 /* ==================================================================================
@@ -59,7 +60,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
 
         {/* ICON AREA */}
         <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 bg-white/60 dark:bg-black/20 ${cfg.text}`}>
-          <span className="material-symbols-outlined text-[20px]">{cfg.icon}</span>
+          <Icon name={cfg.icon} size={20} />
         </div>
 
         {/* CONTENT AREA */}
@@ -67,7 +68,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
           <div className="flex justify-between items-start gap-2">
             <h4 className={`text-sm font-bold leading-tight ${cfg.text}`}>{title}</h4>
             <button onClick={(e) => { e.stopPropagation(); onDismiss(); }} className="opacity-50 hover:opacity-100 transition-opacity p-1 -mt-2 -mr-2">
-              <span className="material-symbols-outlined text-[16px]">close</span>
+              <Icon name="close" size={16} />
             </button>
           </div>
 
@@ -81,7 +82,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
               className="mt-3 flex items-center gap-1.5 text-xs font-bold bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-lg hover:bg-white dark:hover:bg-black/40 transition-colors shadow-sm"
             >
               {actionLabel}
-              <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+              <Icon name="arrow_forward" size={12} />
             </button>
           )}
         </div>

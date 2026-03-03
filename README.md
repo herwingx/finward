@@ -13,13 +13,15 @@ finward/
 ## Inicio rápido (desarrollo local)
 
 ```bash
-./dev.sh setup       # 1. Primera vez
+./dev.sh setup       # 1. Primera vez: .env, npm install, prisma generate
 # Editar backend/.env con Supabase (SUPABASE_*, DATABASE_URL, DIRECT_URL). Si el dominio no resuelve en local: USE_DIRECT_URL=true
 ./dev.sh db:push     # 2. Aplicar schema
 ./dev.sh setup-dev   # 3. Usuario demo + seed + RLS
 ./dev.sh start       # 4. Backend en http://localhost:4000
 cd frontend && npm run dev   # 5. Frontend en http://localhost:3000
 ```
+
+> **Si ves** `Cannot find module '.prisma/client/default'`: ejecuta `./dev.sh generate` antes de `./dev.sh start`.
 
 **Credenciales demo:** `demo@finward.dev` / `DemoFinward123!`
 
@@ -36,6 +38,8 @@ Requiere `backend/.env` con Supabase. No usa Postgres local (Supabase externo).
 
 ## Docs
 
+- [docs/PERFORMANCE.md](docs/PERFORMANCE.md) - Optimizaciones de rendimiento (auditoría 2025)
+- [docs/UX-UI.md](docs/UX-UI.md) - Guía UX/UI, componentes, validación y touch targets
 - [backend/docs/DOMAIN.md](backend/docs/DOMAIN.md) - Dominio financiero
 - [backend/docs/SETUP.md](backend/docs/SETUP.md) - Instalación
 - [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) - Flujo de desarrollo local

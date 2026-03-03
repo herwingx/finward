@@ -3,6 +3,8 @@ import { useAddInstallmentPurchase, useUpdateInstallmentPurchase, useAccounts, u
 import { toastSuccess, toastError, toast } from '@/utils/toast';
 import { DatePicker } from '@/components/DatePicker';
 import { CategorySelector } from '@/components/CategorySelector';
+import { Button } from '@/components/Button';
+import { Icon } from '@/components/Icon';
 
 interface InstallmentFormProps {
   id?: string;
@@ -138,7 +140,7 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
                   >
                     {creditAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
-                  <span className="material-symbols-outlined absolute right-2 top-2.5 text-app-muted pointer-events-none text-[20px]">credit_card</span>
+                  <Icon name="credit_card" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />
                 </div>
               </div>
 
@@ -151,7 +153,7 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
                   >
                     {[3, 6, 9, 12, 18, 24, 36, 48].map(m => <option key={m} value={m}>{m} Meses</option>)}
                   </select>
-                  <span className="material-symbols-outlined absolute right-2 top-2.5 text-app-muted pointer-events-none text-[20px]">calendar_month</span>
+                  <Icon name="calendar_month" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -210,14 +212,16 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
 
           {/* 3. FOOTER */}
           <div className="pt-4 pb-10 mt-auto shrink-0 touch-none">
-            <button
+            <Button
               type="submit"
+              fullWidth
+              size="lg"
+              variant="primary"
+              isLoading={addMutation.isPending || updateMutation.isPending}
               disabled={addMutation.isPending || updateMutation.isPending}
-              className="w-full py-3.5 bg-app-primary text-white text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl shadow-app-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {(addMutation.isPending || updateMutation.isPending) && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {isEditMode ? 'Actualizar Plan' : 'Crear Plan'}
-            </button>
+            </Button>
           </div>
 
         </form>

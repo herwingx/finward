@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, useAnimation, PanInfo } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { sileo } from 'sileo';
@@ -7,6 +7,8 @@ import { sileo } from 'sileo';
 import { useFinancialPeriodSummary } from '@/hooks/useFinancialPlanning';
 import { usePayRecurringTransaction, useAccounts, usePayFullStatement, usePayMsiInstallment, useAddTransaction } from '@/hooks/useApi';
 import { formatDateUTC } from '@/utils/dateUtils';
+import { formatCurrency as formatCurrencyUtil } from '@/utils/currency';
+import { Icon } from '@/components/Icon';
 import { SkeletonPlanningWidget } from './Skeleton';
 import { InfoTooltip } from '@/components/InfoTooltip';
 
@@ -97,7 +99,7 @@ const SwipeableActionRow = ({
           className="absolute inset-0 bg-emerald-500 flex items-center pl-6"
         >
           <motion.div style={{ scale: iconScale }} className="flex items-center gap-2 text-white font-bold">
-            <span className="material-symbols-outlined text-[20px] bg-white text-emerald-600 rounded-full p-0.5 shadow-sm">check</span>
+            <Icon name="check" size={20} className="bg-white text-emerald-600 rounded-full p-0.5 shadow-sm" />
             <span className="text-xs tracking-wider uppercase font-black">
               {actionType === 'pay' ? 'PAGADO' : 'RECIBIDO'}
             </span>
@@ -164,7 +166,7 @@ const CreditCardGroup = ({
           <div className="flex items-center gap-3">
             {/* Icon */}
             <div className="size-9 rounded-lg flex items-center justify-center bg-app-subtle text-app-muted">
-              <span className="material-symbols-outlined text-[18px]">credit_card</span>
+              <Icon name="credit_card" size={18} />
             </div>
 
             <div>
@@ -226,7 +228,7 @@ const CreditCardGroup = ({
                   className="h-10 px-5 bg-app-text text-app-inverted font-bold text-xs rounded-xl shadow-lg disabled:opacity-50 hover:opacity-90 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
                 >
                   Pagar Total
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  <Icon name="arrow_forward" size={16} />
                 </button>
               </div>
 
@@ -263,7 +265,7 @@ const CreditCardGroup = ({
                         className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white text-[10px] font-bold uppercase tracking-wide transition-all flex items-center gap-1"
                         title="Pagar individualmente"
                       >
-                        <span className="material-symbols-outlined text-[14px]">payments</span>
+                        <Icon name="payments" size={14} />
                         Pagar
                       </button>
                     </div>
@@ -305,8 +307,8 @@ export const FinancialPlanningWidget: React.FC = () => {
   // --- MEMOIZED DATA PROCESSING ---
   const sourceAccounts = useMemo(() => accounts?.filter(a => !['credit', 'CREDIT'].includes(a.type)) || [], [accounts]);
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(val);
-  const formatDate = (d: string) => formatDateUTC(d, { style: 'short' });
+  const formatCurrency = useCallback((val: number) => formatCurrencyUtil(val, { minimumFractionDigits: 0 }), []);
+  const formatDate = useCallback((d: string) => formatDateUTC(d, { style: 'short' }), []);
 
   const isLongPeriod = ['bimestral', 'semestral', 'anual'].includes(periodType);
 
@@ -385,9 +387,7 @@ export const FinancialPlanningWidget: React.FC = () => {
             <option value="semestral" className="bg-app-surface text-app-text py-2">Semestral</option>
             <option value="anual" className="bg-app-surface text-app-text py-2">Anual</option>
           </select>
-          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] md:text-[16px] text-app-muted group-hover:text-app-primary transition-colors">
-            unfold_more
-          </span>
+          <Icon name="unfold_more" size={18} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-app-muted group-hover:text-app-primary transition-colors" />
         </div>
       </div>
 
@@ -425,7 +425,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 bg-rose-500/10 text-rose-600 px-2 md:px-3 py-1 md:py-1.5 rounded-lg border border-rose-500/20 shrink-0">
-                  <span className="material-symbols-outlined text-[16px] md:text-[18px]">warning</span>
+                  <Icon name="warning" size={18} />
                   <div>
                     <p className="text-[9px] md:text-[10px] uppercase font-bold leading-none">Déficit</p>
                     <p className="text-xs md:text-sm font-bold font-numbers">{formatCurrency(summary.disposableIncome ?? 0)}</p>
@@ -443,7 +443,7 @@ export const FinancialPlanningWidget: React.FC = () => {
         <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-              <span className="material-symbols-outlined text-[16px]">trending_up</span>
+              <Icon name="trending_up" size={16} />
               <span className="text-[10px] font-bold uppercase">Ingresos</span>
             </div>
             <InfoTooltip
@@ -457,7 +457,7 @@ export const FinancialPlanningWidget: React.FC = () => {
         {/* Fixed Commitments */}
         <div className="p-4 rounded-2xl bg-app-surface border border-app-border flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center gap-1.5 text-app-muted">
-            <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+            <Icon name="receipt_long" size={16} />
             <span className="text-[10px] font-bold uppercase">Fijos</span>
           </div>
           <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.expectedExpenses?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0)}</p>
@@ -466,7 +466,7 @@ export const FinancialPlanningWidget: React.FC = () => {
         {/* Debt */}
         <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
-            <span className="material-symbols-outlined text-[16px]">credit_card</span>
+            <Icon name="credit_card" size={16} />
             <span className="text-[10px] font-bold uppercase">Deuda TDC</span>
           </div>
           <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.msiPaymentsDue?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0)}</p>
@@ -474,7 +474,7 @@ export const FinancialPlanningWidget: React.FC = () => {
 
         {/* Action Button: Analysis */}
         <Link to="/analysis" className="p-4 rounded-2xl bg-app-primary text-white flex flex-col justify-center items-center gap-1 text-center shadow-lg hover:bg-app-primary-dark transition-colors cursor-pointer group">
-          <span className="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">analytics</span>
+          <Icon name="analytics" size={24} className="group-hover:scale-110 transition-transform" />
           <span className="text-[10px] font-bold uppercase">Ver Reporte</span>
         </Link>
       </div>
@@ -493,7 +493,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                 <div className="flex justify-between items-center p-3.5">
                   <div className="flex items-center gap-3">
                     <div className="size-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[18px]">payments</span>
+                      <Icon name="payments" size={18} />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-app-text">{item.description}</p>
@@ -525,7 +525,7 @@ export const FinancialPlanningWidget: React.FC = () => {
             </h3>
             {msiEndingCount > 0 && (
               <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">
-                <span className="material-symbols-outlined text-[12px]">celebration</span> {msiEndingCount} MSI Finalizan
+                <Icon name="celebration" size={12} /> {msiEndingCount} MSI Finalizan
               </span>
             )}
           </div>
@@ -637,7 +637,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                   <div className="flex justify-between items-center p-3.5">
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-lg flex items-center justify-center bg-app-subtle text-app-muted">
-                        <span className="material-symbols-outlined text-[18px]">receipt</span>
+                        <Icon name="receipt" size={18} />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-app-text">{item.description}</p>
@@ -668,7 +668,7 @@ export const FinancialPlanningWidget: React.FC = () => {
       {/* Empty State / All Clear */}
       {!cardKeys.length && !summary.expectedExpenses?.length && (
         <div className="py-8 text-center opacity-60">
-          <span className="material-symbols-outlined text-4xl mb-2 text-emerald-500">check_circle</span>
+          <Icon name="check_circle" size={36} className="mb-2 text-emerald-500" />
           <p className="text-sm font-medium">Todo pagado para este período.</p>
         </div>
       )}

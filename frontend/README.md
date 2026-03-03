@@ -115,6 +115,10 @@ src/
 
 ---
 
+## UX/UI
+
+Ver [../docs/UX-UI.md](../docs/UX-UI.md) para patrones de diseño, componentes (Button, NumericKeypad, CategorySelector), validación inline, touch targets y flujos críticos.
+
 ## Mobile-first
 
 El frontend sigue **arquitectura mobile-first**:

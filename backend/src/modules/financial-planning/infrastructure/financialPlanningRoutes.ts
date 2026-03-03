@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
+import { parseSafeInt } from '../../../shared/validation';
 import { addDays, addMonths, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
 import { getFinancialSummary } from '../useCases/GetFinancialSummaryUseCase';
 import type { AuthRequest } from '../../../shared/types';
@@ -62,6 +63,7 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
 
   const { start: periodStart, end: periodEnd } = getPeriodDates(periodType, mode);
 
+  const MAX_TX_FOR_PERIOD = 5000;
   const [accounts, transactions, recurring, loans, installments] = await Promise.all([
     prisma.account.findMany({ where: { userId } }),
     prisma.transaction.findMany({
@@ -71,6 +73,8 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
         date: { gte: periodStart, lte: periodEnd },
       },
       include: { category: true },
+      take: MAX_TX_FOR_PERIOD,
+      orderBy: { date: 'asc' },
     }),
     prisma.recurringTransaction.findMany({
       where: { userId, active: true },
@@ -148,7 +152,10 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
 
 router.get('/upcoming', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const days = parseInt(req.query.days as string, 10) || 7;
+  const daysRaw = req.query.days != null && req.query.days !== ''
+    ? parseSafeInt(req.query.days as string, 'days')
+    : 7;
+  const days = Math.min(Math.max(daysRaw, 1), 365);
   const now = new Date();
   const endDate = addDays(now, days);
 
@@ -186,7 +193,11 @@ router.get('/upcoming', async (req: AuthRequest, res: Response) => {
       amount: l.remainingAmount,
       dueDate: l.expectedPayDate,
     })),
-  ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  ].sort((a, b) => {
+    const da = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+    const db = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+    return da - db;
+  });
 
   res.json(upcoming);
 });

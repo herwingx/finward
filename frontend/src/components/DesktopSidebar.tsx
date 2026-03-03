@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@/components/Icon';
 import { NavLink } from 'react-router-dom';
 import { AppLogo } from './AppLogo';
 
@@ -58,7 +59,7 @@ export const DesktopSidebar = () => {
           <p className="px-4 text-[10px] font-bold text-app-muted/60 uppercase tracking-widest mb-2">Principal</p>
           {mainMenu.map((link) => (
             <NavLink key={link.to} to={link.to} className={linkClass}>
-              <span className="material-symbols-outlined text-[20px]">{link.icon}</span>
+              <Icon name={link.icon} size={20} />
               {link.label}
             </NavLink>
           ))}
@@ -69,7 +70,7 @@ export const DesktopSidebar = () => {
           <p className="px-4 text-[10px] font-bold text-app-muted/60 uppercase tracking-widest mb-2">Herramientas</p>
           {toolsMenu.map((link) => (
             <NavLink key={link.to} to={link.to} className={linkClass}>
-              <span className="material-symbols-outlined text-[20px] opacity-80 group-hover:opacity-100">{link.icon}</span>
+              <Icon name={link.icon} size={20} className="opacity-80 group-hover:opacity-100" />
               {link.label}
             </NavLink>
           ))}
@@ -80,7 +81,7 @@ export const DesktopSidebar = () => {
           <p className="px-4 text-[10px] font-bold text-app-muted/60 uppercase tracking-widest mb-2">Cuenta</p>
           {systemMenu.map((link) => (
             <NavLink key={link.to} to={link.to} className={linkClass}>
-              <span className="material-symbols-outlined text-[20px] opacity-80 group-hover:opacity-100">{link.icon}</span>
+              <Icon name={link.icon} size={20} className="opacity-80 group-hover:opacity-100" />
               {link.label}
             </NavLink>
           ))}

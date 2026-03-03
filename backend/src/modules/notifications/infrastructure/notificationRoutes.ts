@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { parseSafeInt } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -8,7 +9,10 @@ const router = Router();
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const unread = req.query.read === 'false' || req.query.read === undefined;
-  const take = parseInt(req.query.take as string, 10) || 20;
+  const takeRaw = req.query.take != null && req.query.take !== ''
+    ? parseSafeInt(req.query.take as string, 'take')
+    : 20;
+  const take = Math.min(Math.max(takeRaw, 1), 100);
 
   const notifications = await prisma.notification.findMany({
     where: unread ? { userId, read: false } : { userId },

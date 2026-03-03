@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from '@/components/Icon';
 import { useNavigate, Link } from 'react-router-dom';
 
 // Utils
@@ -52,7 +53,7 @@ const RegisterPage: React.FC = () => {
                 {/* 1. HEADER */}
                 <div className="flex flex-col items-center text-center">
                     <div className="size-16 mb-6 bg-app-surface border border-app-border rounded-2xl shadow-xl flex items-center justify-center text-app-primary">
-                        <span className="material-symbols-outlined text-[32px]">person_add</span>
+                        <Icon name="person_add" size={32} />
                     </div>
                     <h1 className="text-3xl font-black text-app-text tracking-tight mb-2">Comenzar Ahora</h1>
                     <p className="text-sm text-app-muted max-w-[280px]">
@@ -69,9 +70,7 @@ const RegisterPage: React.FC = () => {
                         <div className="group">
                             <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Nombre</label>
                             <div className="relative">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors text-[20px]">
-                                    badge
-                                </span>
+                                <Icon name="badge" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                                 <input
                                     type="text"
                                     required
@@ -87,9 +86,7 @@ const RegisterPage: React.FC = () => {
                         <div className="group">
                             <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Correo</label>
                             <div className="relative">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors text-[20px]">
-                                    mail
-                                </span>
+                                <Icon name="mail" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                                 <input
                                     type="email"
                                     required
@@ -105,9 +102,7 @@ const RegisterPage: React.FC = () => {
                         <div className="group">
                             <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-2 ml-1">Contraseña</label>
                             <div className="relative">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors text-[20px]">
-                                    lock_outline
-                                </span>
+                                <Icon name="lock_outline" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                                 <input
                                     type="password"
                                     required

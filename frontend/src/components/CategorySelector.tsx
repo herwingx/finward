@@ -1,5 +1,6 @@
 import React from 'react';
 import { Category } from '@/types';
+import { Icon } from '@/components/Icon';
 import { getValidIcon } from '@/utils/icons';
 
 interface CategorySelectorProps {
@@ -7,6 +8,7 @@ interface CategorySelectorProps {
   selectedId: string;
   onSelect: (id: string) => void;
   isLoading?: boolean;
+  quickCount?: number;
   className?: string;
 }
 
@@ -15,6 +17,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   selectedId,
   onSelect,
   isLoading = false,
+  quickCount = 0,
   className = '',
 }) => {
 
@@ -36,16 +39,52 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   if (!categories || categories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 bg-app-subtle/30 rounded-2xl border border-dashed border-app-border text-center">
-        <span className="material-symbols-outlined text-app-muted text-3xl mb-2 opacity-50">category_search</span>
+        <Icon name="category_search" size={32} className="text-app-muted mb-2 opacity-50" />
         <p className="text-xs text-app-muted font-medium">Sin categorías disponibles</p>
       </div>
     );
   }
 
-  /* MAIN GRID */
+  const quickCategories = quickCount > 0 ? categories.slice(0, quickCount) : [];
+  const restCategories = quickCount > 0 ? categories.slice(quickCount) : categories;
+
   return (
-    <div className={`grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 pb-safe-offset-2 overflow-y-auto max-h-[220px] custom-scrollbar ${className}`}>
-      {categories.map((cat) => {
+    <div className={`flex flex-col gap-4 ${className}`}>
+      {/* QUICK CATEGORIES (first N as large buttons for 1-tap selection) */}
+      {quickCategories.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {quickCategories.map((cat) => {
+            const isSelected = selectedId === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => onSelect(cat.id)}
+                className={`
+                  min-h-[44px] px-4 py-2.5 rounded-2xl flex items-center gap-2.5
+                  transition-all duration-200 outline-none border-2
+                  ${isSelected
+                    ? 'scale-[1.02] shadow-md'
+                    : 'bg-app-subtle/60 border-transparent hover:bg-app-subtle active:scale-95'
+                  }
+                `}
+                style={{
+                  backgroundColor: isSelected ? `${cat.color}20` : undefined,
+                  borderColor: isSelected ? cat.color : undefined,
+                  color: isSelected ? cat.color : undefined,
+                }}
+              >
+                <Icon name={getValidIcon(cat.icon)} size={20} />
+                <span className="text-sm font-bold">{cat.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* FULL GRID */}
+      <div className={`grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 pb-safe-offset-2 overflow-y-auto max-h-[200px] custom-scrollbar`}>
+      {restCategories.map((cat) => {
         const isSelected = selectedId === cat.id;
 
         return (
@@ -54,7 +93,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
             type="button"
             onClick={() => onSelect(cat.id)}
             className={`
-              relative flex flex-col items-center gap-2 p-2 rounded-2xl transition-all duration-200 outline-none select-none
+              relative flex flex-col items-center justify-center min-h-[72px] min-w-[60px] p-2 rounded-2xl transition-all duration-200 outline-none select-none
               ${isSelected ? '-translate-y-1' : 'hover:bg-app-subtle/50 active:scale-95'}
             `}
           >
@@ -74,9 +113,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
                 boxShadow: isSelected ? `0 4px 12px -2px ${cat.color}40` : undefined,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: isSelected ? "'FILL' 1, 'wght' 600" : "'FILL' 0, 'wght' 400" }}>
-                {getValidIcon(cat.icon)}
-              </span>
+              <Icon name={getValidIcon(cat.icon)} size={22} />
             </div>
 
             {/* Label */}
@@ -89,6 +126,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
           </button>
         );
       })}
+      </div>
     </div>
   );
 };

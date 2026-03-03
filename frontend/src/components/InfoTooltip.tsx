@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Icon } from '@/components/Icon';
 
 interface InfoTooltipProps {
   content: string;
@@ -39,14 +40,13 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          e.preventDefault(); // Prevent focus scroll jump
+          e.preventDefault();
           setIsOpen(!isOpen);
         }}
-        className={`material-symbols-outlined cursor-help text-app-muted/60 hover:text-app-primary active:scale-95 transition-all ${className}`}
-        style={{ fontSize: iconSize }}
+        className={`cursor-help text-app-muted/60 hover:text-app-primary active:scale-95 transition-all ${className}`}
         aria-label="Info"
       >
-        info
+        <Icon name="info" size={parseInt(iconSize, 10) || 14} />
       </button>
 
       {/* TOOLTIP BODY */}

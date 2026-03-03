@@ -1,6 +1,13 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import {
+  parseAndValidateAmount,
+  parseSafeFloat,
+  validateMaxLength,
+  MAX_NAME_LENGTH,
+  MAX_NOTES_LENGTH,
+} from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import { createIncome } from '../../transactions/useCases/CreateIncomeUseCase';
 import type { AuthRequest } from '../../../shared/types';
@@ -50,6 +57,12 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   if (!borrowerName || !originalAmount || !remainingAmount || !loanDate) {
     throw AppError.badRequest('Missing: borrowerName, originalAmount, remainingAmount, loanDate');
   }
+  validateMaxLength(borrowerName, MAX_NAME_LENGTH, 'borrowerName');
+  validateMaxLength(notes, MAX_NOTES_LENGTH, 'notes');
+  if (accountId != null) {
+    const acc = await prisma.account.findFirst({ where: { id: accountId, userId } });
+    if (!acc) throw AppError.notFound('Account not found');
+  }
   const loan = await prisma.loan.create({
     data: {
       userId,
@@ -58,12 +71,12 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       borrowerEmail,
       reason,
       loanType: loanType ?? 'lent',
-      originalAmount: parseFloat(originalAmount),
-      remainingAmount: parseFloat(remainingAmount),
+      originalAmount: parseAndValidateAmount(originalAmount, 'originalAmount'),
+      remainingAmount: parseAndValidateAmount(remainingAmount, 'remainingAmount'),
       loanDate: new Date(loanDate),
       expectedPayDate: expectedPayDate ? new Date(expectedPayDate) : null,
       notes,
-      interestRate: interestRate ? parseFloat(interestRate) : null,
+      interestRate: interestRate != null ? parseSafeFloat(interestRate, 'interestRate') : null,
       accountId: accountId ?? null,
     },
   });
@@ -79,7 +92,12 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   const loan = await prisma.loan.findFirst({ where: { id, userId } });
   if (!loan) throw AppError.notFound('Loan not found');
 
-  const newOriginal = originalAmount !== undefined ? parseFloat(originalAmount) : loan.originalAmount;
+  if (accountId !== undefined && accountId != null) {
+    const acc = await prisma.account.findFirst({ where: { id: accountId, userId } });
+    if (!acc) throw AppError.notFound('Account not found');
+  }
+
+  const newOriginal = originalAmount !== undefined ? parseAndValidateAmount(originalAmount, 'originalAmount') : loan.originalAmount;
   let newRemaining = loan.remainingAmount;
   if (originalAmount !== undefined && originalAmount !== loan.originalAmount) {
     const paid = loan.originalAmount - loan.remainingAmount;
@@ -115,7 +133,7 @@ router.post('/:id/payment', async (req: AuthRequest, res: Response) => {
   if (!loan) throw AppError.notFound('Loan not found');
   if (loan.status === 'paid') throw AppError.badRequest('Loan already paid');
 
-  const payAmount = parseFloat(amount);
+  const payAmount = parseAndValidateAmount(amount, 'amount');
   const payDate = paymentDate ? new Date(paymentDate) : new Date();
   const newRemaining = Math.max(0, loan.remainingAmount - payAmount);
   const status = newRemaining <= 0 ? 'paid' : newRemaining < loan.originalAmount - 0.01 ? 'partial' : 'active';
@@ -130,26 +148,24 @@ router.post('/:id/payment', async (req: AuthRequest, res: Response) => {
   const targetAccId = accountId ?? loan.accountId;
   if (!targetAccId) throw AppError.badRequest('accountId required for loan payment');
 
-  let tx;
-  if (loan.loanType === 'lent') {
-    tx = await createIncome({
-      userId,
-      accountId: targetAccId,
-      categoryId: cat.id,
-      amount: payAmount,
-      description: `Cobro préstamo: ${loan.borrowerName}`,
-      date: payDate,
-    });
-  } else {
-    tx = await createExpense({
-      userId,
-      accountId: targetAccId,
-      categoryId: cat.id,
-      amount: payAmount,
-      description: `Pago préstamo: ${loan.borrowerName}`,
-      date: payDate,
-    });
-  }
+  const tx = loan.loanType === 'lent'
+    ? await createIncome({
+        userId,
+        accountId: targetAccId,
+        categoryId: cat.id,
+        amount: payAmount,
+        description: `Cobro préstamo: ${loan.borrowerName}`,
+        date: payDate,
+      })
+    : await createExpense({
+        userId,
+        accountId: targetAccId,
+        categoryId: cat.id,
+        amount: payAmount,
+        description: `Pago préstamo: ${loan.borrowerName}`,
+        date: payDate,
+      });
+  if (!tx) throw AppError.badRequest('Failed to create payment transaction');
 
   await prisma.transaction.update({
     where: { id: tx.id },

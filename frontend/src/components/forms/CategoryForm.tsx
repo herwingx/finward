@@ -3,8 +3,9 @@ import { useAddCategory, useUpdateCategory } from "@/hooks/useApi";
 import { TransactionType, Category } from "@/types";
 import { toastSuccess, toastError } from "@/utils/toast";
 import { IconSelector } from "@/components/IconSelector";
+import { Icon } from "@/components/Icon";
 import { VALID_ICONS, getValidIcon } from "@/utils/icons";
-import { ToggleGroup } from "@/components/Button";
+import { Button, ToggleGroup } from "@/components/Button";
 
 // -- CONSTANTS --
 const PRESET_COLORS = ["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#6366F1", "#EC4899", "#14B8A6", "#8B5CF6", "#06B6D4"];
@@ -81,7 +82,7 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
                 className="size-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg border border-black/5 mb-4"
                 style={{ backgroundColor: color, color: 'white', boxShadow: `0 8px 24px -6px ${color}80` }}
               >
-                <span className="material-symbols-outlined">{getValidIcon(icon)}</span>
+                <Icon name={getValidIcon(icon)} size={36} />
               </div>
 
               <ToggleGroup
@@ -118,7 +119,7 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
                   ))}
                   <div className="relative size-8 rounded-full bg-app-subtle flex items-center justify-center border border-dashed border-app-border cursor-pointer hover:bg-app-border/30 transition-colors">
                     <input type="color" value={color} onChange={e => setColor(e.target.value)} className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
-                    <span className="material-symbols-outlined text-xs text-app-muted">add</span>
+                    <Icon name="add" size={16} className="text-app-muted" />
                   </div>
                 </div>
               </div>
@@ -167,14 +168,16 @@ export const CategoryForm: React.FC<FormProps> = ({ existingCategory, onClose, i
 
           {/* FOOTER */}
           <div className="pt-4 pb-10 mt-auto shrink-0 touch-none">
-            <button
+            <Button
               type="submit"
+              fullWidth
+              size="lg"
+              variant="primary"
+              isLoading={isSaving}
               disabled={isSaving}
-              className="w-full py-3.5 bg-app-primary text-white text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl shadow-app-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isSaving && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {isEditing ? 'Guardar Cambios' : 'Crear Categoría'}
-            </button>
+            </Button>
           </div>
 
         </form>

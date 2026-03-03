@@ -6,7 +6,9 @@ import { useGlobalSheets } from '@/context/GlobalSheetContext';
 import { sileo } from 'sileo';
 
 // Componentes y Utilitarios
+import { Icon } from '@/components/Icon';
 import { formatDateUTC } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/currency';
 import { SkeletonTransactionList } from '@/components/Skeleton';
 import { DeleteConfirmationSheet } from '@/components/DeleteConfirmationSheet';
 import { SwipeableItem } from '@/components/SwipeableItem';
@@ -28,7 +30,7 @@ const HistoryHeader: React.FC<{
           <h1 className="text-2xl font-bold text-app-text tracking-tight">Historial</h1>
           {totalAmount !== undefined && (
             <span className="text-sm font-bold font-numbers text-app-muted bg-app-subtle px-2 py-1 rounded-md">
-              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalAmount)}
+              {formatCurrency(totalAmount, { maximumFractionDigits: 2 })}
             </span>
           )}
         </div>
@@ -97,16 +99,16 @@ const History: React.FC = () => {
   const getAccountName = (id: string | null) => accountMap.get(id || '')?.name || 'Cuenta Desconocida';
 
   // Formatters
-  const formatCurrency = (val: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
+  const txList = transactions?.data ?? [];
 
   // Sorting & Filtering Logic
   const filteredData = useMemo(() => {
-    if (!transactions) return { groups: {}, sortedList: [], totalSum: 0 };
+    if (!txList.length && !transactions) return { groups: {}, sortedList: [], totalSum: 0 };
 
     // 1. Filter
     const filtered = filterType === 'all'
-      ? transactions
-      : transactions.filter(tx => tx.type === filterType);
+      ? txList
+      : txList.filter(tx => tx.type === filterType);
 
     // 2. Sort
     const sorted = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -125,7 +127,7 @@ const History: React.FC = () => {
     });
 
     return { groups: grouped, sortedList: sorted, totalSum: sum };
-  }, [transactions, filterType]);
+  }, [txList, filterType]);
 
 
   // Actions
@@ -187,7 +189,7 @@ const History: React.FC = () => {
         ) : Object.keys(filteredData.groups).length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center text-app-muted">
             <div className="size-20 rounded-full bg-app-subtle flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-4xl opacity-20">search_off</span>
+              <Icon name="search_off" size={36} className="opacity-20" />
             </div>
             <p className="font-bold text-lg text-app-text">Sin movimientos</p>
             <p className="text-sm">No encontramos transacciones para este filtro.</p>
@@ -248,7 +250,7 @@ const History: React.FC = () => {
                             className={`size-10 shrink-0 rounded-xl flex items-center justify-center ${isTransfer ? 'bg-app-subtle text-blue-500' : ''}`}
                             style={iconStyle}
                           >
-                            <span className="material-symbols-outlined text-[20px]">{displayIcon}</span>
+                            <Icon name={displayIcon} size={20} />
                           </div>
 
                           {/* Info */}

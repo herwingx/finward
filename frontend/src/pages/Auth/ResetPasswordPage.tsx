@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Icon } from '@/components/Icon';
 
 const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -64,7 +65,7 @@ const ResetPasswordPage: React.FC = () => {
       <div className="min-h-dvh bg-app-bg flex items-center justify-center p-4">
         <div className="w-full max-w-sm text-center animate-fade-in bg-app-surface border border-app-border rounded-3xl p-8 shadow-xl">
           <div className="inline-flex items-center justify-center size-20 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 mb-6 animate-scale-in">
-            <span className="material-symbols-outlined text-5xl">check_circle</span>
+            <Icon name="check_circle" size={48} />
           </div>
           <h1 className="text-2xl font-bold text-app-text mb-2 tracking-tight">¡Contraseña Actualizada!</h1>
           <p className="text-app-muted text-sm mb-6">
@@ -94,7 +95,7 @@ const ResetPasswordPage: React.FC = () => {
 
         <div className="flex flex-col items-center mb-8">
           <div className="size-16 bg-app-surface border border-app-border rounded-2xl flex items-center justify-center text-app-primary shadow-xl shadow-black/5 mb-4">
-            <span className="material-symbols-outlined text-[32px]">vpn_key</span>
+            <Icon name="vpn_key" size={32} />
           </div>
           <h1 className="text-2xl font-bold text-app-text text-center tracking-tight">Nueva Contraseña</h1>
           <p className="text-sm text-app-muted mt-1 text-center">
@@ -111,9 +112,7 @@ const ResetPasswordPage: React.FC = () => {
                 Contraseña Nueva
               </label>
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors material-symbols-outlined text-[20px]">
-                  lock
-                </span>
+                <Icon name="lock" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                 <input
                   id="password"
                   type="password"
@@ -133,9 +132,7 @@ const ResetPasswordPage: React.FC = () => {
                 Confirmar
               </label>
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors material-symbols-outlined text-[20px]">
-                  lock_reset
-                </span>
+                <Icon name="lock_reset" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted group-focus-within:text-app-primary transition-colors" />
                 <input
                   id="confirmPassword"
                   type="password"
@@ -152,7 +149,7 @@ const ResetPasswordPage: React.FC = () => {
             {/* Error Banner */}
             {error && (
               <div className="flex items-center gap-3 p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 rounded-xl animate-scale-in">
-                <span className="material-symbols-outlined text-rose-500 text-[20px]">error</span>
+                <Icon name="error" size={20} className="text-rose-500" />
                 <p className="text-xs font-bold text-rose-600 dark:text-rose-400">{error}</p>
               </div>
             )}

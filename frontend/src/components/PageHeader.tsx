@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Icon } from '@/components/Icon';
 
 /* --- TYPES --- */
 interface PageHeaderProps {
@@ -73,7 +74,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               className="size-9 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 text-app-primary transition-all"
               aria-label="Atrás"
             >
-              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+              <Icon name="arrow_back" size={20} />
             </button>
           )}
         </div>

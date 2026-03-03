@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Icon } from '@/components/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Context
@@ -98,7 +99,7 @@ export const DesktopFAB: React.FC = () => {
                     onClick={() => handleAction(action.id)}
                     className={`size-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 ${action.color}`}
                   >
-                    <span className="material-symbols-outlined text-[24px]">{action.icon}</span>
+                    <Icon name={action.icon} size={24} />
                   </button>
                 </motion.div>
               ))}
@@ -116,7 +117,7 @@ export const DesktopFAB: React.FC = () => {
             ${isOpen ? 'bg-app-text text-app-bg rotate-45' : 'bg-app-primary text-white hover:bg-app-primary-dark'}
           `}
         >
-          <span className="material-symbols-outlined text-[32px] font-medium">add</span>
+          <Icon name="add" size={32} />
         </button>
 
       </div>

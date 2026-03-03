@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate, PanInfo } from 'framer-motion';
+import { Icon } from '@/components/Icon';
 
 // Definición de las acciones visuales
 export interface SwipeActionConfig {
@@ -58,12 +59,18 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
       if (leftAction && onSwipeRight) {
         if (navigator.vibrate) navigator.vibrate(10);
         onSwipeRight();
+      } else {
+        animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
       }
     } else if (offset < -threshold || (offset < -50 && velocity < -200)) {
       if (rightAction && onSwipeLeft) {
         if (navigator.vibrate) navigator.vibrate(10);
         onSwipeLeft();
+      } else {
+        animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
       }
+    } else {
+      animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
     }
   };
 
@@ -85,7 +92,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
               style={{ opacity: leftIconOpacity, scale: iconScale }}
               className={`flex flex-col items-center gap-1 font-bold ${leftAction.color}`}
             >
-              <span className="material-symbols-outlined text-2xl">{leftAction.icon}</span>
+              <Icon name={leftAction.icon} size={24} />
             </motion.div>
           </motion.div>
         )}
@@ -100,7 +107,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
               style={{ opacity: rightIconOpacity, scale: iconScale }}
               className={`flex flex-col items-center gap-1 font-bold ${rightAction.color}`}
             >
-              <span className="material-symbols-outlined text-2xl">{rightAction.icon}</span>
+              <Icon name={rightAction.icon} size={24} />
             </motion.div>
           </motion.div>
         )}

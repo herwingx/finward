@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@/components/Icon';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
 import { useNotifications, useDismissNotification, useMarkAllNotificationsRead, useAddTransaction } from '@/hooks/useApi';
@@ -85,7 +86,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                             size-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm
                             ${isDue ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-app-subtle text-app-muted'}
                         `}>
-                      <span className="material-symbols-outlined text-[20px]">{isDue ? 'receipt_long' : 'notifications'}</span>
+                      <Icon name={isDue ? 'receipt_long' : 'notifications'} size={20} />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -121,7 +122,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
           {!hasUnread && (
             <div className="flex flex-col items-center justify-center py-20 opacity-60">
               <div className="size-20 rounded-full bg-app-subtle flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-4xl text-app-muted opacity-50">done_all</span>
+                <Icon name="done_all" size={36} className="text-app-muted opacity-50" />
               </div>
               <p className="text-sm font-bold text-app-text">Sin Notificaciones</p>
               <p className="text-xs text-app-muted mt-1 max-w-[200px] text-center">Te avisaremos sobre pagos pendientes y logros financieros.</p>

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Hooks & Components
+import { Icon } from '@/components/Icon';
 import { useProfile, useUpdateProfile } from '@/hooks/useApi';
 import { SkeletonAppLoading } from '@/components/Skeleton';
 import { PageHeader } from '@/components/PageHeader';
@@ -156,7 +157,7 @@ const Profile: React.FC = () => {
                 {/* Edit Overlay */}
                 {isEditing && (
                   <label className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100">
-                    <span className="material-symbols-outlined text-white text-3xl drop-shadow-md">photo_camera</span>
+                    <Icon name="photo_camera" size={30} className="text-white drop-shadow-md" />
                     <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
                   </label>
                 )}
@@ -206,7 +207,7 @@ const Profile: React.FC = () => {
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
                   </select>
-                  <span className="material-symbols-outlined text-sm absolute right-2 top-2 pointer-events-none opacity-50">expand_more</span>
+                  <Icon name="expand_more" size={14} className="absolute right-2 top-2 pointer-events-none opacity-50" />
                 </div>
               ) : (
                 <span className="font-mono font-bold text-app-text bg-app-subtle px-2 py-1 rounded text-xs border border-app-border">
@@ -232,7 +233,7 @@ const Profile: React.FC = () => {
                       <option key={tz.value} value={tz.value}>{tz.label}</option>
                     ))}
                   </select>
-                  <span className="material-symbols-outlined text-sm absolute right-2 top-2 pointer-events-none opacity-50">expand_more</span>
+                  <Icon name="expand_more" size={14} className="absolute right-2 top-2 pointer-events-none opacity-50" />
                 </div>
               ) : (
                 <span className="text-xs font-bold text-app-muted truncate max-w-[150px]">
@@ -247,7 +248,7 @@ const Profile: React.FC = () => {
         <div className="space-y-3">
           <div className="px-1 flex items-center justify-between">
             <h3 className="text-xs font-bold text-app-muted uppercase tracking-wider">Perfil Financiero (50/30/20)</h3>
-            <span className="material-symbols-outlined text-app-muted text-sm opacity-50" title="Configura tus ingresos base para el análisis automático">info</span>
+            <span title="Configura tus ingresos base para el análisis automático"><Icon name="info" size={14} className="text-app-muted opacity-50" /></span>
           </div>
 
           <div className="bg-app-surface border border-app-border rounded-3xl overflow-hidden shadow-sm p-4 space-y-4">
@@ -327,7 +328,7 @@ const Profile: React.FC = () => {
             onClick={handleLogout}
             className="w-full py-3.5 bg-rose-500/5 hover:bg-rose-500/10 text-rose-500 font-bold text-sm rounded-xl border border-rose-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <Icon name="logout" size={18} />
             Cerrar Sesión Actual
           </button>
 

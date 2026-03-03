@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Icon } from '@/components/Icon';
 import { useLocation } from 'react-router-dom';
 import { useGlobalSheets } from '@/context/GlobalSheetContext';
 
@@ -91,7 +92,7 @@ export const MobileFAB: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
               className="size-6 rounded-full bg-app-subtle flex items-center justify-center text-app-muted hover:text-app-text transition-colors"
             >
-              <span className="material-symbols-outlined text-xs">close</span>
+              <Icon name="close" size={14} />
             </button>
           </div>
 
@@ -105,7 +106,7 @@ export const MobileFAB: React.FC = () => {
                   className="flex flex-col items-center gap-2 group active:scale-95 transition-transform"
                 >
                   <div className={`size-14 rounded-2xl flex items-center justify-center shadow-lg ${action.color}`}>
-                    <span className="material-symbols-outlined text-[26px]">{action.icon}</span>
+                    <Icon name={action.icon} size={26} />
                   </div>
                   <span className="text-[10px] font-bold text-app-text">{action.label}</span>
                 </button>
@@ -132,7 +133,7 @@ export const MobileFAB: React.FC = () => {
         }}
         aria-label="Nueva transacción"
       >
-        <span className="material-symbols-outlined text-[30px] font-medium leading-none">add</span>
+        <Icon name="add" size={30} />
       </button>
     </>
   );

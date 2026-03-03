@@ -145,6 +145,7 @@ model Transaction {
   ledgerEntries LedgerEntry[]
 
   @@index([userId, date])
+  @@index([userId, deletedAt, date])
   @@index([statementId])
 }
 

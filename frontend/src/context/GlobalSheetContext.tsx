@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Investment } from '@/types';
 import { SavingsGoal } from '@/types';
 import { InstallmentPurchase } from '@/types';
@@ -51,116 +51,116 @@ export const GlobalSheetProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isInvestmentSheetOpen, setIsInvestmentSheetOpen] = useState(false);
   const [investmentToEdit, setInvestmentToEdit] = useState<Investment | null>(null);
 
-  const openInvestmentSheet = (investment: Investment | null = null) => {
+  const openInvestmentSheet = useCallback((investment: Investment | null = null) => {
     setInvestmentToEdit(investment);
     setIsInvestmentSheetOpen(true);
-  };
+  }, []);
 
-  const closeInvestmentSheet = () => {
+  const closeInvestmentSheet = useCallback(() => {
     setIsInvestmentSheetOpen(false);
     setInvestmentToEdit(null);
-  };
+  }, []);
 
   // Goal Sheet State
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<SavingsGoal | null>(null);
 
-  const openGoalSheet = (goal: SavingsGoal | null = null) => {
+  const openGoalSheet = useCallback((goal: SavingsGoal | null = null) => {
     setGoalToEdit(goal);
     setIsGoalSheetOpen(true);
-  };
+  }, []);
 
-  const closeGoalSheet = () => {
+  const closeGoalSheet = useCallback(() => {
     setIsGoalSheetOpen(false);
     setGoalToEdit(null);
-  };
+  }, []);
 
   // Installment Sheet State
   const [isInstallmentSheetOpen, setIsInstallmentSheetOpen] = useState(false);
   const [installmentToEdit, setInstallmentToEdit] = useState<InstallmentPurchase | null>(null);
 
-  const openInstallmentSheet = (installment: InstallmentPurchase | null = null) => {
+  const openInstallmentSheet = useCallback((installment: InstallmentPurchase | null = null) => {
     setInstallmentToEdit(installment);
     setIsInstallmentSheetOpen(true);
-  };
+  }, []);
 
-  const closeInstallmentSheet = () => {
+  const closeInstallmentSheet = useCallback(() => {
     setIsInstallmentSheetOpen(false);
     setInstallmentToEdit(null);
-  };
+  }, []);
 
   // Loan Sheet State
   const [isLoanSheetOpen, setIsLoanSheetOpen] = useState(false);
   const [loanToEdit, setLoanToEdit] = useState<Loan | null>(null);
 
-  const openLoanSheet = (loan: Loan | null = null) => {
+  const openLoanSheet = useCallback((loan: Loan | null = null) => {
     setLoanToEdit(loan);
     setIsLoanSheetOpen(true);
-  };
+  }, []);
 
-  const closeLoanSheet = () => {
+  const closeLoanSheet = useCallback(() => {
     setIsLoanSheetOpen(false);
     setLoanToEdit(null);
-  };
+  }, []);
 
   // Recurring Sheet State
   const [isRecurringSheetOpen, setIsRecurringSheetOpen] = useState(false);
   const [recurringToEdit, setRecurringToEdit] = useState<RecurringTransaction | null>(null);
 
-  const openRecurringSheet = (transaction: RecurringTransaction | null = null) => {
+  const openRecurringSheet = useCallback((transaction: RecurringTransaction | null = null) => {
     setRecurringToEdit(transaction);
     setIsRecurringSheetOpen(true);
-  };
+  }, []);
 
-  const closeRecurringSheet = () => {
+  const closeRecurringSheet = useCallback(() => {
     setIsRecurringSheetOpen(false);
     setRecurringToEdit(null);
-  };
+  }, []);
 
   // Transaction Sheet State
   const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const [transactionInitialData, setTransactionInitialData] = useState<TransactionFormInitialData | null>(null);
 
-  const openTransactionSheet = (transaction: Transaction | null = null, initialData: TransactionFormInitialData | null = null) => {
+  const openTransactionSheet = useCallback((transaction: Transaction | null = null, initialData: TransactionFormInitialData | null = null) => {
     setTransactionToEdit(transaction);
     setTransactionInitialData(initialData);
     setIsTransactionSheetOpen(true);
-  };
+  }, []);
 
-  const closeTransactionSheet = () => {
+  const closeTransactionSheet = useCallback(() => {
     setIsTransactionSheetOpen(false);
     setTransactionToEdit(null);
     setTransactionInitialData(null);
-  };
+  }, []);
 
   // Account Sheet State
   const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false);
   const [accountToEdit, setAccountToEdit] = useState<Account | null>(null);
 
-  const openAccountSheet = (account: Account | null = null) => {
+  const openAccountSheet = useCallback((account: Account | null = null) => {
     setAccountToEdit(account);
     setIsAccountSheetOpen(true);
-  };
+  }, []);
 
-  const closeAccountSheet = () => {
+  const closeAccountSheet = useCallback(() => {
     setIsAccountSheetOpen(false);
     setAccountToEdit(null);
-  };
+  }, []);
 
   // Category Sheet State
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
 
-  const openCategorySheet = (category: Category | null = null) => {
+  const openCategorySheet = useCallback((category: Category | null = null) => {
     setCategoryToEdit(category);
     setIsCategorySheetOpen(true);
-  };
+  }, []);
 
-  const closeCategorySheet = () => {
+  const closeCategorySheet = useCallback(() => {
     setIsCategorySheetOpen(false);
     setCategoryToEdit(null);
-  };
+  }, []);
 
   return (
     <GlobalSheetContext.Provider

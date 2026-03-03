@@ -1,5 +1,6 @@
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { validateAmount } from '../../../shared/validation';
 
 export interface CreateTransferInput {
   userId: string;
@@ -14,10 +15,13 @@ export interface CreateTransferInput {
 export async function createTransfer(input: CreateTransferInput) {
   const { userId, accountId, destinationAccountId, amount, description, date } = input;
   if (amount <= 0) throw AppError.badRequest('Amount must be positive');
+  validateAmount(amount, 'amount');
   if (accountId === destinationAccountId) throw AppError.badRequest('Source and destination cannot be the same');
 
-  const source = await prisma.account.findFirst({ where: { id: accountId, userId } });
-  const dest = await prisma.account.findFirst({ where: { id: destinationAccountId, userId } });
+  const [source, dest] = await Promise.all([
+    prisma.account.findFirst({ where: { id: accountId, userId } }),
+    prisma.account.findFirst({ where: { id: destinationAccountId, userId } }),
+  ]);
   if (!source) throw AppError.notFound('Source account not found');
   if (!dest) throw AppError.notFound('Destination account not found');
 

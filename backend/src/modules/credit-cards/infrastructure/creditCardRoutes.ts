@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { parseAndValidateAmount } from '../../../shared/validation';
 import { getBillingCycle } from '../domain/billingCycle';
 import { createTransfer } from '../../transactions/useCases/CreateTransferUseCase';
 import type { AuthRequest } from '../../../shared/types';
@@ -66,7 +67,7 @@ router.post('/statement/:accountId/pay', async (req: AuthRequest, res: Response)
   const sourceAccount = await prisma.account.findFirst({ where: { id: sourceAccountId, userId } });
   if (!sourceAccount) throw AppError.notFound('Source account not found');
 
-  const payAmount = parseFloat(amount);
+  const payAmount = parseAndValidateAmount(amount, 'amount');
   const payDate = date ? new Date(date) : new Date();
 
   const tx = await createTransfer({

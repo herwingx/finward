@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { toastSuccess, toastError, toast } from '@/utils/toast';
+import { toastSuccess, toastError } from '@/utils/toast';
 import { TransactionType, Transaction, TransactionFormInitialData } from '@/types';
 import {
   useCategories,
@@ -13,7 +13,10 @@ import {
 import { PageHeader } from '@/components/PageHeader';
 import { DatePicker } from '@/components/DatePicker';
 import { CategorySelector } from '@/components/CategorySelector';
-import { ToggleGroup } from '@/components/Button';
+import { Button, ToggleGroup } from '@/components/Button';
+import { DeleteConfirmationSheet } from '@/components/DeleteConfirmationSheet';
+import { FieldError } from '@/components/FieldError';
+import { Icon } from '@/components/Icon';
 
 interface TransactionFormProps {
   existingTransaction?: Transaction | null;
@@ -54,6 +57,17 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   // Logic: Pre-selected MSI (e.g. from Widget/Alert)
   const [msiLinkId, setMsiLinkId] = useState<string>(initialData?.installmentPurchaseId || '');
   const [isMsiPay, setIsMsiPay] = useState(!!initialData?.installmentPurchaseId);
+
+  // Inline validation
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   /* 4. MEMOIZED DATA HELPERS */
   const allAccounts = useMemo(() => accounts || [], [accounts]);
@@ -105,8 +119,23 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   /* 6. HANDLERS */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
     const val = parseFloat(amount);
-    if (!amount || val <= 0) return toastError('Ingresa un monto válido.');
+    const errors: Record<string, string> = {};
+
+    if (!amount || val <= 0) errors.amount = 'Ingresa un monto válido.';
+    if (type !== 'transfer' && !categoryId) errors.category = 'Elige una categoría.';
+    if (type === 'transfer' && (!destAccountId || destAccountId === accountId)) {
+      errors.destAccount = 'Cuenta destino inválida.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      if (errors.amount || errors.category || errors.destAccount) {
+        toastError(Object.values(errors)[0]);
+      }
+      return;
+    }
 
     // Common Payload
     const txData: any = {
@@ -128,7 +157,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       }
       // --- B. TRANSFER & MSI PAYMENTS ---
       else if (type === 'transfer') {
-        if (!destAccountId || destAccountId === accountId) return toastError('Cuenta destino inválida.');
 
         // MSI Linking Logic
         if (destAccountInfo?.type === 'CREDIT' && isMsiPay && msiLinkId) {
@@ -146,7 +174,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       }
       // --- C. INCOME / EXPENSE ---
       else {
-        if (!categoryId) return toastError('Elige una categoría.');
         await addTx.mutateAsync({ ...txData, type, categoryId });
         toastSuccess('Movimiento guardado');
       }
@@ -155,11 +182,19 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     } catch (e: any) { toastError(e.message || 'Error guardando'); }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('¿Eliminar transacción?')) {
-      await deleteTx.mutateAsync(existingTransaction!.id);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
+
+  const handleConfirmDelete = async () => {
+    if (!existingTransaction) return;
+    try {
+      await deleteTx.mutateAsync(existingTransaction.id);
+      setShowDeleteConfirm(false);
       onClose();
       toastSuccess('Eliminado');
+    } catch (e: any) {
+      toastError(e.message || 'Error al eliminar');
     }
   };
 
@@ -180,7 +215,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           title={pageTitle}
           showBackButton
           onBack={onClose}
-          rightAction={isEditing && <button onClick={handleDelete} className="text-rose-500"><span className="material-symbols-outlined">delete</span></button>}
+          rightAction={isEditing && <button onClick={handleDeleteClick} className="text-rose-500" aria-label="Eliminar"><Icon name="delete" size={20} /></button>}
         />
       )}
 
@@ -204,7 +239,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-3 flex-1 flex flex-col">
 
-          {/* B. AMOUNT INPUT (COMPACT) */}
+          {/* B. AMOUNT INPUT */}
           <div className="flex flex-col items-center">
             <div className="relative">
               <span className="absolute -left-4 top-2 text-xl text-app-muted font-light opacity-50">$</span>
@@ -212,17 +247,17 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 type="number"
                 inputMode="decimal"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => { setAmount(e.target.value); clearFieldError('amount'); }}
                 placeholder="0.00"
                 autoFocus={!isEditing}
-                className="w-40 bg-transparent text-center text-4xl font-black text-app-text outline-none placeholder:text-app-muted/20 caret-app-primary no-spin-button transition-colors py-1"
+                className={`w-40 bg-transparent text-center text-4xl font-black text-app-text outline-none placeholder:text-app-muted/20 caret-app-primary no-spin-button transition-colors py-1 ${fieldErrors.amount ? 'text-rose-600' : ''}`}
               />
             </div>
+            <FieldError message={fieldErrors.amount} className="text-center" />
           </div>
 
           {/* C. DESCRIPTION */}
-          {/* C. DESCRIPTION */}
-          <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
+          <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-3 min-h-[44px] flex items-center focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
             <input
               type="text"
               value={description}
@@ -242,11 +277,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 <select
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-9 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
+                  className="w-full bg-app-subtle border border-app-border min-h-[44px] h-12 rounded-xl pl-3 pr-9 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary shadow-sm transition-all"
                 >
                   {allAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
-                <span className="material-symbols-outlined absolute right-3 top-2.5 text-app-muted pointer-events-none text-[20px]">account_balance_wallet</span>
+                <Icon name="account_balance_wallet" size={20} className="absolute right-3 top-2.5 text-app-muted pointer-events-none" />
               </div>
             </div>
 
@@ -256,14 +291,15 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 <div className="relative mb-2">
                   <select
                     value={destAccountId}
-                    onChange={(e) => setDestAccountId(e.target.value)}
-                    className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary"
+                    onChange={(e) => { setDestAccountId(e.target.value); clearFieldError('destAccount'); }}
+                    className={`w-full bg-app-subtle border min-h-[44px] h-12 rounded-xl pl-3 pr-8 text-sm font-bold text-app-text appearance-none outline-none focus:ring-2 focus:ring-app-primary/50 transition-all ${fieldErrors.destAccount ? 'border-rose-500' : 'border-app-border'}`}
                   >
                     <option value="">Seleccionar...</option>
                     {allAccounts.filter(a => a.id !== accountId).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
-                  <span className="material-symbols-outlined absolute right-3 top-2.5 text-app-muted pointer-events-none text-[20px]">expand_more</span>
+                  <Icon name="expand_more" size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-app-muted pointer-events-none" />
                 </div>
+                <FieldError message={fieldErrors.destAccount} />
 
                 {/* MSI Payment Linkage */}
                 {destAccountInfo?.type === 'CREDIT' && creditCardMSI.length > 0 && (
@@ -296,16 +332,18 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             )}
           </div>
 
-          {/* E. CATEGORY GRID (Except transfers) */}
+          {/* E. CATEGORY - Quick picks + full grid (except transfers) */}
           {type !== 'transfer' && (
             <div className="flex-1 min-h-0 flex flex-col">
               <label className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Categoría</label>
               <CategorySelector
                 categories={categories?.filter(c => c.type === type) || []}
                 selectedId={categoryId}
-                onSelect={setCategoryId}
+                onSelect={(id) => { setCategoryId(id); clearFieldError('category'); }}
+                quickCount={6}
                 className="flex-1 min-h-0"
               />
+              <FieldError message={fieldErrors.category} />
             </div>
           )}
 
@@ -315,24 +353,36 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <DatePicker
               date={date}
               onDateChange={(d) => d && setDate(d)}
-              className="bg-app-subtle border-app-border h-11 rounded-xl px-3 text-sm font-bold shadow-sm hover:bg-app-subtle"
+              className="bg-app-subtle border-app-border min-h-[44px] h-12 rounded-xl px-3 text-sm font-bold shadow-sm hover:bg-app-subtle"
             />
           </div>
 
           {/* SUBMIT */}
           <div className="pt-4 pb-10 mt-auto shrink-0 touch-none">
-            <button
+            <Button
               type="submit"
+              fullWidth
+              size="lg"
+              variant="primary"
+              isLoading={addTx.isPending || updateTx.isPending}
               disabled={addTx.isPending || updateTx.isPending}
-              className="w-full py-3.5 bg-app-primary text-white text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl shadow-app-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
             >
-              {(addTx.isPending || updateTx.isPending) && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {isEditing ? 'Guardar Cambios' : 'Confirmar'}
-            </button>
+            </Button>
           </div>
 
         </form>
       </div>
+
+      {isEditing && existingTransaction && (
+        <DeleteConfirmationSheet
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          itemName={existingTransaction.description || 'Transacción'}
+          isDeleting={deleteTx.isPending}
+        />
+      )}
     </>
   );
 };

@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Hooks & Utils (Tus importaciones originales)
+// Components
+import { Icon } from '@/components/Icon';
+// Hooks & Utils
 import { useFinancialPeriodSummary } from '@/hooks/useFinancialPlanning';
 import { formatDateUTC } from '@/utils/dateUtils';
 
@@ -261,9 +263,7 @@ const FinancialAnalysis: React.FC = () => {
               <option value="semestral" className="bg-app-surface text-app-text py-2">Semestral</option>
               <option value="anual" className="bg-app-surface text-app-text py-2">Anual</option>
             </select>
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] md:text-[16px] text-app-muted group-hover:text-app-primary transition-colors">
-              unfold_more
-            </span>
+            <Icon name="unfold_more" size={18} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-app-muted group-hover:text-app-primary transition-colors" />
           </div>
         </div>
 
@@ -366,17 +366,17 @@ const FinancialAnalysis: React.FC = () => {
         {/* --- C. KPI CARDS --- */}
         <div className="grid grid-cols-3 gap-2 md:gap-3">
           <div className="bg-app-surface border border-app-border rounded-2xl p-3 md:p-4 text-center min-w-0">
-            <div className="flex justify-center mb-1 text-emerald-500"><span className="material-symbols-outlined text-lg md:text-xl">arrow_upward</span></div>
+            <div className="flex justify-center mb-1 text-emerald-500"><Icon name="arrow_upward" size={20} /></div>
             <p className="text-[9px] md:text-[10px] uppercase font-bold text-app-muted truncate">Ingresos</p>
             <p className="text-xs md:text-base font-bold text-app-text font-numbers truncate">{formatCurrency(totalIncome)}</p>
           </div>
           <div className="bg-app-surface border border-app-border rounded-2xl p-3 md:p-4 text-center min-w-0">
-            <div className="flex justify-center mb-1 text-rose-500"><span className="material-symbols-outlined text-lg md:text-xl">arrow_downward</span></div>
+            <div className="flex justify-center mb-1 text-rose-500"><Icon name="arrow_downward" size={20} /></div>
             <p className="text-[9px] md:text-[10px] uppercase font-bold text-app-muted truncate">Egresos</p>
             <p className="text-xs md:text-base font-bold text-app-text font-numbers truncate">{formatCurrency(totalExpenses)}</p>
           </div>
           <div className="bg-app-surface border border-app-border rounded-2xl p-3 md:p-4 text-center min-w-0">
-            <div className={`flex justify-center mb-1 ${savingsRate >= 20 ? 'text-indigo-500' : 'text-amber-500'}`}><span className="material-symbols-outlined text-lg md:text-xl">savings</span></div>
+            <div className={`flex justify-center mb-1 ${savingsRate >= 20 ? 'text-indigo-500' : 'text-amber-500'}`}><Icon name="savings" size={20} /></div>
             <div className="flex items-center justify-center gap-0.5 md:gap-1">
               <p className="text-[9px] md:text-[10px] uppercase font-bold text-app-muted truncate">Ahorro</p>
               <InfoTooltip content="(Ingresos - Egresos) / Ingresos" iconSize="10px" />
@@ -390,7 +390,7 @@ const FinancialAnalysis: React.FC = () => {
           <div className="relative overflow-hidden bg-linear-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 p-5 rounded-2xl">
             <div className="flex items-center gap-3 mb-4 relative z-10">
               <div className="size-8 rounded-full bg-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/30">
-                <span className="material-symbols-outlined text-base">celebration</span>
+                <Icon name="celebration" size={16} />
               </div>
               <h3 className="font-bold text-app-text text-sm">Compromisos que finalizan</h3>
             </div>
@@ -399,7 +399,7 @@ const FinancialAnalysis: React.FC = () => {
               {[...upcomingPayments.msiEnding, ...upcomingPayments.recurringEnding].map((item: any, i) => (
                 <div key={i} className="flex justify-between items-center p-3 bg-white/60 dark:bg-black/40 backdrop-blur-sm border border-white/20 rounded-xl">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="material-symbols-outlined text-teal-600 text-lg">check_circle</span>
+                    <Icon name="check_circle" size={18} className="text-teal-600" />
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-app-text truncate">{item.purchaseName || item.description}</p>
                       <p className="text-[9px] uppercase font-bold text-teal-600/80">
@@ -517,7 +517,7 @@ const FinancialAnalysis: React.FC = () => {
                     transition={{ delay: i * 0.1 }}
                     className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 p-3 rounded-xl flex items-center gap-3"
                   >
-                    <span className="material-symbols-outlined text-rose-600 text-lg">priority_high</span>
+                    <Icon name="priority_high" size={18} className="text-rose-600" />
                     <p className="text-xs font-medium text-rose-900 dark:text-rose-100">{w}</p>
                   </motion.div>
                 ))}

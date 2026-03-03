@@ -3,6 +3,7 @@ import { prisma } from '../../../lib/prisma';
 import { fetchPrices } from '../../../lib/coingecko';
 import { fetchStockPrice } from '../../../lib/yahooFinance';
 import { AppError } from '../../../shared/errors';
+import { parseSafeFloat, validateAmount } from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import type { AuthRequest } from '../../../shared/types';
 
@@ -97,9 +98,10 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     throw AppError.badRequest('Missing: name, type, quantity, avgBuyPrice');
   }
 
-  const qty = parseFloat(quantity);
-  const avgPrice = parseFloat(avgBuyPrice);
-  const currPrice = currentPrice ? parseFloat(currentPrice) : avgPrice;
+  const qty = parseSafeFloat(quantity, 'quantity');
+  const avgPrice = parseSafeFloat(avgBuyPrice, 'avgBuyPrice');
+  const currPrice = currentPrice != null ? parseSafeFloat(currentPrice, 'currentPrice') : avgPrice;
+  validateAmount(qty * avgPrice, 'quantity * avgBuyPrice');
 
   const investment = await prisma.investment.create({
     data: {
@@ -164,9 +166,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       name: name ?? undefined,
       type: type ?? undefined,
       ticker: ticker !== undefined ? ticker : undefined,
-      quantity: quantity !== undefined ? parseFloat(quantity) : undefined,
-      avgBuyPrice: avgBuyPrice !== undefined ? parseFloat(avgBuyPrice) : undefined,
-      currentPrice: currentPrice !== undefined ? parseFloat(currentPrice) : undefined,
+      quantity: quantity !== undefined ? parseSafeFloat(quantity, 'quantity') : undefined,
+      avgBuyPrice: avgBuyPrice !== undefined ? parseSafeFloat(avgBuyPrice, 'avgBuyPrice') : undefined,
+      currentPrice: currentPrice !== undefined ? parseSafeFloat(currentPrice, 'currentPrice') : undefined,
       lastPriceUpdate: currentPrice !== undefined ? new Date() : undefined,
       currency: currency ?? undefined,
       purchaseDate: purchaseDate !== undefined ? (purchaseDate ? new Date(purchaseDate) : null) : undefined,

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Icon } from '@/components/Icon'
 import { format } from "date-fns"
 import { es } from 'date-fns/locale'
 
@@ -64,9 +65,7 @@ export function DatePicker({
           )}
         >
           <div className="flex items-center gap-3 truncate">
-            <span className={`material-symbols-outlined text-[20px] shrink-0 ${date ? 'text-app-primary' : 'text-app-muted'}`}>
-              calendar_today
-            </span>
+            <Icon name="calendar_today" size={20} className={`shrink-0 ${date ? 'text-app-primary' : 'text-app-muted'}`} />
             <span className="font-medium truncate block">
               {date ? (
                 format(date, "EEE, d 'de' MMM yyyy", { locale: es })
@@ -76,14 +75,14 @@ export function DatePicker({
             </span>
           </div>
 
-          <span
+          <Icon
+            name="expand_more"
+            size={20}
             className={cn(
-              "material-symbols-outlined text-app-muted/70 text-[20px] transition-transform duration-200 shrink-0 ml-2",
+              "text-app-muted/70 transition-transform duration-200 shrink-0 ml-2",
               open && "rotate-180 text-app-primary"
             )}
-          >
-            expand_more
-          </span>
+          />
         </button>
       </PopoverTrigger>
 

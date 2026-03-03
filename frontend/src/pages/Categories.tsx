@@ -7,6 +7,7 @@ import { useCategories, useDeleteCategory } from '@/hooks/useApi';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SkeletonTransactionList } from '@/components/Skeleton';
 import { SwipeableItem } from '@/components/SwipeableItem';
@@ -46,7 +47,7 @@ const CategoryDetailSheet = ({ category, onClose, onEdit, onDelete }: any) => {
                         className="size-20 rounded-3xl flex items-center justify-center text-4xl mb-4 shadow-sm border border-black/5"
                         style={{ backgroundColor: `${category.color}20`, color: category.color }}
                     >
-                        <span className="material-symbols-outlined text-[40px]">{getValidIcon(category.icon)}</span>
+                        <Icon name={getValidIcon(category.icon)} size={40} />
                     </div>
                     <h2 className="text-2xl font-bold text-app-text tracking-tight text-center leading-tight mb-1">{category.name}</h2>
                     <span className="px-3 py-0.5 bg-app-subtle border border-app-border rounded-full text-[10px] uppercase font-bold tracking-wider text-app-muted">
@@ -73,14 +74,14 @@ const CategoryDetailSheet = ({ category, onClose, onEdit, onDelete }: any) => {
                         onClick={() => { onClose(); onEdit(); }}
                         className="h-12 flex items-center justify-center gap-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-[0.98] transition-all"
                     >
-                        <span className="material-symbols-outlined text-lg">edit</span>
+                        <Icon name="edit" size={18} />
                         Editar
                     </button>
                     <button
                         onClick={() => { onClose(); onDelete(); }}
                         className="h-12 flex items-center justify-center gap-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/10 dark:hover:bg-rose-900/20 text-sm font-bold text-rose-600 dark:text-rose-400 active:scale-[0.98] transition-all"
                     >
-                        <span className="material-symbols-outlined text-lg">delete</span>
+                        <Icon name="delete" size={18} />
                         Eliminar
                     </button>
                 </div>
@@ -199,7 +200,7 @@ const Categories: React.FC = () => {
                                 className="size-10 rounded-xl flex items-center justify-center text-lg shadow-sm border border-black/5"
                                 style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
                             >
-                                <span className="material-symbols-outlined text-[20px]">{getValidIcon(cat.icon)}</span>
+                                <Icon name={getValidIcon(cat.icon)} size={20} />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -216,12 +217,12 @@ const Categories: React.FC = () => {
                                 </div>
                             </div>
 
-                            <span className="material-symbols-outlined text-app-border text-lg -mr-1">chevron_right</span>
+                            <Icon name="chevron_right" size={18} className="text-app-border -mr-1" />
                         </div>
                     </SwipeableItem>
                 )) : (
                     <div className="p-8 border-2 border-dashed border-app-border rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
-                        <span className="material-symbols-outlined text-3xl mb-2 text-app-muted">folder_off</span>
+                        <Icon name="folder_off" size={30} className="mb-2 text-app-muted" />
                         <p className="text-xs text-app-muted">Sin categorías.</p>
                     </div>
                 )}
@@ -239,7 +240,7 @@ const Categories: React.FC = () => {
                 showBackButton
                 rightAction={
                     <button onClick={() => openCategorySheet()} className="flex items-center justify-center size-10 bg-app-text text-app-bg rounded-full hover:scale-105 active:scale-95 transition-all shadow-md">
-                        <span className="material-symbols-outlined text-[22px]">add</span>
+                        <Icon name="add" size={22} />
                     </button>
                 }
             />
@@ -273,7 +274,7 @@ const Categories: React.FC = () => {
                         {/* Modal Header */}
                         <div className="text-center mb-6">
                             <div className="size-14 mx-auto mb-4 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
-                                <span className="material-symbols-outlined text-3xl">move_down</span>
+                                <Icon name="move_down" size={30} />
                             </div>
                             <h3 className="text-lg font-bold text-app-text">Mover Movimientos</h3>
                             <p className="text-sm text-app-muted mt-2 leading-relaxed">

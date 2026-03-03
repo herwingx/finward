@@ -4,6 +4,7 @@ import { prisma } from '../../../lib/prisma';
 import { createSupabaseServiceClient } from '../../../lib/supabase';
 import { AppError } from '../../../shared/errors';
 import { logger } from '../../../shared/logger';
+import { parseSafeFloat, validateNonNegativeAmount } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -193,7 +194,13 @@ router.put('/', async (req: AuthRequest, res: Response) => {
       currency: currency !== undefined ? currency : undefined,
       timezone: timezone !== undefined ? timezone : undefined,
       avatar: avatar !== undefined ? avatar : undefined,
-      monthlyNetIncome: monthlyNetIncome !== undefined ? (monthlyNetIncome === null ? null : parseFloat(monthlyNetIncome)) : undefined,
+      monthlyNetIncome: monthlyNetIncome !== undefined
+        ? (monthlyNetIncome === null ? null : (() => {
+            const n = parseSafeFloat(monthlyNetIncome, 'monthlyNetIncome');
+            validateNonNegativeAmount(n, 'monthlyNetIncome');
+            return n;
+          })())
+        : undefined,
       incomeFrequency: incomeFrequency !== undefined ? incomeFrequency : undefined,
       notificationsEnabled: notificationsEnabled !== undefined ? (notificationsEnabled === true || notificationsEnabled === 'true') : undefined,
     },

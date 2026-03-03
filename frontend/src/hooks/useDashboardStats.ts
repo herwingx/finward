@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { Transaction, Account, Investment, Loan, SavingsGoal } from '@/types';
 
 export function useDashboardStats(
@@ -64,12 +64,15 @@ export function useDashboardStats(
     return { text: 'Buenas noches', emoji: '🌙' };
   }, []);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: profileCurrency,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const formatCurrency = useCallback(
+    (amount: number) =>
+      new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: profileCurrency,
+        maximumFractionDigits: 0,
+      }).format(amount),
+    [profileCurrency]
+  );
 
   return { netWorth, availableFunds, monthStats, greeting, formatCurrency };
 }

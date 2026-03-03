@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SwipeableBottomSheet } from './SwipeableBottomSheet';
+import { Icon } from '@/components/Icon';
 
 /* ==================================================================================
    TYPES
@@ -107,7 +108,7 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 mb-4 ${styles.overlayIcon}`}>
-            <span className="material-symbols-outlined text-[36px]">{styles.icon}</span>
+            <Icon name={styles.icon} size={36} />
           </div>
           <h3 className="text-xl font-bold text-app-text leading-tight px-4">
             {warningLevel === 'critical' ? 'Acción Irreversible' : 'Confirmar Eliminación'}
@@ -124,7 +125,7 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
           {/* 1. Dynamic Warning Banner */}
           {warningMessage && (
             <div className={`p-4 rounded-2xl border flex gap-3 ${styles.banner}`}>
-              <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5">info</span>
+              <Icon name="info" size={20} className="shrink-0 mt-0.5" />
               <div className="text-xs">
                 <p className="font-bold mb-1">{warningMessage}</p>
                 {warningDetails.length > 0 && (
@@ -213,7 +214,7 @@ export const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = (
               ${(!canSubmit || isDeleting) ? 'opacity-50 cursor-not-allowed bg-zinc-200 dark:bg-zinc-800 text-zinc-400' : styles.confirmBtn}
             `}
           >
-            {isDeleting && <span className="material-symbols-outlined text-lg animate-spin">sync</span>}
+            {isDeleting && <Icon name="sync" size={20} className="animate-spin" />}
             {isDeleting ? 'Eliminando...' : 'Eliminar'}
           </button>
         </div>

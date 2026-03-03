@@ -1,5 +1,6 @@
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { validateAmount } from '../../../shared/validation';
 
 export interface CreateExpenseInput {
   userId: string;
@@ -15,11 +16,13 @@ export interface CreateExpenseInput {
 export async function createExpense(input: CreateExpenseInput) {
   const { userId, accountId, categoryId, amount, description, date } = input;
   if (amount <= 0) throw AppError.badRequest('Amount must be positive');
+  validateAmount(amount, 'amount');
 
-  const account = await prisma.account.findFirst({ where: { id: accountId, userId } });
+  const [account, category] = await Promise.all([
+    prisma.account.findFirst({ where: { id: accountId, userId } }),
+    prisma.category.findFirst({ where: { id: categoryId, userId } }),
+  ]);
   if (!account) throw AppError.notFound('Account not found');
-
-  const category = await prisma.category.findFirst({ where: { id: categoryId, userId } });
   if (!category) throw AppError.notFound('Category not found');
 
   const isCredit = account.type === 'CREDIT';

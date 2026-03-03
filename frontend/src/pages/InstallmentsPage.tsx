@@ -7,6 +7,7 @@ import { useInstallmentPurchases, useProfile, useDeleteInstallmentPurchase } fro
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableItem } from '@/components/SwipeableItem';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
@@ -73,7 +74,7 @@ const MSIDetailSheet = ({
                 {/* 1. HERO HEADER */}
                 <div className="flex flex-col items-center mb-8 text-center">
                     <div className={`size-20 rounded-3xl flex items-center justify-center text-4xl mb-4 shadow-md ${isFinished ? 'bg-emerald-50 text-emerald-500' : 'bg-indigo-50 text-indigo-500'}`}>
-                        <span className="material-symbols-outlined">{isFinished ? 'check_circle' : 'credit_card'}</span>
+                        <Icon name={isFinished ? 'check_circle' : 'credit_card'} />
                     </div>
 
                     <h2 className="text-xl font-bold text-app-text px-4 leading-tight mb-1">{purchase.description}</h2>
@@ -120,7 +121,7 @@ const MSIDetailSheet = ({
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-app-muted mb-0.5">Próximo cargo estimado</p>
                                 <p className="font-bold text-indigo-500 flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-sm">event</span>
+                                    <Icon name="event" size={14} />
                                     {formatDateUTC(nextDate, { month: 'short', year: 'numeric' })}
                                 </p>
                             </div>
@@ -140,14 +141,14 @@ const MSIDetailSheet = ({
                         onClick={() => { onClose(); onEdit(); }}
                         className="h-12 flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-[0.98] transition-all"
                     >
-                        <span className="material-symbols-outlined text-lg">edit</span>
+                        <Icon name="edit" size={18} />
                         Editar
                     </button>
                     <button
                         onClick={() => { onClose(); onDelete(); }}
                         className="h-12 flex items-center justify-center gap-2 text-sm font-bold text-rose-500 bg-rose-500/10 rounded-xl hover:bg-rose-500/20 active:scale-[0.98] transition-all"
                     >
-                        <span className="material-symbols-outlined text-lg">delete</span>
+                        <Icon name="delete" size={18} />
                         Eliminar
                     </button>
                 </div>
@@ -224,7 +225,7 @@ const InstallmentsPage: React.FC = () => {
                         onClick={() => openInstallmentSheet()}
                         className="bg-app-text text-app-bg size-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform hover:shadow-xl hover:scale-105"
                     >
-                        <span className="material-symbols-outlined text-[22px] font-bold">add</span>
+                        <Icon name="add" size={22} className="font-bold" />
                     </button>
                 }
             />
@@ -271,7 +272,7 @@ const InstallmentsPage: React.FC = () => {
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3.5">
                                                 <div className={`size-10 rounded-xl flex items-center justify-center border shadow-sm ${isFinished ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-indigo-50 border-indigo-100 text-indigo-600'}`}>
-                                                    <span className="material-symbols-outlined text-lg">{isFinished ? 'check' : 'calendar_month'}</span>
+                                                    <Icon name={isFinished ? 'check' : 'calendar_month'} size={18} />
                                                 </div>
                                                 <div className="min-w-0">
                                                     <h3 className="font-bold text-sm text-app-text truncate">{item.description}</h3>
@@ -303,7 +304,7 @@ const InstallmentsPage: React.FC = () => {
                         );
                     }) : (
                         <div className="py-20 flex flex-col items-center justify-center opacity-50 border-2 border-dashed border-app-border rounded-3xl bg-app-subtle/10">
-                            <span className="material-symbols-outlined text-4xl mb-2 text-app-muted">credit_card_off</span>
+                            <Icon name="credit_card_off" size={36} className="mb-2 text-app-muted" />
                             <p className="text-sm font-medium text-app-text">Sin planes en esta vista.</p>
                         </div>
                     )}

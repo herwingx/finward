@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Icon } from "@/components/Icon"
 import { DayPicker } from "react-day-picker"
 import { es } from 'date-fns/locale'
 import { format, setMonth, setYear } from 'date-fns'
@@ -84,9 +85,7 @@ function Calendar({
               </option>
             ))}
           </select>
-          <span className="material-symbols-outlined absolute right-2 text-[16px] text-app-muted pointer-events-none">
-            expand_more
-          </span>
+          <Icon name="expand_more" size={16} className="absolute right-2 text-app-muted pointer-events-none" />
         </div>
 
         {/* Year Dropdown */}
@@ -100,9 +99,7 @@ function Calendar({
               <option key={year} value={year}>{year}</option>
             ))}
           </select>
-          <span className="material-symbols-outlined absolute right-2 text-[16px] text-app-muted pointer-events-none">
-            expand_more
-          </span>
+          <Icon name="expand_more" size={16} className="absolute right-2 text-app-muted pointer-events-none" />
         </div>
       </div>
 

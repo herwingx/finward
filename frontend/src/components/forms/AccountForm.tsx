@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAddAccount, useUpdateAccount, useAddTransaction, useCategories, useAddCategory, useDeleteAccount } from '@/hooks/useApi';
 import { Account, AccountType } from '@/types';
-import { toastSuccess, toastError, toast } from '@/utils/toast';
-import { ToggleGroup } from '@/components/Button';
+import { toastSuccess, toastError } from '@/utils/toast';
+import { DeleteConfirmationSheet } from '@/components/DeleteConfirmationSheet';
+import { Button } from '@/components/Button';
+import { Icon } from '@/components/Icon';
 
 interface AccountFormProps {
   existingAccount?: Account | null;
@@ -35,6 +37,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
   const [showAdj, setShowAdj] = useState(false);
   const [adjAmount, setAdjAmount] = useState('');
   const [adjDesc, setAdjDesc] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   /* --- INIT --- */
   useEffect(() => {
@@ -78,6 +81,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
     } catch (e: any) { toastError(e.message || 'Error'); }
   };
 
+  const isAdjusting = addTransaction.isPending || addCategory.isPending;
+
   const executeAdjustment = async () => {
     if (!existingAccount) return;
     const target = parseFloat(adjAmount);
@@ -107,6 +112,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
       });
 
       toastSuccess(`Saldo corregido a ${target}`);
+      setShowAdj(false);
       onClose();
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message || e?.message || 'Falló ajuste';
@@ -114,17 +120,18 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
+
+  const handleConfirmDelete = async () => {
     if (!existingAccount) return;
-    if (window.confirm('¿Eliminar esta cuenta? Se perderá todo su historial.')) {
-      try {
-        await deleteAccount.mutateAsync(existingAccount.id);
-        toastSuccess('Cuenta eliminada');
-        onClose();
-      } catch (e: any) {
-        const errorMsg = e?.response?.data?.message || e?.message || 'Error al eliminar';
-        toastError(errorMsg);
-      }
+    try {
+      await deleteAccount.mutateAsync(existingAccount.id);
+      setShowDeleteConfirm(false);
+      toastSuccess('Cuenta eliminada');
+      onClose();
+    } catch (e: any) {
+      const errorMsg = e?.response?.data?.message || e?.message || 'Error al eliminar';
+      toastError(errorMsg);
     }
   };
 
@@ -144,7 +151,18 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
         <h2 className="text-lg font-bold text-app-text">
           {isEditMode ? 'Editar Cuenta' : 'Nueva Cuenta'}
         </h2>
-        <div className="w-12" />
+        {isEditMode ? (
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full transition-colors"
+            aria-label="Eliminar cuenta"
+          >
+            <Icon name="delete" size={20} />
+          </button>
+        ) : (
+          <div className="w-12" />
+        )}
       </div>
 
       {/* 2. FORM BODY (Scrollable) */}
@@ -213,13 +231,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                   key={t.v}
                   type="button"
                   onClick={() => setType(t.v)}
-                  className={`flex flex-col items-center justify-center min-w-[68px] h-[68px] rounded-2xl border transition-all duration-200 shadow-sm
+                  className={`flex flex-col items-center justify-center min-w-[68px] min-h-[68px] rounded-2xl border transition-all duration-200 shadow-sm
                     ${type === t.v
                       ? 'bg-app-primary border-app-primary text-white scale-[1.02] shadow-app-primary/30 z-10'
                       : 'bg-app-surface border-app-border text-app-muted hover:border-app-border-strong hover:bg-app-subtle'
                     }`}
                 >
-                  <span className="material-symbols-outlined text-[20px] mb-1">{t.icon}</span>
+                  <Icon name={t.icon} size={20} className="mb-1" />
                   <span className="text-[9px] font-black uppercase tracking-tighter">{t.l}</span>
                 </button>
               ))}
@@ -230,7 +248,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
           {type === 'CREDIT' && (
             <div className="bg-app-subtle/50 p-4 rounded-2xl border border-app-border space-y-4 animate-scale-in">
               <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-app-primary text-lg">settings</span>
+                <Icon name="settings" size={20} className="text-app-primary text-lg" />
                 <p className="text-[10px] font-black text-app-text uppercase tracking-widest opacity-80">Configuración de Tarjeta</p>
               </div>
 
@@ -291,15 +309,18 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
 
       {/* 3. STICKY FOOTER */}
       <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
-        <button
+        <Button
           form="account-form"
           type="submit"
+          fullWidth
+          size="lg"
+          variant="primary"
+          isLoading={isSaving}
           disabled={isSaving}
-          className="w-full h-14 bg-app-primary text-white text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl shadow-app-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3 pointer-events-auto"
+          className="pointer-events-auto"
         >
-          {isSaving && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
           {isEditMode ? 'Guardar Cambios' : 'Confirmar Cuenta'}
-        </button>
+        </Button>
       </div>
 
       {/* ADJUSTMENT MODAL OVERLAY (Sleek Alert Style) */}
@@ -308,7 +329,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
           <div className="bg-app-surface border border-app-border rounded-[32px] p-8 w-full max-w-sm shadow-2xl animate-scale-in">
             <div className="flex flex-col items-center text-center mb-8">
               <div className="size-16 rounded-3xl bg-app-primary/10 flex items-center justify-center mb-4 text-app-primary">
-                <span className="material-symbols-outlined text-3xl">account_balance_wallet</span>
+                <Icon name="account_balance_wallet" size={32} />
               </div>
               <h3 className="text-xl font-black text-app-text">Corregir Saldo</h3>
               <p className="text-sm text-app-muted mt-2 px-2 leading-relaxed opacity-80">
@@ -339,24 +360,43 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
               </div>
 
               <div className="grid grid-cols-1 gap-3 pt-4">
-                <button
+                <Button
                   type="button"
+                  fullWidth
+                  size="md"
+                  variant="primary"
+                  isLoading={isAdjusting}
+                  disabled={isAdjusting}
                   onClick={executeAdjustment}
-                  className="h-12 bg-app-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-app-primary/20 transition-all active:scale-95"
                 >
                   Actualizar Saldo
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  fullWidth
+                  size="md"
+                  variant="secondary"
                   onClick={() => setShowAdj(false)}
-                  className="h-12 bg-app-subtle text-app-text font-bold rounded-2xl hover:bg-app-border transition-colors outline-none"
                 >
                   Cancelar
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {isEditMode && existingAccount && (
+        <DeleteConfirmationSheet
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          itemName={existingAccount.name}
+          warningLevel="critical"
+          warningMessage="Se perderá todo el historial de transacciones de esta cuenta."
+          warningDetails={['No podrás recuperar las transacciones asociadas.']}
+          isDeleting={deleteAccount.isPending}
+        />
       )}
     </div>
   );

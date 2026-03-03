@@ -12,6 +12,7 @@ import {
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableItem } from '@/components/SwipeableItem';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
@@ -51,7 +52,7 @@ const RecurringDetailSheet = ({
                         className="size-20 rounded-3xl flex items-center justify-center text-4xl mb-4 shadow-sm border border-black/5"
                         style={{ backgroundColor: `${category?.color || '#999'}20`, color: category?.color || '#999' }}
                     >
-                        <span className="material-symbols-outlined text-[32px]">{category?.icon || 'refresh'}</span>
+                        <Icon name={category?.icon || 'refresh'} size={32} />
                     </div>
 
                     <h2 className="text-xl font-bold text-app-text text-center px-4 leading-tight">{item.description}</h2>
@@ -79,7 +80,7 @@ const RecurringDetailSheet = ({
                     <div className="bg-app-subtle p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-1 border border-app-border">
                         <p className="text-[10px] uppercase font-bold text-app-muted">Cuenta Origen</p>
                         <div className="flex items-center gap-1.5 font-bold text-sm text-app-text truncate max-w-full">
-                            <span className="material-symbols-outlined text-xs opacity-50">account_balance</span>
+                            <Icon name="account_balance" size={12} className="opacity-50" />
                             {account?.name || 'N/A'}
                         </div>
                     </div>
@@ -88,7 +89,7 @@ const RecurringDetailSheet = ({
                 {/* 3. ALERT / END DATE */}
                 {item.endDate && (
                     <div className="mb-8 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl border border-amber-100 dark:border-amber-800">
-                        <span className="material-symbols-outlined text-amber-500 mt-0.5">event_busy</span>
+                        <Icon name="event_busy" size={20} className="text-amber-500 mt-0.5" />
                         <div>
                             <p className="text-sm font-bold text-amber-900 dark:text-amber-100">Finaliza pronto</p>
                             <p className="text-xs text-amber-700/80 dark:text-amber-300/70 mt-0.5">
@@ -104,14 +105,14 @@ const RecurringDetailSheet = ({
                         onClick={() => { onClose(); onEdit(); }}
                         className="h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 text-sm font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-[0.98] transition-all"
                     >
-                        <span className="material-symbols-outlined">edit</span>
+                        <Icon name="edit" />
                         Editar
                     </button>
                     <button
                         onClick={() => { onClose(); onDelete(); }}
                         className="h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 dark:bg-rose-900/10 dark:border-rose-900 dark:text-rose-400 text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                     >
-                        <span className="material-symbols-outlined">delete</span>
+                        <Icon name="delete" />
                         Eliminar
                     </button>
                 </div>
@@ -218,7 +219,7 @@ const Recurring: React.FC = () => {
                                         : 'text-app-muted hover:text-app-text'
                                         }`}
                                 >
-                                    <span className="material-symbols-outlined text-sm">{f.icon}</span>
+                                    <Icon name={f.icon} size={14} />
                                     {f.count > 0 && <span>{f.count}</span>}
                                 </button>
                             ))}
@@ -229,7 +230,7 @@ const Recurring: React.FC = () => {
                         onClick={() => openRecurringSheet()}
                         className="size-10 bg-app-text text-app-bg rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
                     >
-                        <span className="material-symbols-outlined text-[22px]">add</span>
+                        <Icon name="add" size={22} />
                     </button>
                 </div>
 
@@ -265,7 +266,7 @@ const Recurring: React.FC = () => {
                                                 className="size-11 shrink-0 rounded-2xl flex items-center justify-center border border-black/5 shadow-sm"
                                                 style={{ backgroundColor: `${category?.color}20`, color: category?.color }}
                                             >
-                                                <span className="material-symbols-outlined text-[20px]">{category?.icon || 'event'}</span>
+                                                <Icon name={category?.icon || 'event'} size={20} />
                                             </div>
                                             <div className="min-w-0">
                                                 <h3 className="text-sm font-bold text-app-text truncate max-w-[150px] md:max-w-xs">{item.description}</h3>
@@ -282,7 +283,7 @@ const Recurring: React.FC = () => {
                                                             className="flex items-center text-amber-600 dark:text-amber-400 ml-0.5"
                                                             title={`Temporal: Finaliza el ${formatDateUTC(new Date(item.endDate), { style: 'short' })}`}
                                                         >
-                                                            <span className="material-symbols-outlined text-[14px]">history</span>
+                                                            <Icon name="history" size={14} />
                                                         </span>
                                                     )}
                                                 </p>
@@ -304,7 +305,7 @@ const Recurring: React.FC = () => {
                         );
                     }) : (
                         <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
-                            <span className="material-symbols-outlined text-4xl mb-2 text-app-muted">calendar_off</span>
+                            <Icon name="calendar_off" size={36} className="mb-2 text-app-muted" />
                             <p className="text-sm font-medium text-app-muted">Sin recurrencias registradas.</p>
                         </div>
                     )}

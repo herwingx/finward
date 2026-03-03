@@ -14,6 +14,7 @@ import {
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
 import { SwipeableItem } from '@/components/SwipeableItem';
@@ -79,7 +80,7 @@ const GoalCard = ({
               className="size-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-black/5"
               style={{ backgroundColor: `${barColor}15`, color: barColor }}
             >
-              <span className="material-symbols-outlined">{goal.icon || 'savings'}</span>
+              <Icon name={goal.icon || 'savings'} />
             </div>
             <div>
               <h3 className="font-bold text-base text-app-text leading-tight group-hover:text-app-primary transition-colors">
@@ -88,12 +89,12 @@ const GoalCard = ({
               <div className="flex items-center gap-2 mt-1">
                 {isCompleted ? (
                   <span className="text-[10px] font-bold text-white bg-emerald-500 px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[10px]">check</span>
+                    <Icon name="check" size={10} />
                     Completada
                   </span>
                 ) : (
                   <p className="text-xs text-app-muted font-medium flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">event</span>
+                    <Icon name="event" size={14} />
                     {goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'Sin plazo'}
                   </p>
                 )}
@@ -217,7 +218,7 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
                 className="size-24 mx-auto rounded-3xl flex items-center justify-center mb-4 shadow-xl border border-white/20 backdrop-blur-md"
                 style={{ backgroundColor: `${goal.color}20`, color: goal.color }}
               >
-                <span className="material-symbols-outlined text-5xl drop-shadow-sm">{goal.icon || 'savings'}</span>
+                <Icon name={goal.icon || 'savings'} size={48} className="drop-shadow-sm" />
               </div>
               <h2 className="text-2xl font-black text-app-text tracking-tight mb-1">{goal.name}</h2>
               <p className="text-sm font-bold text-app-muted">
@@ -231,14 +232,14 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
                 onClick={() => setAction('contribute')}
                 className="h-14 bg-app-text text-app-bg rounded-2xl font-bold flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all"
               >
-                <span className="material-symbols-outlined text-lg mb-0.5">add</span>
+                <Icon name="add" size={18} className="mb-0.5" />
                 <span className="text-xs uppercase tracking-widest">Aportar</span>
               </button>
               <button
                 onClick={() => setAction('withdraw')}
                 className="h-14 bg-app-surface text-app-text border border-app-border rounded-2xl font-bold flex flex-col items-center justify-center hover:bg-app-subtle active:scale-95 transition-all"
               >
-                <span className="material-symbols-outlined text-lg mb-0.5">remove</span>
+                <Icon name="remove" size={18} className="mb-0.5" />
                 <span className="text-xs uppercase tracking-widest">Retirar</span>
               </button>
             </div>
@@ -252,7 +253,7 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
                     <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-app-surface border border-app-border/50">
                       <div className="flex items-center gap-3">
                         <div className="size-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+                          <Icon name="arrow_upward" size={14} />
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-app-text truncate max-w-[120px]">{c.notes || 'Aportación'}</p>
@@ -271,11 +272,11 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
             {/* Footer Options */}
             <div className="hidden md:grid grid-cols-2 gap-3 border-t border-app-border pt-4">
               <button onClick={() => { onClose(); openGoalSheet(goal); }} className="h-12 bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 font-bold text-sm rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 active:scale-95 transition-all">
-                <span className="material-symbols-outlined text-lg">edit</span>
+                <Icon name="edit" size={18} />
                 Editar
               </button>
               <button onClick={handleDelete} className="h-12 bg-rose-50 dark:bg-rose-900/10 text-rose-600 dark:text-rose-400 font-bold text-sm rounded-xl flex items-center justify-center gap-2 hover:bg-rose-100 dark:hover:bg-rose-900/20 active:scale-95 transition-all">
-                <span className="material-symbols-outlined text-lg">delete</span>
+                <Icon name="delete" size={18} />
                 Borrar
               </button>
             </div>
@@ -287,7 +288,7 @@ const GoalDetailSheet = ({ goal, onClose }: { goal: SavingsGoal, onClose: () => 
           <div className="animate-slide-up">
             <div className="flex items-center gap-4 mb-6">
               <button onClick={() => setAction('view')} className="size-10 rounded-full bg-app-subtle flex items-center justify-center hover:bg-app-border transition-colors">
-                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                <Icon name="arrow_back" size={14} />
               </button>
               <div>
                 <h2 className="text-lg font-bold text-app-text leading-none mb-1">
@@ -411,7 +412,7 @@ const GoalsPage: React.FC = () => {
             onClick={() => openGoalSheet()}
             className="size-10 bg-app-text text-app-bg rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-[22px]">add</span>
+            <Icon name="add" size={22} />
           </button>
         }
       />
@@ -429,7 +430,7 @@ const GoalsPage: React.FC = () => {
               {formatCurrency(totalSaved)}
             </h2>
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-bold mt-2 border border-white/10">
-              <span className="material-symbols-outlined text-sm">savings</span>
+              <Icon name="savings" size={14} />
               <span>{goals?.length || 0} metas activas</span>
             </div>
           </div>
@@ -458,7 +459,7 @@ const GoalsPage: React.FC = () => {
             ) : (
               <div className="py-16 text-center border-2 border-dashed border-app-border rounded-3xl opacity-60 flex flex-col items-center">
                 <div className="size-16 rounded-full bg-app-subtle flex items-center justify-center mb-3">
-                  <span className="material-symbols-outlined text-4xl text-app-muted">account_balance_wallet</span>
+                  <Icon name="account_balance_wallet" size={36} className="text-app-muted" />
                 </div>
                 <p className="font-bold text-app-text">Sin Metas Definidas</p>
                 <p className="text-xs text-app-muted mb-4 max-w-[200px]">Crea una meta para vacaciones, emergencias o compras grandes.</p>

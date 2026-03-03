@@ -10,6 +10,7 @@ export async function restoreTransaction(userId: string, transactionId: string) 
 
   if (!tx) throw AppError.notFound('Deleted transaction not found');
   if (!tx.accountId || !tx.account) throw AppError.badRequest('Account no longer exists');
+  const accountId: string = tx.accountId!;
   if (tx.type === 'transfer' && tx.destinationAccountId && !tx.destinationAccount) {
     throw AppError.badRequest('Destination account no longer exists');
   }
@@ -25,14 +26,14 @@ export async function restoreTransaction(userId: string, transactionId: string) 
       const debit = account.type === 'CREDIT' ? tx.amount : -tx.amount;
       await db.ledgerEntry.create({
         data: {
-          accountId: tx.accountId!,
+          accountId,
           transactionId,
           amount: debit,
           type: account.type === 'CREDIT' ? 'credit' : 'debit',
         },
       });
       await db.account.update({
-        where: { id: tx.accountId },
+        where: { id: accountId },
         data: { balance: { increment: account.type === 'CREDIT' ? tx.amount : -tx.amount } },
       });
       if (tx.type === 'transfer' && tx.destinationAccountId && tx.destinationAccount) {

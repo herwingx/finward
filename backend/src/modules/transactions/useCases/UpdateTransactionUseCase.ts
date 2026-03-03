@@ -1,10 +1,12 @@
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { validateAmount } from '../../../shared/validation';
 
 /**
- * Update transaction: revert old impact, apply new via createExpense/createTransfer/createIncome.
- * For simplicity: delete (revert) then create new with same id is complex.
- * We revert balances via LedgerEntries, update the transaction, then re-apply.
+ * Update transaction: revert old impact, apply new via LedgerEntries.
+ * Validates account ownership BEFORE revert to prevent financial bypass
+ * (reverting without valid re-application would allow balance manipulation).
+ * @see backend/docs/SECURITY.md - IDOR prevention
  */
 export async function updateTransaction(
   userId: string,
@@ -39,8 +41,29 @@ export async function updateTransaction(
   const description = data.description ?? original.description;
   const date = data.date ?? original.date;
   const categoryId = data.categoryId ?? original.categoryId;
-  const accountId = data.accountId ?? original.accountId;
-  const destinationAccountId = data.destinationAccountId ?? original.destinationAccountId;
+  const accountId = data.accountId ?? original.accountId ?? null;
+  const destinationAccountId = data.destinationAccountId ?? original.destinationAccountId ?? null;
+
+  validateAmount(amount, 'amount');
+
+  const account = await prisma.account.findFirst({ where: { id: accountId!, userId } });
+  const destAccount = destinationAccountId
+    ? await prisma.account.findFirst({ where: { id: destinationAccountId, userId } })
+    : null;
+
+  const needsAccount = original.type === 'income' || original.type === 'expense';
+  const needsBothAccounts = original.type === 'transfer';
+  if (needsAccount && !account) {
+    throw AppError.badRequest('Account not found or does not belong to you');
+  }
+  if (needsBothAccounts) {
+    if (!account || !destAccount) {
+      throw AppError.badRequest('Source or destination account not found or does not belong to you');
+    }
+    if (account.id === destAccount.id) {
+      throw AppError.badRequest('Source and destination cannot be the same');
+    }
+  }
 
   return prisma.$transaction(async (db) => {
     const entries = await db.ledgerEntry.findMany({ where: { transactionId } });
@@ -78,45 +101,45 @@ export async function updateTransaction(
       },
     });
 
-    const account = await db.account.findFirst({ where: { id: accountId, userId } });
-    const destAccount = destinationAccountId ? await db.account.findFirst({ where: { id: destinationAccountId, userId } }) : null;
+    const accountRes = accountId ? await db.account.findFirst({ where: { id: accountId, userId } }) : null;
+    const destAccountRes = destinationAccountId ? await db.account.findFirst({ where: { id: destinationAccountId, userId } }) : null;
 
-    if (updated.type === 'income' && account) {
-      const amt = account.type === 'CREDIT' ? -amount : amount;
+    if (updated.type === 'income' && accountRes) {
+      const amt = accountRes.type === 'CREDIT' ? -amount : amount;
       await db.ledgerEntry.create({
-        data: { accountId: account.id, transactionId, amount: amt, type: account.type === 'CREDIT' ? 'debit' : 'credit' },
+        data: { accountId: accountRes.id, transactionId, amount: amt, type: accountRes.type === 'CREDIT' ? 'debit' : 'credit' },
       });
       await db.account.update({
-        where: { id: account.id },
-        data: { balance: { increment: account.type === 'CREDIT' ? -amount : amount } },
+        where: { id: accountRes.id },
+        data: { balance: { increment: accountRes.type === 'CREDIT' ? -amount : amount } },
       });
-    } else if (updated.type === 'expense' && account) {
-      const debit = account.type === 'CREDIT' ? amount : -amount;
-      if (account.type !== 'CREDIT' && account.balance < amount) {
+    } else if (updated.type === 'expense' && accountRes) {
+      const debit = accountRes.type === 'CREDIT' ? amount : -amount;
+      if (accountRes.type !== 'CREDIT' && accountRes.balance < amount) {
         throw AppError.badRequest('Insufficient funds');
       }
       await db.ledgerEntry.create({
-        data: { accountId: account.id, transactionId, amount: debit, type: account.type === 'CREDIT' ? 'credit' : 'debit' },
+        data: { accountId: accountRes.id, transactionId, amount: debit, type: accountRes.type === 'CREDIT' ? 'credit' : 'debit' },
       });
       await db.account.update({
-        where: { id: account.id },
-        data: { balance: { increment: account.type === 'CREDIT' ? amount : -amount } },
+        where: { id: accountRes.id },
+        data: { balance: { increment: accountRes.type === 'CREDIT' ? amount : -amount } },
       });
-    } else if (updated.type === 'transfer' && account && destAccount) {
-      if (account.type !== 'CREDIT' && account.balance < amount) throw AppError.badRequest('Insufficient funds');
+    } else if (updated.type === 'transfer' && accountRes && destAccountRes) {
+      if (accountRes.type !== 'CREDIT' && accountRes.balance < amount) throw AppError.badRequest('Insufficient funds');
       await db.ledgerEntry.createMany({
         data: [
-          { accountId: account.id, transactionId, amount: -amount, type: 'debit' },
-          { accountId: destAccount.id, transactionId, amount, type: 'credit' },
+          { accountId: accountRes.id, transactionId, amount: -amount, type: 'debit' },
+          { accountId: destAccountRes.id, transactionId, amount, type: 'credit' },
         ],
       });
       await db.account.update({
-        where: { id: account.id },
-        data: { balance: { increment: account.type === 'CREDIT' ? amount : -amount } },
+        where: { id: accountRes.id },
+        data: { balance: { increment: accountRes.type === 'CREDIT' ? amount : -amount } },
       });
       await db.account.update({
-        where: { id: destAccount.id },
-        data: { balance: { increment: destAccount.type === 'CREDIT' ? -amount : amount } },
+        where: { id: destAccountRes.id },
+        data: { balance: { increment: destAccountRes.type === 'CREDIT' ? -amount : amount } },
       });
     }
 

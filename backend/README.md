@@ -6,8 +6,11 @@ API REST con Clean Architecture, Supabase, Ledger de doble partida. Uploads via 
 
 1. `cp .env.example .env` - Configurar Supabase
 2. `npm install`
-3. `npx prisma db push` - inicial
-4. `npm run dev`
+3. `npx prisma generate` - genera el cliente Prisma (obligatorio antes de `dev`)
+4. `npx prisma db push` - aplica schema a la BD
+5. `npm run dev`
+
+> **Nota:** Si al ejecutar `npm run dev` ves `Cannot find module '.prisma/client/default'`, ejecuta `npx prisma generate` y vuelve a intentar.
 
 ## Docs
 
@@ -18,7 +21,8 @@ API REST con Clean Architecture, Supabase, Ledger de doble partida. Uploads via 
 
 ## Comandos
 
-- `npm run dev` - Desarrollo
+- `npm run dev` - Desarrollo (requiere `prisma generate` ejecutado antes)
 - `npm run build` - Build
+- `npm run db:generate` - Genera cliente Prisma
 - `npx prisma migrate deploy` - Migraciones
 - `npx prisma studio` - DB UI

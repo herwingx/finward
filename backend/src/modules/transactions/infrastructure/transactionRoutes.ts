@@ -7,28 +7,47 @@ import { deleteTransaction } from '../useCases/DeleteTransactionUseCase';
 import { restoreTransaction } from '../useCases/RestoreTransactionUseCase';
 import { updateTransaction } from '../useCases/UpdateTransactionUseCase';
 import { AppError } from '../../../shared/errors';
+import {
+  parseAndValidateAmount,
+  parsePaginationParams,
+  validateDescription,
+} from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
 
+/** Pagination: ?take=100&skip=0 (default take=100, max take=500) */
 router.get('/deleted', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const deleted = await prisma.transaction.findMany({
-    where: { userId, deletedAt: { not: null } },
-    orderBy: { deletedAt: 'desc' },
-    include: { category: true, account: true, destinationAccount: true },
-  });
-  res.json(deleted);
+  const { take, skip } = parsePaginationParams(req.query as { take?: string; skip?: string });
+  const [deleted, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { userId, deletedAt: { not: null } },
+      orderBy: { deletedAt: 'desc' },
+      include: { category: true, account: true, destinationAccount: true },
+      take,
+      skip,
+    }),
+    prisma.transaction.count({ where: { userId, deletedAt: { not: null } } }),
+  ]);
+  res.json({ data: deleted, total, take, skip });
 });
 
+/** Pagination: ?take=100&skip=0 (default take=100, max take=500) */
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const transactions = await prisma.transaction.findMany({
-    where: { userId, deletedAt: null },
-    orderBy: { date: 'desc' },
-    include: { category: true, account: true, destinationAccount: true },
-  });
-  res.json(transactions);
+  const { take, skip } = parsePaginationParams(req.query as { take?: string; skip?: string });
+  const [transactions, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { userId, deletedAt: null },
+      orderBy: { date: 'desc' },
+      include: { category: true, account: true, destinationAccount: true },
+      take,
+      skip,
+    }),
+    prisma.transaction.count({ where: { userId, deletedAt: null } }),
+  ]);
+  res.json({ data: transactions, total, take, skip });
 });
 
 router.post('/', async (req: AuthRequest, res: Response) => {
@@ -40,8 +59,10 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     throw AppError.badRequest('Missing: amount, date, type, accountId');
   }
 
-  const amountNum = parseFloat(amount);
+  const amountNum = parseAndValidateAmount(amount, 'amount');
   const dateObj = new Date(date);
+  const desc = (description ?? '').trim() || (type === 'transfer' ? 'Transfer' : type === 'income' ? 'Income' : 'Expense');
+  validateDescription(desc);
 
   if (type === 'transfer') {
     if (!destinationAccountId) throw AppError.badRequest('Missing destinationAccountId for transfer');
@@ -50,7 +71,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       accountId,
       destinationAccountId,
       amount: amountNum,
-      description: description ?? 'Transfer',
+      description: desc,
       date: dateObj,
       installmentPurchaseId,
     });
@@ -66,7 +87,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
         accountId,
         categoryId,
         amount: amountNum,
-        description: description ?? 'Income',
+        description: desc,
         date: dateObj,
       });
       res.status(201).json(tx);
@@ -77,7 +98,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       accountId,
       categoryId,
       amount: amountNum,
-      description: description ?? 'Expense',
+      description: desc,
       date: dateObj,
       installmentPurchaseId,
     });
@@ -103,8 +124,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
   const { amount, description, date, categoryId, accountId, destinationAccountId } = req.body ?? {};
+  if (description !== undefined) validateDescription(description);
   const tx = await updateTransaction(userId, id, {
-    amount: amount !== undefined ? parseFloat(amount) : undefined,
+    amount: amount !== undefined ? parseAndValidateAmount(amount, 'amount') : undefined,
     description: description ?? undefined,
     date: date ? new Date(date) : undefined,
     categoryId: categoryId ?? undefined,

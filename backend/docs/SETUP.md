@@ -24,7 +24,8 @@
 
 ## Comandos
 
-- `./dev.sh setup` - Setup inicial
+- `./dev.sh setup` - Setup inicial (incluye `prisma generate`)
 - `./dev.sh setup-dev` - **Crea auth user, seed y RLS** (demo listo)
-- `./dev.sh db:push` - Aplicar schema
+- `./dev.sh db:push` - Aplicar schema (también regenera cliente Prisma)
+- `./dev.sh generate` - Solo regenera cliente Prisma (si falla `npm run dev` por módulo .prisma)
 - `./dev.sh start` - Iniciar backend

@@ -7,6 +7,7 @@ import { useTransactions, useCategories, useProfile, useAccounts, useInvestments
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { SkeletonDashboard } from '@/components/Skeleton';
 import { SpendingTrendChart } from '@/components/Charts';
 import { NotificationsSheet } from '@/components/dashboard/NotificationsSheet'; // <--- IMPORTADO NUEVO
@@ -15,7 +16,7 @@ import { FinancialPlanningWidget } from '@/components/FinancialPlanningWidget'; 
    VISUAL COMPONENTS (Bento Style)
    ======================================= */
 
-const BentoCard: React.FC<{ children: React.ReactNode; title?: string; action?: React.ReactNode; className?: string; onClick?: () => void }> =
+const BentoCard = React.memo<{ children: React.ReactNode; title?: string; action?: React.ReactNode; className?: string; onClick?: () => void }>(
   ({ children, title, action, className = '', onClick }) => (
     <div onClick={onClick} className={`bento-card p-5 md:p-6 flex flex-col ${onClick ? 'cursor-pointer' : ''} ${className}`}>
       {(title || action) && (
@@ -26,23 +27,25 @@ const BentoCard: React.FC<{ children: React.ReactNode; title?: string; action?: 
       )}
       <div className="flex-1 relative">{children}</div>
     </div>
-  );
+  )
+);
 
-const StatWidget: React.FC<{ label: string; value: number; type: 'income' | 'expense'; format: (n: number) => string; className?: string }> =
+const StatWidget = React.memo<{ label: string; value: number; type: 'income' | 'expense'; format: (n: number) => string; className?: string }>(
   ({ label, value, type, format, className = '' }) => {
     const isIncome = type === 'income';
     return (
       <div className={`bento-card p-4 flex flex-col justify-center gap-1 hover:bg-app-subtle transition-colors group ${className}`}>
         <div className="flex items-center gap-2 text-app-muted mb-1">
           <div className={`size-6 rounded-md flex items-center justify-center ${isIncome ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
-            <span className="material-symbols-outlined text-[16px]">{isIncome ? 'arrow_downward' : 'arrow_upward'}</span>
+            <Icon name={isIncome ? 'arrow_downward' : 'arrow_upward'} size={16} />
           </div>
           <span className="text-xs font-bold uppercase">{label}</span>
         </div>
         <p className="text-xl md:text-2xl font-bold font-numbers text-app-text group-hover:scale-[1.02] transition-transform origin-left">{format(value)}</p>
       </div>
     );
-  };
+  }
+);
 
 /* =======================================
    DASHBOARD MAIN
@@ -72,7 +75,8 @@ const Dashboard: React.FC = () => {
   const { data: notifications } = useNotifications();
   const unreadCount = notifications?.length || 0;
 
-  const stats = useDashboardStats(accounts, investments, loans, goals, transactions, categories, profile?.currency);
+  const txList = transactions?.data ?? [];
+  const stats = useDashboardStats(accounts, investments, loans, goals, txList, categories, profile?.currency);
 
   if (loadingTx || loadingAcc || loadingProfile) return <SkeletonDashboard />;
 
@@ -97,9 +101,7 @@ const Dashboard: React.FC = () => {
             onClick={() => setShowNotifications(true)}
             className="size-10 rounded-full bg-app-surface border border-app-border text-app-text hover:bg-app-subtle active:scale-95 transition-all relative flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-[20px] fill-current">
-              {unreadCount > 0 ? 'notifications_active' : 'notifications'}
-            </span>
+            <Icon name={unreadCount > 0 ? 'notifications_active' : 'notifications'} size={20} className="fill-current" />
             {unreadCount > 0 && (
               <span className="absolute top-0 right-0 size-3 bg-app-danger rounded-full border-2 border-app-surface animate-pulse" />
             )}
@@ -127,7 +129,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-2 mb-1 md:mb-2 opacity-80">
               <span className="text-[10px] md:text-xs font-bold text-app-muted uppercase tracking-wide">Disponible</span>
               <button onClick={() => setPrivacyMode(!privacyMode)} className="hover:text-app-primary">
-                <span className="material-symbols-outlined text-[16px] align-bottom">{privacyMode ? 'visibility_off' : 'visibility'}</span>
+                <Icon name={privacyMode ? 'visibility_off' : 'visibility'} size={16} className="align-bottom" />
               </button>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-app-text font-numbers tracking-tight">
@@ -164,7 +166,7 @@ const Dashboard: React.FC = () => {
         </div>
         {/* 4. Chart Grande */}
         <BentoCard title="Tendencia" className="col-span-2 md:col-span-2 lg:col-span-3 min-h-[300px]" action={<Link to="/reports" className="text-xs font-bold text-app-primary">Ver detalle</Link>}>
-          <SpendingTrendChart transactions={transactions || []} />
+          <SpendingTrendChart transactions={txList} />
         </BentoCard>
 
         {/* 5. Placeholder Presupuesto */}
@@ -177,7 +179,7 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="h-full flex flex-col justify-center items-center text-center opacity-40">
-              <span className="material-symbols-outlined text-3xl mb-2">check_circle</span>
+              <Icon name="check_circle" size={30} className="mb-2" />
               <p className="text-xs">Todo al día</p>
             </div>
           )}
@@ -186,13 +188,13 @@ const Dashboard: React.FC = () => {
         {/* 6. Transacciones Recientes */}
         <BentoCard title="Últimos Movimientos" className="col-span-2 md:col-span-2 lg:col-span-4" action={<Link to="/history" className="text-xs font-bold text-app-primary">Ver todos</Link>}>
           <div className="flex flex-col gap-1">
-            {transactions?.slice(0, 5).map((tx, index) => {
+            {txList.slice(0, 5).map((tx) => {
               const cat = categories?.find(c => c.id === tx.categoryId);
               return (
-                <div key={`${tx.id}-${index}`} className="flex items-center justify-between p-3 rounded-xl hover:bg-app-subtle transition-colors group cursor-default">
+                <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-app-subtle transition-colors group cursor-default">
                   <div className="flex items-center gap-3">
                     <div className="size-10 rounded-full bg-app-subtle flex items-center justify-center text-app-muted text-sm dark:bg-white/5">
-                      <span className="material-symbols-outlined text-[20px]">{cat?.icon || 'attach_money'}</span>
+                      <Icon name={cat?.icon || 'attach_money'} size={20} />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-app-text">{tx.description}</p>

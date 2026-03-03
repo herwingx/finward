@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Investment, InvestmentType } from '@/types';
 import { useAddInvestment, useUpdateInvestment, useAccounts } from '@/hooks/useApi';
 import { toastSuccess, toastError } from '@/utils/toast';
+import { Button } from '@/components/Button';
+import { Icon } from '@/components/Icon';
 
 const InvestmentTypeLabel: Record<InvestmentType, string> = {
   STOCK: 'Acciones',
@@ -174,7 +176,7 @@ export const InvestmentForm: React.FC<{
                       <option key={account.id} value={account.id}>{account.name}</option>
                     ))}
                   </select>
-                  <span className="material-symbols-outlined absolute right-2 top-2.5 text-app-muted pointer-events-none text-[20px]">account_balance_wallet</span>
+                  <Icon name="account_balance_wallet" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />
                 </div>
               </div>
             )}
@@ -182,13 +184,16 @@ export const InvestmentForm: React.FC<{
 
           {/* 3. Footer Action */}
           <div className="pt-4 pb-10 mt-auto shrink-0 touch-none">
-            <button
+            <Button
+              type="submit"
+              fullWidth
+              size="lg"
+              variant="primary"
+              isLoading={isSaving}
               disabled={isSaving}
-              className="w-full py-3.5 bg-app-primary text-white text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl shadow-app-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isSaving && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {existingInvestment ? 'Guardar Cambios' : 'Registrar Activo'}
-            </button>
+            </Button>
           </div>
 
         </form>

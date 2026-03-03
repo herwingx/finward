@@ -7,6 +7,7 @@ import { useProfile } from '@/hooks/useApi';
 import { useFinancialPeriodSummary } from '@/hooks/useFinancialPlanning';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { SkeletonReports } from '@/components/Skeleton';
 import { PageHeader } from '@/components/PageHeader';
 import { InfoTooltip } from '@/components/InfoTooltip';
@@ -111,7 +112,7 @@ const Reports: React.FC = () => {
                     <div className="col-span-2 md:col-span-2 bento-card p-5 bg-linear-to-br from-app-surface to-app-subtle dark:to-zinc-900 flex flex-col justify-between h-[140px]">
                         <div>
                             <div className="flex items-center gap-2 opacity-70 mb-1">
-                                <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                                <Icon name="account_balance_wallet" size={18} />
                                 <span className="text-[10px] font-bold uppercase tracking-widest">Disponible Real</span>
                             </div>
                             <p className={`text-4xl font-black font-numbers tracking-tight ${disposableIncome < 0 ? 'text-rose-500' : 'text-app-text'}`}>
@@ -144,7 +145,7 @@ const Reports: React.FC = () => {
                     <div className="p-5 border-b border-app-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="size-10 rounded-xl bg-app-subtle flex items-center justify-center">
-                                <span className="material-symbols-outlined text-xl">pie_chart</span>
+                                <Icon name="pie_chart" size={20} />
                             </div>
                             <div>
                                 <h2 className="text-sm font-bold text-app-text">Distribución 50/30/20</h2>
@@ -197,7 +198,7 @@ const Reports: React.FC = () => {
                                             <div className="flex justify-between items-center text-xs">
                                                 <div className="flex items-center gap-2 font-bold text-app-text">
                                                     <div className={`size-6 rounded flex items-center justify-center ${item.bg}`}>
-                                                        <span className="material-symbols-outlined text-[14px]">{item.icon}</span>
+                                                        <Icon name={item.icon} size={14} />
                                                     </div>
                                                     {item.name} <span className="text-[10px] font-medium text-app-muted opacity-80 ml-1">({item.ideal}%)</span>
                                                 </div>
@@ -231,7 +232,7 @@ const Reports: React.FC = () => {
                         </div>
                     ) : (
                         <div className="py-12 flex flex-col items-center justify-center text-app-muted">
-                            <span className="material-symbols-outlined text-4xl opacity-30 mb-2">data_exploration</span>
+                            <Icon name="data_exploration" size={36} className="opacity-30 mb-2" />
                             <p className="text-sm font-medium">Sin gastos para analizar.</p>
                         </div>
                     )}
@@ -244,7 +245,7 @@ const Reports: React.FC = () => {
                         <h3 className="px-1 text-xs font-bold text-app-muted uppercase tracking-wider">Avisos Importantes</h3>
                         {summary.warnings.map((w: string, i: number) => (
                             <div key={i} className="bento-card p-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30">
-                                <span className="material-symbols-outlined text-amber-500 mt-0.5 shrink-0">warning</span>
+                                <Icon name="warning" size={20} className="text-amber-500 mt-0.5 shrink-0" />
                                 <p className="text-sm text-amber-900 dark:text-amber-100">{w}</p>
                             </div>
                         ))}
@@ -253,7 +254,7 @@ const Reports: React.FC = () => {
 
                 {/* 4. Educational Footer */}
                 <div className="p-4 bg-app-subtle/50 rounded-2xl border border-app-border flex gap-3 text-xs text-app-muted">
-                    <span className="material-symbols-outlined shrink-0">info</span>
+                    <Icon name="info" className="shrink-0" />
                     <p>
                         Este reporte te ayuda a balancear tus finanzas. Asigna correctamente tus <strong>categorías</strong> para mejorar la precisión del modelo 50/30/20.
                         <Link to="/categories" className="ml-1 text-app-primary hover:underline font-bold">Editar Categorías</Link>

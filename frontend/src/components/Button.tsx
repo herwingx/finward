@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, LinkProps } from 'react-router-dom';
+import { Icon } from '@/components/Icon';
 
 /* --- TYPES --- */
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
@@ -31,9 +32,9 @@ const getButtonClasses = ({
   const width = fullWidth ? 'w-full' : '';
 
   const sizes = {
-    sm: "text-xs px-3 h-9",
-    md: "text-sm px-5 h-12",
-    lg: "text-base px-6 h-14",
+    sm: "text-xs px-3 h-9 min-h-[36px]",
+    md: "text-sm px-5 h-12 min-h-[44px]",
+    lg: "text-base px-6 h-14 min-h-[48px]",
   };
 
   const variants = {
@@ -70,9 +71,9 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading && <Spinner />}
-      {!isLoading && leftIcon && <span className="material-symbols-outlined text-[1.25em]">{leftIcon}</span>}
+      {!isLoading && leftIcon && <Icon name={leftIcon} size={18} className="shrink-0" />}
       <span>{children}</span>
-      {!isLoading && rightIcon && <span className="material-symbols-outlined text-[1.25em]">{rightIcon}</span>}
+      {!isLoading && rightIcon && <Icon name={rightIcon} size={18} className="shrink-0" />}
     </button>
   );
 };
@@ -87,9 +88,9 @@ export const LinkButton: React.FC<LinkButtonProps> = ({
 }) => {
   return (
     <Link className={getButtonClasses({ variant, size, fullWidth, className })} {...props}>
-      {leftIcon && <span className="material-symbols-outlined text-[1.25em]">{leftIcon}</span>}
+      {leftIcon && <Icon name={leftIcon} size={18} className="shrink-0" />}
       <span>{children}</span>
-      {rightIcon && <span className="material-symbols-outlined text-[1.25em]">{rightIcon}</span>}
+      {rightIcon && <Icon name={rightIcon} size={18} className="shrink-0" />}
     </Link>
   );
 };
@@ -113,12 +114,13 @@ export const IconButton: React.FC<IconButtonProps> = ({ icon, variant = 'ghost',
     danger: 'bg-rose-50 text-rose-500 hover:bg-rose-100',
   };
 
+  const iconSize = size === 'sm' ? 18 : size === 'md' ? 22 : 28;
   return (
     <button
       className={`flex items-center justify-center rounded-full transition-all active:scale-90 ${sizeCls[size]} ${variantCls[variant]} ${className}`}
       {...props}
     >
-      <span className="material-symbols-outlined">{icon}</span>
+      <Icon name={icon} size={iconSize} />
     </button>
   );
 };
@@ -149,7 +151,7 @@ export const ToggleGroup: React.FC<{
               }
             `}
           >
-            {opt.icon && <span className="material-symbols-outlined text-[16px]">{opt.icon}</span>}
+            {opt.icon && <Icon name={opt.icon} size={16} />}
             {opt.label}
           </button>
         )

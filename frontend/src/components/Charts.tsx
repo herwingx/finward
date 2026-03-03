@@ -6,8 +6,10 @@ import {
   XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer
 } from 'recharts';
+import { Icon } from '@/components/Icon';
 import { Transaction, Category } from '@/types';
 import { formatDateUTC } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/currency';
 
 // --- Shared: Modern Tooltip (Linear Style) ---
 const ModernTooltip = ({ active, payload, label }: any) => {
@@ -23,7 +25,7 @@ const ModernTooltip = ({ active, payload, label }: any) => {
                 {entry.name}
               </span>
               <span className="font-bold tabular-nums text-app-text">
-                {entry.value.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })}
+                {formatCurrency(entry.value)}
               </span>
             </div>
           ))}
@@ -89,12 +91,10 @@ export const SpendingTrendChart: React.FC<SpendingTrendProps> = ({ transactions 
     return { data: chartData, totals: t };
   }, [transactions]);
 
-  const formatMoney = (val: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(val);
-
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-app-muted text-xs">
-        <span className="material-symbols-outlined text-3xl opacity-20 mb-2">bar_chart</span>
+        <Icon name="bar_chart" size={30} className="opacity-20 mb-2" />
         Sin suficientes datos
       </div>
     );
@@ -108,14 +108,14 @@ export const SpendingTrendChart: React.FC<SpendingTrendProps> = ({ transactions 
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
           <div>
             <p className="text-[10px] text-app-muted uppercase">Ingresos</p>
-            <p className="text-xs font-bold text-app-text">{formatMoney(totals.ingresos)}</p>
+            <p className="text-xs font-bold text-app-text">{formatCurrency(totals.ingresos)}</p>
           </div>
         </div>
         <div className="shrink-0 flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
           <div>
             <p className="text-[10px] text-app-muted uppercase">Gastos</p>
-            <p className="text-xs font-bold text-app-text">{formatMoney(totals.gastos)}</p>
+            <p className="text-xs font-bold text-app-text">{formatCurrency(totals.gastos)}</p>
           </div>
         </div>
       </div>

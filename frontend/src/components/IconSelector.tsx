@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Icon } from '@/components/Icon';
 import { isValidIcon } from '@/utils/icons';
 
 interface IconSelectorProps {
@@ -52,14 +53,11 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                 color: isSelected ? '#fff' : 'var(--text-main)'
               }}
             >
-              <span
-                className="material-symbols-outlined text-[24px] transition-transform duration-300"
-                style={{
-                  fontVariationSettings: isSelected ? "'FILL' 1, 'wght' 600" : "'FILL' 0, 'wght' 400"
-                }}
-              >
-                {isValid ? icon : 'help'}
-              </span>
+              <Icon
+                name={isValid ? icon : 'info'}
+                size={24}
+                className={`transition-transform duration-300 ${isSelected ? 'stroke-[2.5]' : ''}`}
+              />
 
               {!isValid && isSelected && (
                 <span className="absolute -top-1 -right-1 size-3 bg-amber-500 rounded-full ring-2 ring-app-surface animate-pulse" />

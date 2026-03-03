@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { useLoans, useLoanSummary, useMarkLoanAsPaid, useDeleteLoan } from '@/hooks/useApi';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { SwipeableItem } from '@/components/SwipeableItem';
 import { SwipeableBottomSheet } from '@/components/SwipeableBottomSheet';
@@ -24,7 +25,7 @@ const LoanSummaryCard: React.FC<{ lent: number; owed: number }> = ({ lent, owed 
     {/* Card: Me Deben (Lent) */}
     <div className="group bg-violet-50/50 dark:bg-violet-900/10 border border-violet-100 dark:border-violet-900 rounded-[20px] p-5 relative overflow-hidden transition-all hover:scale-[1.02]">
       <div className="absolute right-0 top-0 opacity-[0.07] dark:opacity-[0.1] -mr-4 -mt-4 transition-transform group-hover:rotate-12 duration-500">
-        <span className="material-symbols-outlined text-[90px] text-violet-600">arrow_outward</span>
+        <Icon name="arrow_outward" size={90} className="text-violet-600" />
       </div>
       <p className="text-[10px] uppercase font-bold text-violet-700/70 dark:text-violet-300 tracking-wider mb-1">
         Por cobrar
@@ -37,7 +38,7 @@ const LoanSummaryCard: React.FC<{ lent: number; owed: number }> = ({ lent, owed 
     {/* Card: Debo (Borrowed) */}
     <div className="group bg-rose-50/50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900 rounded-[20px] p-5 relative overflow-hidden transition-all hover:scale-[1.02]">
       <div className="absolute right-0 top-0 opacity-[0.07] dark:opacity-[0.1] -mr-4 -mt-4 transition-transform group-hover:-rotate-12 duration-500">
-        <span className="material-symbols-outlined text-[90px] text-rose-600">arrow_downward</span>
+        <Icon name="arrow_downward" size={90} className="text-rose-600" />
       </div>
       <p className="text-[10px] uppercase font-bold text-rose-700/70 dark:text-rose-300 tracking-wider mb-1">
         Por pagar
@@ -77,16 +78,14 @@ const LoanDetailSheet: React.FC<LoanDetailSheetProps> = ({ loan, onClose, onMark
                 'bg-rose-100 text-rose-600 dark:bg-rose-900/20'
               }`}
           >
-            <span className="material-symbols-outlined text-[42px]">
-              {isPaid ? 'handshake' : isLent ? 'call_made' : 'call_received'}
-            </span>
+            <Icon name={isPaid ? 'handshake' : isLent ? 'call_made' : 'call_received'} size={42} />
           </div>
 
           <h2 className="text-2xl font-black text-app-text tracking-tight mb-1">{loan.borrowerName}</h2>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-app-subtle border border-app-border text-app-muted">
             {isPaid
-              ? <span className="flex items-center gap-1 text-emerald-600"><span className="material-symbols-outlined text-sm">check</span> Saldado</span>
+              ? <span className="flex items-center gap-1 text-emerald-600"><Icon name="check" size={14} /> Saldado</span>
               : <span>{isLent ? 'Préstamo otorgado' : 'Préstamo recibido'}</span>
             }
           </div>
@@ -121,7 +120,7 @@ const LoanDetailSheet: React.FC<LoanDetailSheetProps> = ({ loan, onClose, onMark
             <p className="text-[10px] uppercase font-bold text-app-muted mb-1">Vencimiento</p>
             {loan.expectedPayDate ? (
               <div className="flex items-center gap-1.5">
-                <span className={`material-symbols-outlined text-sm ${!isPaid && new Date(loan.expectedPayDate) < new Date() ? 'text-rose-500' : 'text-app-primary'}`}>event</span>
+                <Icon name="event" size={14} className={!isPaid && new Date(loan.expectedPayDate) < new Date() ? 'text-rose-500' : 'text-app-primary'} />
                 <p className="font-bold text-sm text-app-text">
                   {new Date(loan.expectedPayDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </p>
@@ -146,7 +145,7 @@ const LoanDetailSheet: React.FC<LoanDetailSheetProps> = ({ loan, onClose, onMark
               onClick={() => { onClose(); onMarkPaid(); }}
               className="w-full h-14 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-emerald-500/20"
             >
-              <span className="material-symbols-outlined">check_circle</span>
+              <Icon name="check_circle" />
               Marcar como Saldado
             </Button>
           )}
@@ -156,14 +155,14 @@ const LoanDetailSheet: React.FC<LoanDetailSheetProps> = ({ loan, onClose, onMark
               onClick={() => { onClose(); onEdit(); }}
               className="h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">edit</span>
+              <Icon name="edit" size={18} />
               Editar
             </button>
             <button
               onClick={() => { onClose(); onDelete(); }}
               className="h-12 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-900/10 dark:text-rose-400 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-rose-100"
             >
-              <span className="material-symbols-outlined text-[18px]">delete</span>
+              <Icon name="delete" size={18} />
               Borrar
             </button>
           </div>
@@ -224,9 +223,7 @@ const LoansPage: React.FC = () => {
           className="bento-card p-4 flex items-center gap-4 cursor-pointer hover:border-app-border-strong active:scale-[0.99] transition-all bg-app-surface group"
         >
           <div className={`size-12 rounded-2xl flex items-center justify-center text-xl shrink-0 transition-colors ${iconBg} ${iconColor} ${darkIconBg}`}>
-            <span className="material-symbols-outlined">
-              {isPaid ? 'check' : isLent ? 'call_made' : 'call_received'}
-            </span>
+            <Icon name={isPaid ? 'check' : isLent ? 'call_made' : 'call_received'} />
           </div>
 
           <div className="flex-1 min-w-0">
@@ -250,7 +247,7 @@ const LoansPage: React.FC = () => {
             </div>
           </div>
 
-          <span className="material-symbols-outlined text-app-border group-hover:text-app-text text-xl">chevron_right</span>
+          <Icon name="chevron_right" size={20} className="text-app-border group-hover:text-app-text" />
         </div>
       </SwipeableItem>
     );
@@ -300,7 +297,7 @@ const LoansPage: React.FC = () => {
         showBackButton
         rightAction={
           <button onClick={() => openLoanSheet()} className="bg-app-text text-app-bg size-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform hover:shadow-xl hover:scale-105">
-            <span className="material-symbols-outlined text-[22px] font-bold">add</span>
+            <Icon name="add" size={22} className="font-bold" />
           </button>
         }
       />
@@ -334,9 +331,7 @@ const LoansPage: React.FC = () => {
         <div className="space-y-3">
           {filteredLoans.length === 0 ? (
             <div className="py-16 flex flex-col items-center justify-center text-app-muted opacity-50 border-2 border-dashed border-app-border rounded-3xl">
-              <span className="material-symbols-outlined text-4xl mb-3">
-                {filter === 'paid' ? 'history' : 'handshake'}
-              </span>
+              <Icon name={filter === 'paid' ? 'history' : 'handshake'} size={36} className="mb-3" />
               <p className="text-sm font-medium">
                 {filter === 'paid' ? 'No hay registros saldados' : 'No hay deudas pendientes'}
               </p>

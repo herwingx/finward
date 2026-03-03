@@ -7,8 +7,9 @@ import { toastSuccess, toastError, toast } from '@/utils/toast';
 import { PageHeader } from '@/components/PageHeader';
 import { DatePicker } from '@/components/DatePicker';
 import { CategorySelector } from '@/components/CategorySelector';
-import { ToggleGroup } from '@/components/Button';
+import { Button, ToggleGroup } from '@/components/Button';
 import { formatDateUTC, addMonthsPreservingDay } from '@/utils/dateUtils';
+import { Icon } from '@/components/Icon';
 
 interface RecurringFormProps {
   existingTransaction?: RecurringTransaction | null;
@@ -195,7 +196,7 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
                   <option value="monthly">Mensual</option>
                   <option value="yearly">Anual</option>
                 </select>
-                <span className="material-symbols-outlined absolute right-2 top-2.5 text-app-muted pointer-events-none text-[20px]">event_repeat</span>
+                <Icon name="event_repeat" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />
               </div>
             </div>
 
@@ -218,7 +219,7 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
                   >
                     {accountsList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
-                  <span className="material-symbols-outlined absolute right-2 top-2.5 text-app-muted pointer-events-none text-[20px]">account_balance_wallet</span>
+                  <Icon name="account_balance_wallet" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -278,14 +279,16 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
 
           {/* Action */}
           <div className="pt-4 pb-10 shrink-0 touch-none">
-            <button
+            <Button
               type="submit"
+              fullWidth
+              size="lg"
+              variant="primary"
+              isLoading={addTx.isPending || updateTx.isPending}
               disabled={addTx.isPending || updateTx.isPending}
-              className="w-full py-3.5 bg-app-primary text-white rounded-2xl font-bold shadow-lg shadow-app-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {(addTx.isPending || updateTx.isPending) && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {isEditMode ? 'Actualizar' : 'Programar'}
-            </button>
+            </Button>
           </div>
 
         </form>

@@ -10,7 +10,8 @@ import { toastSuccess, toastError, toast } from '@/utils/toast';
 // Components
 import { PageHeader } from '@/components/PageHeader';
 import { DatePicker } from '@/components/DatePicker';
-import { ToggleGroup } from '@/components/Button';
+import { Button, ToggleGroup } from '@/components/Button';
+import { Icon } from '@/components/Icon';
 
 // Types
 import { LoanType, Account, Loan } from '@/types';
@@ -146,7 +147,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
                   ? 'border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-400 ring-1 ring-violet-500/20 shadow-sm'
                   : 'border-app-border bg-app-surface text-app-muted hover:border-app-border-strong'}`}
               >
-                <span className="material-symbols-outlined text-[20px]">arrow_outward</span>
+                <Icon name="arrow_outward" size={20} />
                 <span className="text-[10px] font-bold uppercase tracking-wider">Yo Presté</span>
               </button>
 
@@ -157,7 +158,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
                   ? 'border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/20 shadow-sm'
                   : 'border-app-border bg-app-surface text-app-muted hover:border-app-border-strong'}`}
               >
-                <span className="material-symbols-outlined text-[20px]">arrow_downward</span>
+                <Icon name="arrow_downward" size={20} />
                 <span className="text-[10px] font-bold uppercase tracking-wider">Me Prestaron</span>
               </button>
             </div>
@@ -227,7 +228,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
                   />
                   {formData.expectedPayDate && (
                     <button type="button" onClick={() => setFormData(p => ({ ...p, expectedPayDate: undefined }))} className="size-11 rounded-xl border border-app-border flex items-center justify-center text-app-muted hover:bg-rose-50 hover:text-rose-500 transition-colors bg-app-surface shrink-0">
-                      <span className="material-symbols-outlined text-sm">close</span>
+                      <Icon name="close" size={16} />
                     </button>
                   )}
                 </div>
@@ -261,7 +262,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
                   <option value="">-- No registrar --</option>
                   {liquidAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
-                <span className="material-symbols-outlined absolute right-2 top-2.5 text-app-muted pointer-events-none text-[20px]">account_balance_wallet</span>
+                <Icon name="account_balance_wallet" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />
               </div>
             </div>
 
@@ -269,14 +270,17 @@ export const LoanForm: React.FC<LoanFormProps> = ({ existingLoan, onClose, isShe
 
           {/* E. SUBMIT */}
           <div className="pt-4 pb-10 mt-auto shrink-0 touch-none">
-            <button
+            <Button
               type="submit"
+              fullWidth
+              size="lg"
+              variant={isLent ? 'primary' : 'danger'}
+              isLoading={addM.isPending || updateM.isPending}
               disabled={addM.isPending || updateM.isPending}
-              className={`w-full py-3.5 rounded-2xl font-bold text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${isLent ? 'bg-violet-600 shadow-violet-500/30' : 'bg-rose-500 shadow-rose-500/30'}`}
+              className={isLent ? '!bg-violet-600 !shadow-violet-500/30 hover:!bg-violet-700' : ''}
             >
-              {(addM.isPending || updateM.isPending) && <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {isEditing ? 'Guardar Cambios' : (isLent ? 'Registrar Préstamo' : 'Confirmar Deuda')}
-            </button>
+            </Button>
           </div>
 
         </form>

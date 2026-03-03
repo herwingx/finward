@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Icon } from '@/components/Icon';
 
 // Context & Types
 import { useGlobalSheets } from '@/context/GlobalSheetContext';
@@ -89,7 +90,7 @@ const BottomNav: React.FC = () => {
               <div className="flex justify-between items-center mb-5 px-2">
                 <span className="text-xs font-bold text-app-muted uppercase tracking-wider">Nueva Transacción</span>
                 <button onClick={() => setIsMenuOpen(false)} className="bg-app-subtle size-6 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-xs">close</span>
+                  <Icon name="close" size={14} />
                 </button>
               </div>
               <div className="grid grid-cols-4 gap-3">
@@ -100,7 +101,7 @@ const BottomNav: React.FC = () => {
                     className="flex flex-col items-center gap-2 group active:scale-95 transition-transform"
                   >
                     <div className={`size-14 rounded-2xl flex items-center justify-center shadow-lg ${action.color}`}>
-                      <span className="material-symbols-outlined text-[26px]">{action.icon}</span>
+                      <Icon name={action.icon} size={26} />
                     </div>
                     <span className="text-[10px] font-bold text-app-text">{action.label}</span>
                   </button>
@@ -131,7 +132,7 @@ const BottomNav: React.FC = () => {
                  ${isMenuOpen ? 'bg-app-text text-app-bg rotate-45' : 'bg-app-primary text-white'}
               `}
             >
-              <span className="material-symbols-outlined text-[30px] font-medium">add</span>
+              <Icon name="add" size={30} />
             </button>
           </div>
 
@@ -163,9 +164,7 @@ const NavItem = ({ to, icon, label, isActive, onClick }: any) => (
           transition={{ type: "spring", stiffness: 500, damping: 35 }}
         />
       )}
-      <span className={`relative z-10 material-symbols-outlined text-[26px] transition-all duration-300 ${isActive ? 'scale-110 font-semibold' : 'scale-100 font-light group-hover:scale-105'}`}>
-        {icon}
-      </span>
+      <Icon name={icon} size={26} className={`relative z-10 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100 group-hover:scale-105'}`} />
     </div>
     <span className={`text-[10px] tracking-tight transition-all duration-300 ${isActive ? 'font-bold opacity-100 translate-y-0' : 'font-medium opacity-70 group-hover:opacity-90'}`}>
       {label}

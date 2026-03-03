@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { sileo } from 'sileo';
 
 // Components
+import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 
 // Hooks
@@ -28,7 +29,7 @@ const MenuRow: React.FC<MenuItemProps> = ({ path, icon, title, description, icon
   >
     {/* Icon Container */}
     <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 border border-transparent group-hover:scale-105 transition-transform ${iconBg} ${iconColor}`}>
-      <span className="material-symbols-outlined text-[22px]">{icon}</span>
+      <Icon name={icon} size={22} />
     </div>
 
     {/* Text Content */}
@@ -46,9 +47,7 @@ const MenuRow: React.FC<MenuItemProps> = ({ path, icon, title, description, icon
     </div>
 
     {/* Chevron Icon */}
-    <span className="material-symbols-outlined text-app-border text-xl group-hover:text-app-text group-hover:translate-x-0.5 transition-transform">
-      chevron_right
-    </span>
+    <Icon name="chevron_right" size={20} className="text-app-border group-hover:text-app-text group-hover:translate-x-0.5 transition-transform" />
   </Link>
 );
 
@@ -133,7 +132,7 @@ const More: React.FC = () => {
           </div>
 
           <div className="size-8 rounded-full bg-app-subtle flex items-center justify-center text-app-muted group-hover:bg-app-primary group-hover:text-white transition-all">
-            <span className="material-symbols-outlined text-lg">edit</span>
+            <Icon name="edit" size={18} />
           </div>
         </Link>
 
@@ -160,7 +159,7 @@ const More: React.FC = () => {
             onClick={handleLogout}
             className="w-full h-12 flex items-center justify-center gap-2 rounded-3xl border border-app-border bg-app-surface text-rose-500 font-bold text-sm hover:bg-rose-50 dark:hover:bg-rose-900/10 hover:border-rose-200 transition-all active:scale-[0.98]"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <Icon name="logout" size={18} />
             Cerrar Sesión
           </button>
 

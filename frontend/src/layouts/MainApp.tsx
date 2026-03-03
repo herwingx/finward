@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 import { Routes, Route, useLocation, Link, NavLink, useNavigate } from 'react-router-dom';
 
 // Global Context
@@ -13,28 +13,29 @@ import { TransactionForm } from '@/components/forms/TransactionForm';
 import { AccountForm } from '@/components/forms/AccountForm';
 import { CategoryForm } from '@/components/forms/CategoryForm';
 
-// Pages
-import Dashboard from '@/pages/Dashboard';
-import History from '@/pages/History';
-import NewTransaction from '@/pages/NewTransaction';
-import Settings from '@/pages/Settings';
-import Profile from '@/pages/Profile';
-import Reports from '@/pages/Reports';
-import More from '@/pages/More';
-import Recurring from '@/pages/Recurring';
-import NewRecurringPage from '@/pages/NewRecurringPage';
-import Categories from '@/pages/Categories';
-import UpsertCategoryPage from '@/pages/UpsertCategoryPage';
-import AccountsPage from '@/pages/AccountsPage';
-import UpsertAccountPage from '@/pages/Accounts/UpsertAccountPage';
-import InstallmentsPage from '@/pages/InstallmentsPage';
-import UpsertInstallmentPage from '@/pages/Installments/UpsertInstallmentPage';
-import TrashPage from '@/pages/TrashPage';
-import FinancialAnalysis from '@/pages/FinancialAnalysis';
-import LoansPage from '@/pages/LoansPage';
-import LoanFormPage from '@/pages/LoanFormPage';
-import InvestmentsPage from '@/pages/InvestmentsPage';
-import GoalsPage from '@/pages/GoalsPage';
+// Pages (lazy-loaded for smaller initial bundle)
+import { SkeletonDashboard } from '@/components/Skeleton';
+const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
+const History = React.lazy(() => import('@/pages/History'));
+const NewTransaction = React.lazy(() => import('@/pages/NewTransaction'));
+const Settings = React.lazy(() => import('@/pages/Settings'));
+const Profile = React.lazy(() => import('@/pages/Profile'));
+const Reports = React.lazy(() => import('@/pages/Reports'));
+const More = React.lazy(() => import('@/pages/More'));
+const Recurring = React.lazy(() => import('@/pages/Recurring'));
+const NewRecurringPage = React.lazy(() => import('@/pages/NewRecurringPage'));
+const Categories = React.lazy(() => import('@/pages/Categories'));
+const UpsertCategoryPage = React.lazy(() => import('@/pages/UpsertCategoryPage'));
+const AccountsPage = React.lazy(() => import('@/pages/AccountsPage'));
+const UpsertAccountPage = React.lazy(() => import('@/pages/Accounts/UpsertAccountPage'));
+const InstallmentsPage = React.lazy(() => import('@/pages/InstallmentsPage'));
+const UpsertInstallmentPage = React.lazy(() => import('@/pages/Installments/UpsertInstallmentPage'));
+const TrashPage = React.lazy(() => import('@/pages/TrashPage'));
+const FinancialAnalysis = React.lazy(() => import('@/pages/FinancialAnalysis'));
+const LoansPage = React.lazy(() => import('@/pages/LoansPage'));
+const LoanFormPage = React.lazy(() => import('@/pages/LoanFormPage'));
+const InvestmentsPage = React.lazy(() => import('@/pages/InvestmentsPage'));
+const GoalsPage = React.lazy(() => import('@/pages/GoalsPage'));
 
 // Components
 import BottomNav from '@/components/BottomNav';
@@ -180,6 +181,7 @@ const MainAppContent: React.FC = () => {
         `}
       >
         <div className="w-full max-w-[1200px] mx-auto animate-fade-in h-full">
+          <Suspense fallback={<div className="min-h-dvh flex items-center justify-center"><SkeletonDashboard /></div>}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
@@ -208,6 +210,7 @@ const MainAppContent: React.FC = () => {
             <Route path="/goals" element={<GoalsPage />} />
             <Route path="/trash" element={<TrashPage />} />
           </Routes>
+          </Suspense>
         </div>
       </main>
 
