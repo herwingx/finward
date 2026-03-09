@@ -107,26 +107,52 @@ const DEFAULT_CATEGORIES = [
   { name: 'Salario', icon: 'payments', color: '#34D399', type: 'income' },
 ];
 
+function fallbackProfile(req: AuthRequest): Record<string, unknown> {
+  const userId = req.user!.id;
+  const userEmail = req.user!.email ?? `${userId}@finward.local`;
+  const userName = userEmail.split('@')[0] ?? 'User';
+  return {
+    id: userId,
+    email: userEmail,
+    name: userName,
+    currency: 'MXN',
+    timezone: 'America/Mexico_City',
+    avatar: null,
+    monthlyNetIncome: null,
+    incomeFrequency: null,
+    notificationsEnabled: true,
+  };
+}
+
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const userEmail = req.user!.email ?? `${userId}@finward.local`;
   const userName = userEmail.split('@')[0] ?? 'User';
 
-  let user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      currency: true,
-      timezone: true,
-      avatar: true,
-      monthlyNetIncome: true,
-      incomeFrequency: true,
-      notificationsEnabled: true,
-      _count: { select: { categories: true } },
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        currency: true,
+        timezone: true,
+        avatar: true,
+        monthlyNetIncome: true,
+        incomeFrequency: true,
+        notificationsEnabled: true,
+        _count: { select: { categories: true } },
+      },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P1008') {
+      logger.warn({ userId, code: 'P1008' }, 'Prisma timeout, returning fallback profile');
+      return res.json(fallbackProfile(req));
+    }
+    throw err;
+  }
 
   if (!user && userEmail) {
     const byEmail = await prisma.user.findUnique({
