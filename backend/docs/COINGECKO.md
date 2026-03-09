@@ -2,9 +2,11 @@
 
 ## Propósito y función
 
-CoinGecko se usa para **actualizar automáticamente el precio actual** (`currentPrice`) de las inversiones tipo **CRYPTO** en Finward. La API no lista ni busca monedas; solo provee precios cuando ya tienes una inversión registrada con su CoinGecko ID.
+CoinGecko se usa en Finward para:
+1. **Buscar criptos** — `GET /api/investments/coins/search?q=` para autocompletado al crear inversiones.
+2. **Actualizar precios** — `POST /api/investments/refresh-prices` actualiza `currentPrice` de inversiones CRYPTO.
 
-**Flujo:** (1) Creas inversión con `type: "CRYPTO"` y `ticker` = CoinGecko ID (ej. `bitcoin`). (2) Llamas a `POST /api/investments/refresh-prices`. (3) El backend consulta CoinGecko en lote y actualiza `currentPrice` en la BD.
+**Flujo:** (1) Creas inversión con `type: "CRYPTO"` y `ticker` = CoinGecko ID (ej. `bitcoin`). El formulario ofrece autocompletado vía `/coins/search`. (2) Llamas a `POST /api/investments/refresh-prices`. (3) El backend consulta CoinGecko en lote y actualiza `currentPrice` en la BD.
 
 Para **acciones y ETFs**, ver [YAHOO_FINANCE.md](YAHOO_FINANCE.md).
 
@@ -16,15 +18,15 @@ Para **acciones y ETFs**, ver [YAHOO_FINANCE.md](YAHOO_FINANCE.md).
 
 ## Cómo agregar cripto en la app
 
-No hay buscador de monedas. Debes ingresar el **CoinGecko ID** en el campo **Ticker** al crear/editar:
+El formulario incluye **autocompletado de ticker** para criptos:
 
 1. Inversiones → Nuevo Activo
 2. Tipo **Cripto**
 3. **Nombre**: ej. "Bitcoin"
-4. **Ticker**: CoinGecko ID en minúsculas (ej. `bitcoin`, `ethereum`)
+4. **Ticker**: escribe (ej. `bit`) → aparecen sugerencias de CoinGecko; selecciona o escribe el CoinGecko ID en minúsculas (ej. `bitcoin`, `ethereum`)
 5. Cantidad, Precio compra, guardar
 
-Tras guardar, `refresh-prices` actualiza los precios desde CoinGecko.
+El backend normaliza el ticker a minúsculas para CRYPTO. Tras guardar, `refresh-prices` actualiza los precios desde CoinGecko.
 
 ## CoinGecko IDs comunes
 
@@ -52,16 +54,28 @@ Si llamas `refresh-prices` muchas veces seguidas, CoinGecko puede devolver 429. 
 
 ## Integración técnica
 
-**Endpoint:** `POST /api/investments/refresh-prices` (sin body ni query).
+**Endpoints:**
+
+- **Top criptos (para select):** `GET /api/investments/coins/top?limit=50` — Devuelve las 50 principales por capitalización. Permite elegir cripto en un select sin escribir.
+- **Buscar criptos:** `GET /api/investments/coins/search?q=bit`
+
+```http
+GET /api/investments/coins/search?q=bitcoin
+Authorization: Bearer <token>
+```
+
+Respuesta: `{ coins: [{ id, name, symbol, market_cap_rank, thumb, ... }] }`. Implementación: `searchCoins(query)` en `coingecko.ts` → CoinGecko `/search?query=`.
+
+- **Actualizar precios:** `POST /api/investments/refresh-prices` (sin body ni query).
 
 ```http
 POST /api/investments/refresh-prices
 Authorization: Bearer <token>
 ```
 
-**Respuesta:** `{ updated, crypto, stock }` (updated = inversiones actualizadas).
+Respuesta: `{ updated, crypto, stock }` (updated = inversiones actualizadas).
 
-**Implementación backend:** `backend/src/lib/coingecko.ts` → `fetchPrices(ids, vsCurrency)`. La ruta en `investmentRoutes.ts` agrupa todas las crypto del usuario, hace una llamada batch a CoinGecko `/simple/price?ids=...&vs_currencies=mxn`, y actualiza cada inversión con el precio devuelto.
+**Implementación backend:** `backend/src/lib/coingecko.ts` → `fetchPrices(ids, vsCurrency)` y `searchCoins(query)`. La ruta en `investmentRoutes.ts` usa `searchCoins` para el autocompletado y, en `refresh-prices`, agrupa todas las crypto del usuario, llama batch a CoinGecko `/simple/price?ids=...&vs_currencies=mxn`, y actualiza cada inversión.
 
 ### Frontend (InvestmentsPage)
 

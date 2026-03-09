@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import { logger } from '../shared/logger';
 import { startOfDay } from 'date-fns';
 import { getBillingCycle } from '../modules/credit-cards/domain/billingCycle';
+import { getMsiAmountForBillingCycle } from '../modules/credit-cards/domain/msiForStatement';
 
 export async function generateCreditCardStatements(): Promise<{ processed: number; statements: string[] }> {
   const today = new Date();
@@ -10,7 +11,11 @@ export async function generateCreditCardStatements(): Promise<{ processed: numbe
 
   const accounts = await prisma.account.findMany({
     where: { type: 'CREDIT', cutoffDay: dayOfMonth },
-    include: { installmentPurchases: true },
+    include: {
+      installmentPurchases: {
+        include: { account: { select: { cutoffDay: true, paymentDay: true } } },
+      },
+    },
   });
 
   const BATCH_SIZE = 20;
@@ -36,8 +41,7 @@ export async function generateCreditCardStatements(): Promise<{ processed: numbe
             })
           )._sum.amount ?? 0;
 
-          const activeMsi = account.installmentPurchases.filter((m) => m.paidAmount < m.totalAmount);
-          const msiAmount = activeMsi.reduce((s, m) => s + m.monthlyPayment, 0);
+          const msiAmount = getMsiAmountForBillingCycle(account.installmentPurchases, cycle);
           const totalDue = regularAmount + msiAmount;
           const minimumPayment = Math.max(totalDue * 0.05, 200);
 

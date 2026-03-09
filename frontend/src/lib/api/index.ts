@@ -191,10 +191,10 @@ export const getUpcomingCommitments = (days = 7) =>
 // Credit Card
 export const getCreditCardStatement = (accountId: string) =>
   apiFetch<CreditCardStatement>(`/credit-card/statement/${accountId}`);
-export const payFullStatement = (accountId: string, sourceAccountId: string, date?: string) =>
-  apiFetch(`/credit-card/pay-statement/${accountId}`, {
+export const payFullStatement = (accountId: string, sourceAccountId: string, amount: number, date?: string) =>
+  apiFetch(`/credit-card/statement/${accountId}/pay`, {
     method: 'POST',
-    body: JSON.stringify({ sourceAccountId, date }),
+    body: JSON.stringify({ sourceAccountId, amount, date }),
   });
 export const payMsiInstallment = (installmentId: string, sourceAccountId: string, date?: string) =>
   apiFetch(`/credit-card/pay-msi/${installmentId}`, {
@@ -242,6 +242,20 @@ export const deleteInvestment = (id: string) =>
 type RefreshPricesResult = { updated: number; crypto: number; stock: number; message?: string };
 export const refreshInvestmentPrices = () =>
   apiFetch<RefreshPricesResult>('/investments/refresh-prices', { method: 'POST' });
+
+export type CoinGeckoCoin = { id: string; name: string; symbol: string; market_cap_rank?: number; thumb?: string };
+export const searchCoins = (query: string) =>
+  apiFetch<{ coins: CoinGeckoCoin[] }>(`/investments/coins/search?q=${encodeURIComponent(query)}`);
+export const getTopCoins = (limit = 50) =>
+  apiFetch<{ coins: CoinGeckoCoin[] }>(`/investments/coins/top?limit=${limit}`);
+export const getCoinPrice = (id: string) =>
+  apiFetch<{ id: string; price: number | null }>(`/investments/coins/price?id=${encodeURIComponent(id)}`);
+
+export type YahooQuote = { symbol: string; shortname?: string; longname?: string; quoteType?: string };
+export const searchStocks = (query: string) =>
+  apiFetch<{ quotes: YahooQuote[] }>(`/investments/stocks/search?q=${encodeURIComponent(query)}`);
+export const getStockPrice = (symbol: string) =>
+  apiFetch<{ symbol: string; price: number | null; currency: string | null }>(`/investments/stocks/price?symbol=${encodeURIComponent(symbol)}`);
 
 // Goals
 export const getGoals = () => apiFetch<SavingsGoal[]>('/goals');

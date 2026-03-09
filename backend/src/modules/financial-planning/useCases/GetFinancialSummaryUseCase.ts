@@ -9,8 +9,12 @@ export interface FinancialSummaryInput {
   periodEnd: Date;
   periodType: string;
   mode: 'calendar' | 'projection';
-  liquidBalance: number;
-  debtBalance: number;
+  /** Dinero disponible (efectivo + cuentas líquidas) */
+  availableFunds: number;
+  /** Total activos (cuentas + inversiones + metas + préstamos prestados) */
+  totalAssets: number;
+  /** Total pasivos (TDC + préstamos recibidos) */
+  totalLiabilities: number;
   transactions: Array<{ type: string; amount: number; date: Date; category?: { budgetType?: string | null } | null }>;
   recurring: Array<{
     id: string;
@@ -39,7 +43,7 @@ export interface FinancialSummaryInput {
     paidAmount: number;
     monthlyPayment: number;
     purchaseDate: Date;
-    account?: { cutoffDay: number | null; paymentDay: number | null } | null;
+    account?: { id?: string; name?: string; cutoffDay: number | null; paymentDay: number | null } | null;
     category?: { id: string; name: string; icon: string; color: string };
   }>;
   creditCardRegularPayments?: Array<{
@@ -55,15 +59,19 @@ export interface FinancialSummaryOutput {
   periodStart: string;
   periodEnd: string;
   periodType: string;
-  currentBalance: number;
-  currentDebt: number;
+  /** Dinero disponible (efectivo líquido) */
+  availableFunds: number;
+  /** Total activos */
+  totalAssets: number;
+  /** Total pasivos */
+  totalLiabilities: number;
   currentMSIDebt: number;
   expectedIncome: Array<{ id: string; uniqueId: string; description: string; amount: number; dueDate: string; recurringTransactionId?: string; category?: object }>;
   totalExpectedIncome: number;
   totalReceivedIncome: number;
   totalPeriodIncome: number;
   expectedExpenses: Array<{ id: string; uniqueId: string; description: string; amount: number; dueDate: string; recurringTransactionId?: string; endDate?: string | null; category?: object }>;
-  msiPaymentsDue: Array<{ id: string; originalId: string; uniqueId: string; description: string; purchaseName: string; amount: number; dueDate: string; installmentNumber: number; totalInstallments: number; isLastInstallment: boolean; category?: object }>;
+  msiPaymentsDue: Array<{ id: string; originalId: string; uniqueId: string; description: string; purchaseName: string; amount: number; dueDate: string; installmentNumber: number; totalInstallments: number; isLastInstallment: boolean; category?: object; accountId?: string; accountName?: string }>;
   totalExpectedExpenses: number;
   totalMSIPayments: number;
   totalCommitments: number;
@@ -77,7 +85,7 @@ export interface FinancialSummaryOutput {
 }
 
 export function getFinancialSummary(input: FinancialSummaryInput): FinancialSummaryOutput {
-  const { periodStart, periodEnd, liquidBalance, debtBalance, transactions, recurring, loans, installments, creditCardRegularPayments = [], monthlyNetIncome } = input;
+  const { periodStart, periodEnd, availableFunds, totalAssets, totalLiabilities, transactions, recurring, loans, installments, creditCardRegularPayments = [], monthlyNetIncome } = input;
 
   const expectedIncome: FinancialSummaryOutput['expectedIncome'] = [];
   const expectedExpenses: FinancialSummaryOutput['expectedExpenses'] = [];
@@ -135,6 +143,8 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
         ...ev,
         dueDate: ev.dueDate.toISOString(),
         category: ev.category,
+        accountId: m.account?.id,
+        accountName: m.account?.name,
       });
     }
   }
@@ -188,8 +198,9 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
   }
 
   const disposableIncome = totalPeriodIncome - totalCommitments;
-  const projectedBalance = liquidBalance + totalPeriodIncome - totalCommitments;
-  const netWorth = liquidBalance - debtBalance;
+  /** Saldo proyectado = dinero disponible + ingresos - compromisos */
+  const projectedBalance = availableFunds + totalPeriodIncome - totalCommitments;
+  const netWorth = totalAssets - totalLiabilities;
   const isSufficient = projectedBalance >= 0;
   const shortfall = isSufficient ? undefined : Math.abs(projectedBalance);
 
@@ -201,8 +212,9 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
     periodStart: periodStart.toISOString(),
     periodEnd: periodEnd.toISOString(),
     periodType: input.periodType,
-    currentBalance: liquidBalance,
-    currentDebt: debtBalance,
+    availableFunds,
+    totalAssets,
+    totalLiabilities,
     currentMSIDebt,
     expectedIncome,
     totalExpectedIncome,

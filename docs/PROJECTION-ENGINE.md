@@ -32,4 +32,6 @@ El motor de proyección expande todos los compromisos financieros en una línea 
 
 ## Respuesta
 
-Incluye `expectedIncome`, `expectedExpenses`, `msiPaymentsDue` con `dueDate`, `amount`, `uniqueId`; `budgetAnalysis` (50/30/20); `isSufficient`, `warnings`.
+Incluye `expectedIncome`, `expectedExpenses`, `msiPaymentsDue` (con `accountId`, `accountName`, `originalId`, `uniqueId`); `availableFunds`, `totalAssets`, `totalLiabilities`, `netWorth`; `budgetAnalysis` (50/30/20); `isSufficient`, `warnings`.
+
+Los balances (`availableFunds`, `totalAssets`, `totalLiabilities`, `netWorth`) provienen de `computeFinancialBalances()` en `financialBalances.ts`, que unifica cuentas, inversiones, metas y préstamos.

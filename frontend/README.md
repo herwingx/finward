@@ -155,8 +155,7 @@ Los helpers `toastSuccess`, `toastError`, `toastInfo`, `toast` en `@/utils/toast
 
 ## Integración con el monorepo
 
-- **dev.sh** (raíz): `./dev.sh setup` y `./dev.sh start` configuran PostgreSQL e inician backend; luego se ejecuta `cd finward/frontend && npm run dev`.
-- **deploy.sh** (raíz): `./deploy.sh update` construye el frontend desde `./finward/frontend` y lo sirve en el contenedor `frontend`.
+- **dev.sh** (raíz): `./dev.sh setup` y `./dev.sh start` configuran e inician backend; luego `cd finward/frontend && npm run dev` para el frontend.
 
 ---
 

@@ -17,8 +17,7 @@ finward/
 # Editar backend/.env con Supabase (SUPABASE_*, DATABASE_URL, DIRECT_URL). Si el dominio no resuelve en local: USE_DIRECT_URL=true
 ./dev.sh db:push     # 2. Aplicar schema
 ./dev.sh setup-dev   # 3. Usuario demo + seed + RLS
-./dev.sh start       # 4. Backend en http://localhost:4000
-cd frontend && npm run dev   # 5. Frontend en http://localhost:3000
+./dev.sh start       # 4. Backend (4000) + Frontend (3000) con logs prefijados
 ```
 
 > **Si ves** `Cannot find module '.prisma/client/default'`: ejecuta `./dev.sh generate` antes de `./dev.sh start`.
@@ -26,15 +25,6 @@ cd frontend && npm run dev   # 5. Frontend en http://localhost:3000
 **Credenciales demo:** `demo@finward.dev` / `DemoFinward123!`
 
 Ver [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) para el flujo completo.
-
-## Despliegue con Docker
-
-Requiere `backend/.env` con Supabase. No usa Postgres local (Supabase externo).
-
-```bash
-./deploy.sh start
-# Otros: stop | restart | update | logs | status | db:push | shell
-```
 
 ## Docs
 

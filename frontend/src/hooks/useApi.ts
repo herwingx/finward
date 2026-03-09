@@ -344,8 +344,8 @@ export const useCreditCardStatement = (accountId: string | null) =>
 export const usePayFullStatement = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ accountId, sourceAccountId, date }: { accountId: string; sourceAccountId: string; date?: string }) =>
-      api.payFullStatement(accountId, sourceAccountId, date),
+    mutationFn: ({ accountId, sourceAccountId, amount, date }: { accountId: string; sourceAccountId: string; amount: number; date?: string }) =>
+      api.payFullStatement(accountId, sourceAccountId, amount, date),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['creditCardStatement'] });
       qc.invalidateQueries({ queryKey: ['accounts'] });
