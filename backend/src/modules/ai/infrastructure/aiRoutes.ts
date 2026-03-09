@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { subDays, endOfMonth } from 'date-fns';
+import { computeFinancialBalances } from '../../financial-planning/domain/financialBalances';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -8,20 +9,36 @@ const router = Router();
 router.get('/context', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
 
-  const accounts = await prisma.account.findMany({
-    where: { userId },
-    include: {
-      statements: {
-        where: { status: 'PENDING' },
-        orderBy: { paymentDueDate: 'asc' },
-        take: 5,
+  const [accounts, investments, goals, loans] = await Promise.all([
+    prisma.account.findMany({
+      where: { userId },
+      include: {
+        statements: {
+          where: { status: 'PENDING' },
+          orderBy: { paymentDueDate: 'asc' },
+          take: 5,
+        },
       },
-    },
+    }),
+    prisma.investment.findMany({ where: { userId } }),
+    prisma.savingsGoal.findMany({ where: { userId, status: 'active' } }),
+    prisma.loan.findMany({ where: { userId, status: { in: ['active', 'partial'] } } }),
+  ]);
+
+  const invValue = investments.reduce((s, i) => s + (i.currentPrice ?? i.avgBuyPrice) * i.quantity, 0);
+  const goalsValue = goals.reduce((s, g) => s + g.currentAmount, 0);
+  const loansLent = loans.filter((l) => l.loanType === 'lent').reduce((s, l) => s + l.remainingAmount, 0);
+  const loansBorrowed = loans.filter((l) => l.loanType === 'borrowed').reduce((s, l) => s + l.remainingAmount, 0);
+
+  const balances = computeFinancialBalances({
+    accounts: accounts.map((a) => ({ type: a.type, balance: a.balance, includeInNetWorth: a.includeInNetWorth })),
+    investmentsValue: invValue,
+    goalsValue,
+    loansLent,
+    loansBorrowed,
   });
 
-  const assets = accounts.filter((a) => a.type !== 'CREDIT').reduce((s, a) => s + a.balance, 0);
-  const liabilities = accounts.filter((a) => a.type === 'CREDIT').reduce((s, a) => s + Math.abs(a.balance), 0);
-  const netWorth = assets - liabilities;
+  const { totalAssets: assets, totalLiabilities: liabilities, netWorth } = balances;
   const debtRatio = assets > 0 ? liabilities / assets : 0;
 
   const thirtyDaysAgo = subDays(new Date(), 30);
@@ -38,7 +55,7 @@ router.get('/context', async (req: AuthRequest, res: Response) => {
 
   const burnRate = expenses._sum.amount ?? 0;
   const monthlyIncome = income._sum.amount ?? 0;
-  const runwayDays = burnRate > 0 ? Math.floor(assets / (burnRate / 30)) : 999;
+  const runwayDays = burnRate > 0 ? Math.floor(balances.availableFunds / (burnRate / 30)) : 999;
   const savingsRate = monthlyIncome > 0 ? ((monthlyIncome - burnRate) / monthlyIncome) * 100 : 0;
 
   const upcomingObligations: Array<{ desc: string; amount: number; dueDate: Date; dueInDays: number; type: string }> = [];
@@ -103,7 +120,8 @@ router.get('/context', async (req: AuthRequest, res: Response) => {
 
   const naturalSummary = `
 El usuario tiene patrimonio neto de $${netWorth.toLocaleString()}.
-Activos líquidos: $${assets.toLocaleString()}, Deudas: $${liabilities.toLocaleString()}.
+Dinero disponible: $${balances.availableFunds.toLocaleString()}.
+Total activos: $${assets.toLocaleString()}, Total pasivos: $${liabilities.toLocaleString()}.
 Gasto mensual promedio: $${burnRate.toLocaleString()}.
 Ingreso mensual: $${monthlyIncome.toLocaleString()}.
 Tasa de ahorro: ${savingsRate.toFixed(1)}%.
@@ -115,6 +133,7 @@ ${upcomingObligations.length > 0 ? `Próximo pago: ${upcomingObligations[0].desc
   res.json({
     financial_health: {
       net_worth: netWorth,
+      available_funds: balances.availableFunds,
       total_assets: assets,
       total_liabilities: liabilities,
       burn_rate_monthly: burnRate,

@@ -111,6 +111,17 @@ Definidas en `frontend/src/index.css`:
 4. Si Crédito: campos específicos
 5. Confirmar
 
+### Inversiones
+
+- **Filtros:** Por tipo (CRYPTO, STOCK, otros), ganadores/perdedores (% positivo/negativo).
+- **Ordenación:** Por valor, porcentaje o nombre.
+- **Búsqueda:** Por nombre o ticker.
+- **Gráfico:** Bar chart con valor de cada activo.
+- **Formulario (CRYPTO):** Autocompletado de ticker vía CoinGecko; placeholders contextuales; ticker normalizado a minúsculas.
+- **Formulario (STOCK):** Placeholders específicos (ej. AAPL, MSFT).
+- **Detalle:** Enlace externo a CoinGecko cuando el activo tiene ticker crypto.
+- **Empty states:** Mensajes diferenciados según contexto (lista vacía, sin resultados de búsqueda).
+
 ---
 
 ## Documentación Relacionada

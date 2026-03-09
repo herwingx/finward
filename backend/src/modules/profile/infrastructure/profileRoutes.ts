@@ -107,26 +107,56 @@ const DEFAULT_CATEGORIES = [
   { name: 'Salario', icon: 'payments', color: '#34D399', type: 'income' },
 ];
 
+function isDbConnectionError(err: unknown): boolean {
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P1008') return true;
+  const msg = (err as Error)?.message ?? '';
+  return (
+    msg.includes('Connection terminated') ||
+    msg.includes('connection timeout') ||
+    msg.includes('ECONNRESET') ||
+    msg.includes('Connection refused') ||
+    msg.includes('ETIMEDOUT')
+  );
+}
+
+function fallbackProfile(req: AuthRequest): Record<string, unknown> {
+  const userId = req.user!.id;
+  const userEmail = req.user!.email ?? `${userId}@finward.local`;
+  const userName = userEmail.split('@')[0] ?? 'User';
+  return {
+    id: userId,
+    email: userEmail,
+    name: userName,
+    currency: 'MXN',
+    timezone: 'America/Mexico_City',
+    avatar: null,
+    monthlyNetIncome: null,
+    incomeFrequency: null,
+    notificationsEnabled: true,
+  };
+}
+
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const userEmail = req.user!.email ?? `${userId}@finward.local`;
   const userName = userEmail.split('@')[0] ?? 'User';
 
-  let user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      currency: true,
-      timezone: true,
-      avatar: true,
-      monthlyNetIncome: true,
-      incomeFrequency: true,
-      notificationsEnabled: true,
-      _count: { select: { categories: true } },
-    },
-  });
+  try {
+    let user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        currency: true,
+        timezone: true,
+        avatar: true,
+        monthlyNetIncome: true,
+        incomeFrequency: true,
+        notificationsEnabled: true,
+        _count: { select: { categories: true } },
+      },
+    });
 
   if (!user && userEmail) {
     const byEmail = await prisma.user.findUnique({
@@ -181,6 +211,13 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 
   const { _count, ...profile } = user;
   res.json(profile);
+  } catch (err) {
+    if (isDbConnectionError(err)) {
+      logger.warn({ err, userId }, 'DB connection error, returning fallback profile');
+      return res.json(fallbackProfile(req));
+    }
+    throw err;
+  }
 });
 
 router.put('/', async (req: AuthRequest, res: Response) => {

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 // Hooks & Context
 import { useGlobalSheets } from '@/context/GlobalSheetContext';
@@ -50,6 +50,8 @@ const InvestmentTypeLabel: Record<string, string> = {
 /* ==================================================================================
    SUB-COMPONENT: DETAIL SHEET
    ================================================================================== */
+const COINGECKO_URL = 'https://www.coingecko.com/es/monedas/';
+
 const InvestmentDetailSheet = ({
   investment,
   onClose,
@@ -82,9 +84,22 @@ const InvestmentDetailSheet = ({
 
           <h2 className="text-xl font-bold text-app-text px-4 leading-tight mb-1">{investment.name}</h2>
           {investment.ticker && (
-            <p className="text-xs text-app-muted font-bold tracking-widest bg-app-subtle px-2 py-0.5 rounded-md uppercase">
-              {investment.ticker}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-app-muted font-bold tracking-widest bg-app-subtle px-2 py-0.5 rounded-md uppercase">
+                {investment.ticker}
+              </p>
+              {investment.type === 'CRYPTO' && (
+                <a
+                  href={`${COINGECKO_URL}${investment.ticker.toLowerCase()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5"
+                >
+                  <Icon name="arrow_outward" size={12} />
+                  CoinGecko
+                </a>
+              )}
+            </div>
           )}
         </div>
 
@@ -171,6 +186,10 @@ const InvestmentsPage: React.FC = () => {
   // Local UI State
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<string>('');
+  const [filterPerformance, setFilterPerformance] = useState<'all' | 'gain' | 'loss'>('all');
+  const [sortBy, setSortBy] = useState<'value' | 'percent' | 'name'>('value');
 
   // Trigger New Item Sheet
   useEffect(() => {
@@ -209,7 +228,47 @@ const InvestmentsPage: React.FC = () => {
   const totalGain = totalValue - totalCost;
   const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
-  // Chart Logic
+  // Filtered & Sorted List
+  const filteredInvestments = useMemo(() => {
+    let list = investments ?? [];
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (i) =>
+          i.name.toLowerCase().includes(q) ||
+          (i.ticker && i.ticker.toLowerCase().includes(q))
+      );
+    }
+    if (filterType) {
+      list = list.filter((i) => i.type === filterType);
+    }
+    if (filterPerformance === 'gain') {
+      list = list.filter((i) => {
+        const val = (i.currentPrice || i.avgBuyPrice) * i.quantity;
+        const cost = i.avgBuyPrice * i.quantity;
+        return val >= cost;
+      });
+    } else if (filterPerformance === 'loss') {
+      list = list.filter((i) => {
+        const val = (i.currentPrice || i.avgBuyPrice) * i.quantity;
+        const cost = i.avgBuyPrice * i.quantity;
+        return val < cost;
+      });
+    }
+    return [...list].sort((a, b) => {
+      const valA = (a.currentPrice || a.avgBuyPrice) * a.quantity;
+      const valB = (b.currentPrice || b.avgBuyPrice) * b.quantity;
+      const costA = a.avgBuyPrice * a.quantity;
+      const costB = b.avgBuyPrice * b.quantity;
+      const pctA = costA > 0 ? (valA - costA) / costA : 0;
+      const pctB = costB > 0 ? (valB - costB) / costB : 0;
+      if (sortBy === 'value') return valB - valA;
+      if (sortBy === 'percent') return pctB - pctA;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [investments, searchQuery, filterType, filterPerformance, sortBy]);
+
+  // Chart Logic (diversification by type)
   const chartData = investments?.reduce((acc, inv) => {
     const label = InvestmentTypeLabel[inv.type] || 'Otro';
     const existing = acc.find(item => item.name === label);
@@ -219,6 +278,16 @@ const InvestmentsPage: React.FC = () => {
     else { acc.push({ name: label, value }); }
     return acc;
   }, [] as { name: string; value: number }[]) || [];
+
+  // Bar chart: value per asset (top 8)
+  const barChartData = useMemo(() => {
+    const list = filteredInvestments.slice(0, 8);
+    return list.map((inv) => ({
+      name: inv.name.length > 10 ? inv.name.slice(0, 9) + '…' : inv.name,
+      value: (inv.currentPrice || inv.avgBuyPrice) * inv.quantity,
+      fullName: inv.name,
+    }));
+  }, [filteredInvestments]);
 
 
   /* Render */
@@ -297,65 +366,116 @@ const InvestmentsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. DIVERSIFICATION CHART */}
-        {/* 2. DIVERSIFICATION CHART */}
-        {chartData.length > 0 && (
-          <div className="bento-card bg-app-surface border border-app-border overflow-hidden shadow-sm flex flex-col items-center justify-center p-4">
-            <div className="w-full border-b border-app-subtle pb-2 mb-2 self-start">
-              <h3 className="text-xs font-bold text-app-muted uppercase tracking-wide">Diversificación</h3>
-            </div>
-            {/* Fail-safe Chart: Fixed dimensions, no auto-resize to prevent crashes */}
-            <div className="relative">
-              <PieChart width={280} height={280}>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={4}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number | undefined) => `$${(value ?? 0).toLocaleString()}`}
-                  contentStyle={{
-                    borderRadius: '12px',
-                    border: '1px solid var(--border-default)',
-                    backgroundColor: 'var(--bg-surface)',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                  }}
-                  itemStyle={{ color: 'var(--text-main)', fontSize: '12px', fontWeight: 'bold' }}
+        {/* 2. CHARTS ROW */}
+        {investments && investments.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {chartData.length > 0 && (
+              <div className="bento-card bg-app-surface border border-app-border overflow-hidden shadow-sm flex flex-col items-center justify-center p-4">
+                <div className="w-full border-b border-app-subtle pb-2 mb-2 self-start">
+                  <h3 className="text-xs font-bold text-app-muted uppercase tracking-wide">Diversificación</h3>
+                </div>
+                <div className="relative">
+                  <PieChart width={200} height={200}>
+                    <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={4} dataKey="value" stroke="none">
+                      {chartData.map((entry, index) => (
+                        <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => `$${v.toLocaleString()}`} contentStyle={{ borderRadius: '12px', border: '1px solid var(--border-default)', backgroundColor: 'var(--bg-surface)' }} />
+                  </PieChart>
+                </div>
+              </div>
+            )}
+            {barChartData.length > 0 && (
+              <div className="bento-card bg-app-surface border border-app-border overflow-hidden shadow-sm p-4">
+                <div className="w-full border-b border-app-subtle pb-2 mb-2">
+                  <h3 className="text-xs font-bold text-app-muted uppercase tracking-wide">Valor por Activo</h3>
+                </div>
+                <div className="h-[200px] min-h-[200px] w-full min-w-[200px]">
+                  <ResponsiveContainer width="100%" height="100%" minHeight={200} debounce={50}>
+                    <BarChart data={barChartData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                      <XAxis type="number" tickFormatter={(v) => `$${v >= 1000 ? (v/1000).toFixed(1)+'k' : v}`} fontSize={10} />
+                      <YAxis type="category" dataKey="name" width={70} fontSize={10} tick={{ fontSize: 9 }} />
+                      <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, 'Valor']} contentStyle={{ borderRadius: '12px', border: '1px solid var(--border-default)', backgroundColor: 'var(--bg-surface)' }} />
+                      <Bar dataKey="value" fill="var(--brand-primary, #3B82F6)" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. FILTERS & SEARCH */}
+        {investments && investments.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2 items-center">
+              <div className="relative flex-1 min-w-[140px]">
+                <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre o ticker..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl text-sm bg-app-subtle border border-app-border focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary outline-none"
                 />
-                <Legend
-                  verticalAlign="bottom"
-                  align="center"
-                  iconType="circle"
-                  wrapperStyle={{ fontSize: '11px', fontWeight: 500, opacity: 0.8, paddingTop: '10px' }}
-                />
-              </PieChart>
+              </div>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="px-3 py-2 rounded-xl text-sm bg-app-subtle border border-app-border focus:ring-2 focus:ring-app-primary/50"
+              >
+                <option value="">Todos los tipos</option>
+                {(Object.keys(InvestmentTypeLabel) as string[]).map((t) => (
+                  <option key={t} value={t}>{InvestmentTypeLabel[t]}</option>
+                ))}
+              </select>
+              <select
+                value={filterPerformance}
+                onChange={(e) => setFilterPerformance(e.target.value as 'all' | 'gain' | 'loss')}
+                className="px-3 py-2 rounded-xl text-sm bg-app-subtle border border-app-border"
+              >
+                <option value="all">Todos</option>
+                <option value="gain">Ganadores</option>
+                <option value="loss">Perdedores</option>
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'value' | 'percent' | 'name')}
+                className="px-3 py-2 rounded-xl text-sm bg-app-subtle border border-app-border"
+              >
+                <option value="value">Ordenar: Valor</option>
+                <option value="percent">Ordenar: %</option>
+                <option value="name">Ordenar: Nombre</option>
+              </select>
             </div>
           </div>
         )}
 
-        {/* 3. ASSETS LIST */}
+        {/* 4. ASSETS LIST */}
         <div className="space-y-4">
           <h3 className="font-bold text-sm text-app-muted uppercase tracking-wider px-1">Activos Individuales</h3>
 
           {!investments || investments.length === 0 ? (
-            <div className="text-center py-16 bg-app-subtle/30 border-2 border-dashed border-app-border rounded-[24px]">
-              <Icon name="add_chart" size={36} className="text-app-muted opacity-30 mb-2" />
-              <p className="text-app-text font-bold text-sm">Portafolio Vacío</p>
-              <button onClick={openNew} className="mt-2 text-app-primary text-xs font-bold uppercase hover:underline tracking-wide">
+            <div className="text-center py-20 bg-app-subtle/30 border-2 border-dashed border-app-border rounded-2xl">
+              <Icon name="add_chart" size={48} className="text-app-muted opacity-40 mb-4 mx-auto" />
+              <p className="text-app-text font-bold text-base">Portafolio Vacío</p>
+              <p className="text-app-muted text-sm mt-1">Registra tu primera inversión para ver gráficos y seguimiento.</p>
+              <button onClick={openNew} className="mt-4 px-6 py-2.5 rounded-xl bg-app-primary text-white text-sm font-bold hover:opacity-90 active:scale-[0.98] transition-all">
                 + Registrar Primera Inversión
               </button>
             </div>
+          ) : filteredInvestments.length === 0 ? (
+            <div className="text-center py-12 bg-app-subtle/30 border border-app-border rounded-2xl">
+              <Icon name="search_off" size={32} className="text-app-muted opacity-50 mb-2 mx-auto" />
+              <p className="text-app-text font-medium text-sm">Sin resultados</p>
+              <p className="text-app-muted text-xs mt-1">Prueba otro filtro o búsqueda.</p>
+              <button onClick={() => { setSearchQuery(''); setFilterType(''); setFilterPerformance('all'); }} className="mt-3 text-app-primary text-xs font-bold hover:underline">
+                Limpiar filtros
+              </button>
+            </div>
           ) : (
-            investments.map((inv) => {
+            filteredInvestments.map((inv) => {
               const cost = inv.avgBuyPrice * inv.quantity;
               const val = (inv.currentPrice || inv.avgBuyPrice) * inv.quantity;
               const gain = val - cost;

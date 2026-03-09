@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
-import { fetchPrices } from '../../../lib/coingecko';
-import { fetchStockPrice } from '../../../lib/yahooFinance';
+import { fetchPrices, searchCoins, getTopCoins } from '../../../lib/coingecko';
+import { fetchStockPrice, searchStocks } from '../../../lib/yahooFinance';
 import { AppError } from '../../../shared/errors';
 import { parseSafeFloat, validateAmount } from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
@@ -10,54 +10,109 @@ import type { AuthRequest } from '../../../shared/types';
 const router = Router();
 
 router.post('/refresh-prices', async (req: AuthRequest, res: Response) => {
-  const userId = req.user!.id;
-  const all = await prisma.investment.findMany({
-    where: { userId, ticker: { not: null } },
-  });
-  const withTicker = all.filter((i) => i.ticker?.trim());
-  if (withTicker.length === 0) {
-    return res.json({ updated: 0, crypto: 0, stock: 0, message: 'No investments with ticker to refresh' });
-  }
+  try {
+    const userId = req.user!.id;
+    const all = await prisma.investment.findMany({
+      where: { userId, ticker: { not: null } },
+    });
+    const withTicker = all.filter((i) => i.ticker?.trim());
+    if (withTicker.length === 0) {
+      return res.json({ updated: 0, crypto: 0, stock: 0, message: 'No investments with ticker to refresh' });
+    }
 
-  const crypto = withTicker.filter((i) => i.type === 'crypto');
-  const stock = withTicker.filter((i) => i.type === 'stock');
+    const crypto = withTicker.filter((i) => i.type?.toUpperCase() === 'CRYPTO');
+    const stock = withTicker.filter((i) => i.type?.toUpperCase() === 'STOCK');
 
-  let updated = 0;
+    let updated = 0;
 
-  // Crypto: CoinGecko (batch)
-  if (crypto.length > 0) {
-    const ids = crypto.map((i) => i.ticker!.toLowerCase());
-    const prices = await fetchPrices(ids, 'mxn');
-    for (const inv of crypto) {
-      const id = inv.ticker!.toLowerCase();
-      const newPrice = prices[id]?.['mxn'];
-      if (typeof newPrice === 'number' && newPrice > 0) {
-        await prisma.investment.update({
-          where: { id: inv.id },
-          data: { currentPrice: newPrice, lastPriceUpdate: new Date() },
-        });
-        updated++;
+    // Crypto: CoinGecko (batch)
+    if (crypto.length > 0) {
+      try {
+        const ids = crypto.map((i) => i.ticker!.toLowerCase());
+        const prices = await fetchPrices(ids, 'mxn');
+        for (const inv of crypto) {
+          const id = inv.ticker!.toLowerCase();
+          const newPrice = prices[id]?.['mxn'];
+          if (typeof newPrice === 'number' && newPrice > 0) {
+            await prisma.investment.update({
+              where: { id: inv.id },
+              data: { currentPrice: newPrice, lastPriceUpdate: new Date() },
+            });
+            updated++;
+          }
+        }
+      } catch (err) {
+        // CoinGecko rate limit o error de red → no actualizamos, pero devolvemos 200
       }
     }
-  }
 
-  // Stock: Yahoo Finance (paralelo)
-  if (stock.length > 0) {
-    const results = await Promise.all(stock.map((i) => fetchStockPrice(i.ticker!)));
-    for (let i = 0; i < stock.length; i++) {
-      const inv = stock[i];
-      const result = results[i];
-      if (result && result.price > 0) {
-        await prisma.investment.update({
-          where: { id: inv.id },
-          data: { currentPrice: result.price, lastPriceUpdate: new Date() },
-        });
-        updated++;
+    // Stock: Yahoo Finance (paralelo)
+    if (stock.length > 0) {
+      const results = await Promise.allSettled(stock.map((i) => fetchStockPrice(i.ticker!)));
+      for (let i = 0; i < stock.length; i++) {
+        const inv = stock[i];
+        const r = results[i];
+        if (r.status === 'fulfilled' && r.value && r.value.price > 0) {
+          await prisma.investment.update({
+            where: { id: inv.id },
+            data: { currentPrice: r.value.price, lastPriceUpdate: new Date() },
+          });
+          updated++;
+        }
       }
     }
-  }
 
-  res.json({ updated, crypto: crypto.length, stock: stock.length });
+    res.json({ updated, crypto: crypto.length, stock: stock.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al actualizar precios' });
+  }
+});
+
+router.get('/coins/search', async (req: AuthRequest, res: Response) => {
+  try {
+    const q = (req.query.q as string) || '';
+    const coins = await searchCoins(q);
+    res.json({ coins });
+  } catch {
+    res.json({ coins: [] });
+  }
+});
+
+router.get('/coins/top', async (_req: AuthRequest, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(String(_req.query.limit || 50), 10) || 50, 100);
+    const coins = await getTopCoins(limit);
+    res.json({ coins });
+  } catch {
+    res.json({ coins: [] });
+  }
+});
+
+router.get('/coins/price', async (req: AuthRequest, res: Response) => {
+  try {
+    const id = (req.query.id as string)?.trim().toLowerCase();
+    if (!id) return res.status(400).json({ error: 'Missing id' });
+    const prices = await fetchPrices([id], 'mxn');
+    const price = prices[id]?.['mxn'];
+    res.json({ id, price: typeof price === 'number' ? price : null });
+  } catch {
+    // CoinGecko falló (rate limit, red, id inválido) → 200 con price null
+    const id = (req.query.id as string)?.trim().toLowerCase() || '';
+    res.json({ id, price: null });
+  }
+});
+
+router.get('/stocks/search', async (req: AuthRequest, res: Response) => {
+  const q = (req.query.q as string) || '';
+  const quotes = await searchStocks(q);
+  res.json({ quotes });
+});
+
+router.get('/stocks/price', async (req: AuthRequest, res: Response) => {
+  const symbol = (req.query.symbol as string)?.trim().toUpperCase();
+  if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
+  const result = await fetchStockPrice(symbol);
+  res.json({ symbol, price: result?.price ?? null, currency: result?.currency ?? null });
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {

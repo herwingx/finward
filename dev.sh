@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# dev.sh - Desarrollo local Finward Backend
+# dev.sh - Desarrollo local Finward (Backend + Frontend)
 # =============================================================================
 # USO: ./dev.sh [comando]
 #
@@ -8,7 +8,7 @@
 #
 # FLUJO:
 #   1. ./dev.sh setup     # Primera vez: .env, npm install, prisma generate
-#   2. ./dev.sh start     # Inicia backend con hot reload
+#   2. ./dev.sh start     # Inicia backend + frontend (concurrently, logs prefijados)
 # =============================================================================
 
 set -e
@@ -39,8 +39,9 @@ cmd_setup() {
         log_warning "backend/.env ya existe, no se sobrescribe"
     fi
     
-    log_info "Instalando dependencias..."
+    log_info "Instalando dependencias (backend + frontend)..."
     (cd backend && npm install)
+    (cd frontend && npm install)
     log_success "Dependencias instaladas"
     
     log_info "Generando cliente Prisma..."
@@ -61,13 +62,18 @@ cmd_start() {
         exit 1
     fi
     
-    log_info "Iniciando backend (Supabase externo)..."
+    log_info "Iniciando backend + frontend (concurrently)..."
     echo ""
     echo "  Backend:  http://localhost:4000"
     echo "  API:      http://localhost:4000/api"
     echo "  Swagger:  http://localhost:4000/api-docs"
+    echo "  Frontend: http://localhost:3000"
     echo ""
-    (cd backend && npm run dev)
+    npx concurrently \
+        -n "backend,frontend" \
+        -c "blue,green" \
+        "cd backend && npm run dev" \
+        "cd frontend && npm run dev"
 }
 
 cmd_db_push() {
@@ -133,14 +139,14 @@ cmd_studio() {
 cmd_help() {
     echo "
 ╔══════════════════════════════════════════════════════════════╗
-║              Finward - Desarrollo Local (Backend)            ║
+║         Finward - Desarrollo Local (Backend + Frontend)      ║
 ╚══════════════════════════════════════════════════════════════╝
 
 USO: ./dev.sh [comando]
 
 COMANDOS:
-  setup       Primera vez: .env, npm install, prisma generate
-  start       Inicia backend con hot reload (ts-node-dev)
+  setup       Primera vez: .env, npm install (backend+frontend), prisma generate
+  start       Inicia backend + frontend (concurrently, logs prefijados)
   db:push     Aplica schema a Supabase (prisma db push)
   setup-dev   Setup completo: crea auth user demo, seed, RLS (demo@finward.dev / DemoFinward123!)
   db:seed     Ejecuta seed de datos de prueba (requiere SEED_USER_ID)

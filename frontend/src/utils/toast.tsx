@@ -28,10 +28,10 @@ export const toastSuccess = (
   }
 };
 
-export const toastError = (message: string, description = 'Ha ocurrido un error inesperado') => {
+export const toastError = (message: string, description?: string) => {
   sileo.error({
     title: message,
-    description,
+    description: description ?? 'Ha ocurrido un error inesperado',
     duration: 5000,
   });
 };

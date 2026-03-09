@@ -30,6 +30,23 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       res.status(500).json({ message: 'Error al iniciar sesión' });
       return;
     }
+
+    // Optional: limitar qué correos pueden usar la app (whitelist simple por email)
+    // Configurar ALLOWED_LOGIN_EMAILS en .env, por ejemplo:
+    // ALLOWED_LOGIN_EMAILS=wallet@herwingx.dev,merariurbina98@gmail.com
+    const allowedEnv = process.env.ALLOWED_LOGIN_EMAILS;
+    if (allowedEnv && allowedEnv.trim().length > 0) {
+      const allowed = allowedEnv
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+      const userEmail = (data.user.email ?? '').toLowerCase();
+      if (!allowed.includes(userEmail)) {
+        res.status(403).json({ message: 'Este correo no tiene acceso a esta instancia de Finward.' });
+        return;
+      }
+    }
+
     res.json({
       token: data.session.access_token,
       user: {
@@ -109,7 +126,9 @@ router.post('/request-reset', async (req: Request, res: Response): Promise<void>
   }
   try {
     const supabase = createSupabaseClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const redirectTo = `${frontendUrl.replace(/\/$/, '')}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) {
       res.status(400).json({ message: error.message });
       return;

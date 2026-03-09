@@ -4,6 +4,7 @@ import { parseSafeInt } from '../../../shared/validation';
 import { addDays, addMonths, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
 import { getFinancialSummary } from '../useCases/GetFinancialSummaryUseCase';
 import { getBillingCycle } from '../../credit-cards/domain/billingCycle';
+import { computeFinancialBalances } from '../domain/financialBalances';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -65,7 +66,7 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
   const { start: periodStart, end: periodEnd } = getPeriodDates(periodType, mode);
 
   const MAX_TX_FOR_PERIOD = 5000;
-  const [accounts, transactions, recurring, loans, installments] = await Promise.all([
+  const [accounts, transactions, recurring, loans, installments, investments, goals] = await Promise.all([
     prisma.account.findMany({ where: { userId } }),
     prisma.transaction.findMany({
       where: {
@@ -92,15 +93,22 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
       where: { userId, status: 'active' },
       include: { category: true, account: true },
     }),
+    prisma.investment.findMany({ where: { userId } }),
+    prisma.savingsGoal.findMany({ where: { userId, status: 'active' } }),
   ]);
 
-  const liquidBalance = accounts
-    .filter((a) => !['CREDIT', 'LOAN'].includes(a.type))
-    .reduce((s, a) => s + a.balance, 0);
+  const investmentsValue = investments.reduce((s, inv) => s + (inv.currentPrice ?? inv.avgBuyPrice) * inv.quantity, 0);
+  const goalsValue = goals.reduce((s, g) => s + g.currentAmount, 0);
+  const loansLent = loans.filter((l) => l.loanType === 'lent').reduce((s, l) => s + l.remainingAmount, 0);
+  const loansBorrowed = loans.filter((l) => l.loanType === 'borrowed').reduce((s, l) => s + l.remainingAmount, 0);
 
-  const debtBalance = accounts
-    .filter((a) => ['CREDIT', 'LOAN'].includes(a.type))
-    .reduce((s, a) => s + Math.abs(a.balance), 0);
+  const balances = computeFinancialBalances({
+    accounts: accounts.map((a) => ({ type: a.type, balance: a.balance, includeInNetWorth: a.includeInNetWorth })),
+    investmentsValue,
+    goalsValue,
+    loansLent,
+    loansBorrowed,
+  });
 
   const creditAccounts = accounts.filter(a => a.type === 'CREDIT' && a.cutoffDay && a.paymentDay);
   const creditCardRegularPayments = [];
@@ -154,8 +162,9 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
     periodEnd,
     periodType,
     mode,
-    liquidBalance,
-    debtBalance,
+    availableFunds: balances.availableFunds,
+    totalAssets: balances.totalAssets,
+    totalLiabilities: balances.totalLiabilities,
     transactions: transactions.map((t) => ({
       type: t.type,
       amount: t.amount,

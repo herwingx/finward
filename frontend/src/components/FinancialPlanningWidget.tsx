@@ -312,16 +312,17 @@ export const FinancialPlanningWidget: React.FC = () => {
 
   const isLongPeriod = ['bimestral', 'semestral', 'anual'].includes(periodType);
 
-  // Grouped Credit Cards
+  // Grouped Credit Cards (por TDC y fecha de vencimiento)
   const groupedCards = useMemo(() => {
     if (!summary?.msiPaymentsDue) return {};
     const groups: any = {};
     summary.msiPaymentsDue.forEach((p: any) => {
-      const key = isLongPeriod ? p.accountId : `${p.accountId}-${p.dueDate}`;
+      const accId = p.accountId ?? 'unknown';
+      const key = isLongPeriod ? accId : `${accId}-${p.dueDate}`;
       if (!groups[key]) {
         groups[key] = {
           accountName: p.accountName || 'TDC Desconocida',
-          accountId: p.accountId,
+          accountId: accId,
           dueDate: p.dueDate,
           totalAmount: 0,
           items: [],
@@ -438,7 +439,25 @@ export const FinancialPlanningWidget: React.FC = () => {
       </div>
 
       {/* 3. ALERTS & KPIS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {/* Dinero Disponible */}
+        <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex flex-col justify-between h-24 md:h-auto">
+          <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+            <Icon name="account_balance_wallet" size={16} />
+            <span className="text-[10px] font-bold uppercase">Disponible</span>
+          </div>
+          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.availableFunds ?? 0)}</p>
+        </div>
+
+        {/* Patrimonio */}
+        <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex flex-col justify-between h-24 md:h-auto">
+          <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+            <Icon name="savings" size={16} />
+            <span className="text-[10px] font-bold uppercase">Patrimonio</span>
+          </div>
+          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.netWorth ?? 0)}</p>
+        </div>
+
         {/* Incoming Money Widget */}
         <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center justify-between">
@@ -548,6 +567,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                   const promise = payFullStatement({
                     accountId: group.accountId,
                     sourceAccountId: sourceId,
+                    amount: group.totalAmount ?? 0,
                     date: group.dueDate
                   });
 
@@ -569,7 +589,7 @@ export const FinancialPlanningWidget: React.FC = () => {
 
                   if (item.isMsi) {
                     const promise = payMsiInstallment({
-                      installmentId: item.id,
+                      installmentId: item.originalId || item.id,
                       sourceAccountId: sourceId,
                       date: item.dueDate
                     });
@@ -633,7 +653,7 @@ export const FinancialPlanningWidget: React.FC = () => {
               const diff = Math.ceil((due.getTime() - now.getTime()) / 86400000);
 
               return (
-                <SwipeableActionRow key={`expense-${item.id}`} actionType="pay" onAction={() => executePayAction(item.id, item.amount, item.description, 'pay')}>
+                <SwipeableActionRow key={`expense-${item.uniqueId ?? item.id}-${idx}`} actionType="pay" onAction={() => executePayAction(item.id, item.amount, item.description, 'pay')}>
                   <div className="flex justify-between items-center p-3.5">
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-lg flex items-center justify-center bg-app-subtle text-app-muted">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '@/lib/api/client';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const ForgotPasswordPage: React.FC = () => {
     setFeedback('');
 
     try {
-      const response = await fetch('/api/auth/request-reset', {
+      const response = await fetch(`${API_BASE_URL}/auth/request-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

@@ -114,7 +114,7 @@ const FinancialAnalysis: React.FC = () => {
     const allDates = Array.from(new Set([...dailyIncome.keys(), ...dailyExpense.keys()])).sort();
 
     const points = [];
-    let currentBalance = summary.currentBalance ?? 0;
+    let currentBalance = summary.availableFunds ?? 0;
     const startDate = new Date(summary.periodStart);
     const endDate = new Date(summary.periodEnd);
     const chartStyle = periodType === 'anual' ? 'chart' : 'short';

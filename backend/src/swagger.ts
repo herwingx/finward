@@ -1,9 +1,8 @@
-import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { Express } from 'express';
+import type { Express } from 'express';
 
-const options: swaggerJsdoc.Options = {
-  definition: {
+/** OpenAPI spec estático (sin swagger-jsdoc para evitar DEP0169 de json-schema-ref-parser) */
+const spec = {
     openapi: '3.0.0',
     info: { title: 'Finward API', version: '1.0.0', description: 'API de finanzas personales B2C' },
     servers: [{ url: '/api', description: 'API Base' }],
@@ -99,11 +98,7 @@ const options: swaggerJsdoc.Options = {
         post: { summary: 'Create goal', tags: ['Goals'] },
       },
     },
-  },
-  apis: [],
 };
-
-const spec = swaggerJsdoc(options);
 
 export function setupSwagger(app: Express): void {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));

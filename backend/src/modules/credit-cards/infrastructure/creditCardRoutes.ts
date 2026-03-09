@@ -3,6 +3,7 @@ import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 import { parseAndValidateAmount } from '../../../shared/validation';
 import { getBillingCycle } from '../domain/billingCycle';
+import { getMsiAmountForBillingCycle } from '../domain/msiForStatement';
 import { createTransfer } from '../../transactions/useCases/CreateTransferUseCase';
 import type { AuthRequest } from '../../../shared/types';
 
@@ -27,12 +28,14 @@ router.get('/statement/:accountId', async (req: AuthRequest, res: Response) => {
       },
       include: { category: true },
     }),
-    prisma.installmentPurchase.findMany({ where: { accountId, userId }, include: { category: true } }),
+    prisma.installmentPurchase.findMany({
+      where: { accountId, userId },
+      include: { category: true, account: { select: { cutoffDay: true, paymentDay: true } } },
+    }),
   ]);
 
   const regularTotal = regularPurchases.reduce((s, t) => s + t.amount, 0);
-  const activeMsi = msiPurchases.filter((m) => m.paidAmount < m.totalAmount);
-  const msiTotal = activeMsi.reduce((s, m) => s + m.monthlyPayment, 0);
+  const msiTotal = getMsiAmountForBillingCycle(msiPurchases, cycle);
   const totalDue = regularTotal + msiTotal;
 
   const payments = await prisma.transaction.findMany({

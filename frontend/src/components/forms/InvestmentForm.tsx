@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Investment, InvestmentType } from '@/types';
 import { useAddInvestment, useUpdateInvestment, useAccounts } from '@/hooks/useApi';
+import { searchCoins, getTopCoins, getCoinPrice, searchStocks, getStockPrice } from '@/lib/api';
 import { toastSuccess, toastError } from '@/utils/toast';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
@@ -14,6 +15,44 @@ const InvestmentTypeLabel: Record<InvestmentType, string> = {
   REAL_ESTATE: 'Inmuebles',
   OTHER: 'Otros'
 };
+
+/** Criptos populares como fallback cuando la API no responde */
+const FALLBACK_CRYPTO_LIST: { id: string; name: string; symbol: string }[] = [
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'eth' },
+  { id: 'tether', name: 'Tether', symbol: 'usdt' },
+  { id: 'binancecoin', name: 'BNB', symbol: 'bnb' },
+  { id: 'solana', name: 'Solana', symbol: 'sol' },
+  { id: 'usd-coin', name: 'USD Coin', symbol: 'usdc' },
+  { id: 'xrp', name: 'XRP', symbol: 'xrp' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ada' },
+  { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge' },
+  { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax' },
+  { id: 'chainlink', name: 'Chainlink', symbol: 'link' },
+  { id: 'polkadot', name: 'Polkadot', symbol: 'dot' },
+  { id: 'matic-network', name: 'Polygon', symbol: 'matic' },
+  { id: 'litecoin', name: 'Litecoin', symbol: 'ltc' },
+  { id: 'uniswap', name: 'Uniswap', symbol: 'uni' },
+];
+
+/** Acciones populares México (BMV) y USA para select rápido */
+const POPULAR_STOCKS_MX: { symbol: string; name: string }[] = [
+  { symbol: 'AMXL.MX', name: 'América Móvil' },
+  { symbol: 'GFNORTE.MX', name: 'GFNorte' },
+  { symbol: 'WALMEX.MX', name: 'Walmart México' },
+  { symbol: 'CEMEXCPO.MX', name: 'Cemex' },
+  { symbol: 'FEMSAUBD.MX', name: 'Femsa' },
+  { symbol: 'GMEXICO.MX', name: 'Grupo México' },
+  { symbol: 'AC.MX', name: 'Arca Continental' },
+  { symbol: 'ALFAA.MX', name: 'Alfa' },
+  { symbol: 'AAPL', name: 'Apple' },
+  { symbol: 'NVDA', name: 'NVIDIA' },
+  { symbol: 'MSFT', name: 'Microsoft' },
+  { symbol: 'GOOGL', name: 'Alphabet (Google)' },
+  { symbol: 'AMZN', name: 'Amazon' },
+  { symbol: 'TSLA', name: 'Tesla' },
+  { symbol: 'META', name: 'Meta' },
+];
 
 export const InvestmentForm: React.FC<{
   existingInvestment: Investment | null;
@@ -33,6 +72,46 @@ export const InvestmentForm: React.FC<{
   const [avgBuyPrice, setAvgBuyPrice] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [sourceAccountId, setSourceAccountId] = useState('');
+  const [topCoins, setTopCoins] = useState<{ id: string; name: string; symbol: string; thumb?: string }[]>([]);
+  const [topCoinsLoading, setTopCoinsLoading] = useState(false);
+  const [topCoinsError, setTopCoinsError] = useState(false);
+  const [coinSuggestions, setCoinSuggestions] = useState<{ id: string; name: string; symbol: string }[]>([]);
+  const [showCoinSuggestions, setShowCoinSuggestions] = useState(false);
+  const [cryptoSelectMode, setCryptoSelectMode] = useState<'select' | 'search'>('select');
+  const [stockSuggestions, setStockSuggestions] = useState<{ symbol: string; shortname?: string; longname?: string }[]>([]);
+  const [showStockSuggestions, setShowStockSuggestions] = useState(false);
+  const [stockSelectMode, setStockSelectMode] = useState<'select' | 'search'>('select');
+  const [cryptoDropdownOpen, setCryptoDropdownOpen] = useState(false);
+  const [stockDropdownOpen, setStockDropdownOpen] = useState(false);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceError, setPriceError] = useState<string | null>(null);
+
+  // Load top cryptos when type = CRYPTO (con fallback si falla la API)
+  useEffect(() => {
+    if (type !== 'CRYPTO' || topCoins.length > 0) return;
+    setTopCoinsError(false);
+    setTopCoinsLoading(true);
+    getTopCoins(50)
+      .then((r) => {
+        const coins = r.coins || [];
+        setTopCoins(coins.length > 0 ? coins : FALLBACK_CRYPTO_LIST);
+        setTopCoinsError(coins.length === 0);
+      })
+      .catch(() => {
+        setTopCoins(FALLBACK_CRYPTO_LIST);
+        setTopCoinsError(true);
+      })
+      .finally(() => setTopCoinsLoading(false));
+  }, [type]);
+
+  // Cerrar dropdowns al hacer clic fuera
+  useEffect(() => {
+    const close = () => { setCryptoDropdownOpen(false); setStockDropdownOpen(false); };
+    if (cryptoDropdownOpen || stockDropdownOpen) {
+      const t = setTimeout(() => document.addEventListener('click', close), 0);
+      return () => { clearTimeout(t); document.removeEventListener('click', close); };
+    }
+  }, [cryptoDropdownOpen, stockDropdownOpen]);
 
   // Init
   useEffect(() => {
@@ -40,6 +119,8 @@ export const InvestmentForm: React.FC<{
       setName(existingInvestment.name);
       setType(existingInvestment.type);
       setTicker(existingInvestment.ticker || '');
+      if (existingInvestment.type === 'CRYPTO' && existingInvestment.ticker) setCryptoSelectMode('search');
+      if (existingInvestment.type === 'STOCK' && existingInvestment.ticker && !POPULAR_STOCKS_MX.some(s => s.symbol === existingInvestment.ticker)) setStockSelectMode('search');
       setQuantity(String(existingInvestment.quantity));
       setAvgBuyPrice(String(existingInvestment.avgBuyPrice));
       setCurrentPrice(String(existingInvestment.currentPrice || existingInvestment.avgBuyPrice));
@@ -51,17 +132,111 @@ export const InvestmentForm: React.FC<{
       setAvgBuyPrice('');
       setCurrentPrice('');
       setSourceAccountId('');
+      setCryptoSelectMode('select');
+      setStockSelectMode('select');
     }
   }, [existingInvestment]);
+
+  // Autocomplete crypto (debounced)
+  useEffect(() => {
+    if (type !== 'CRYPTO' || ticker.length < 2) {
+      setCoinSuggestions([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await searchCoins(ticker);
+        setCoinSuggestions(res.coins || []);
+      } catch {
+        setCoinSuggestions([]);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [type, ticker]);
+
+  // Precio actual automático cuando se selecciona una cripto (debounce para no saturar API)
+  useEffect(() => {
+    if (type !== 'CRYPTO' || !ticker.trim()) {
+      setPriceError(null);
+      return;
+    }
+    setPriceError(null);
+    const t = setTimeout(() => {
+      setPriceLoading(true);
+      getCoinPrice(ticker.trim().toLowerCase())
+        .then((r) => {
+          if (r.price != null && r.price > 0) {
+            setCurrentPrice(String(r.price));
+            setPriceError(null);
+          } else setPriceError('Precio no disponible. Verifica el ticker.');
+        })
+        .catch(() => setPriceError('No se pudo obtener el precio. Revisa el ticker.'))
+        .finally(() => setPriceLoading(false));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [type, ticker]);
+
+  // Autocomplete acciones (Yahoo Finance)
+  useEffect(() => {
+    if (type !== 'STOCK' || ticker.length < 2) {
+      setStockSuggestions([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await searchStocks(ticker);
+        setStockSuggestions(res.quotes || []);
+      } catch {
+        setStockSuggestions([]);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [type, ticker]);
+
+  // Precio actual automático para acciones (Yahoo Finance)
+  useEffect(() => {
+    if (type !== 'STOCK' || !ticker.trim()) {
+      setPriceError(null);
+      return;
+    }
+    setPriceError(null);
+    const t = setTimeout(() => {
+      setPriceLoading(true);
+      getStockPrice(ticker.trim().toUpperCase())
+        .then((r) => {
+          if (r.price != null && r.price > 0) {
+            setCurrentPrice(String(r.price));
+            setPriceError(null);
+          } else setPriceError('Precio no disponible. Verifica el símbolo.');
+        })
+        .catch(() => setPriceError('No se pudo obtener el precio. Revisa el símbolo.'))
+        .finally(() => setPriceLoading(false));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [type, ticker]);
+
+  const liveTotal = useCallback(() => {
+    const q = parseFloat(quantity) || 0;
+    const p = parseFloat(avgBuyPrice) || 0;
+    return q * p;
+  }, [quantity, avgBuyPrice]);
+
+  const namePlaceholder = type === 'CRYPTO' ? 'Ej. Bitcoin' : type === 'STOCK' ? 'Ej. Apple, Tesla' : 'Nombre del activo';
+  const tickerPlaceholder = type === 'CRYPTO'
+    ? 'ID CoinGecko (ej. bitcoin, ethereum) — busca para autocompletar'
+    : type === 'STOCK'
+    ? 'Busca por nombre o símbolo (NVDA, Apple...)'
+    : 'Ticker / Símbolo (opcional)';
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (!name) return toastError('Nombre requerido');
+      const tickerVal = type === 'CRYPTO' ? ticker.trim().toLowerCase() : ticker.trim().toUpperCase();
       const payload = {
         name,
         type,
-        ticker,
+        ticker: tickerVal || undefined,
         quantity: parseFloat(quantity) || 0,
         avgBuyPrice: parseFloat(avgBuyPrice) || 0,
         currentPrice: currentPrice ? parseFloat(currentPrice) : parseFloat(avgBuyPrice) || 0,
@@ -82,7 +257,8 @@ export const InvestmentForm: React.FC<{
       }
       onClose();
     } catch (error) {
-      toastError('Error al guardar inversión');
+      const msg = error instanceof Error ? error.message : 'Error al guardar inversión';
+      toastError('Error al guardar inversión', msg);
     }
   };
 
@@ -125,11 +301,225 @@ export const InvestmentForm: React.FC<{
             {/* Name & Ticker */}
             <div className="space-y-3 shrink-0">
               <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nombre del Activo (ej. Apple)" className="w-full bg-transparent text-sm font-medium outline-none text-app-text placeholder:text-app-muted/60" />
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder={namePlaceholder} className="w-full bg-transparent text-sm font-medium outline-none text-app-text placeholder:text-app-muted/60" />
               </div>
-              <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
-                <input type="text" value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} placeholder="Ticker / Símbolo (Opcional)" className="w-full bg-transparent text-sm font-medium outline-none text-app-text placeholder:text-app-muted/60 uppercase" />
-              </div>
+              {type === 'CRYPTO' ? (
+                <div className="space-y-2">
+                  {cryptoSelectMode === 'select' ? (
+                    <>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setCryptoDropdownOpen(!cryptoDropdownOpen); }}
+                          className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-10 text-sm font-medium text-app-text text-left flex items-center gap-2 outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary"
+                        >
+                          {ticker ? (
+                            (() => {
+                              const c = topCoins.find(x => x.id === ticker);
+                              return c ? (
+                                <>
+                                  {c.thumb && <img src={c.thumb} alt="" className="w-6 h-6 rounded-full" />}
+                                  <span>{c.name} ({c.symbol.toUpperCase()})</span>
+                                </>
+                              ) : <span>{ticker}</span>;
+                            })()
+                          ) : (
+                            <span className="text-app-muted">{topCoinsLoading ? 'Cargando criptos...' : 'Selecciona una cripto...'}</span>
+                          )}
+                          <Icon name="expand_more" size={20} className="absolute right-3 text-app-muted" />
+                        </button>
+                        {cryptoDropdownOpen && (
+                          <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-app-border bg-app-surface shadow-xl z-50 max-h-60 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                            {topCoinsError && (
+                              <p className="px-3 py-2 text-xs text-amber-600 bg-amber-500/10">API no disponible. Mostrando lista de respaldo.</p>
+                            )}
+                            {topCoinsLoading ? (
+                              <p className="px-3 py-4 text-sm text-app-muted text-center">Cargando...</p>
+                            ) : (
+                            <>
+                            {topCoins.map((c) => (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => {
+                                  setTicker(c.id);
+                                  setName(c.name);
+                                  setCryptoDropdownOpen(false);
+                                }}
+                                className="w-full px-3 py-2.5 text-left text-sm hover:bg-app-subtle flex items-center gap-3"
+                              >
+                                {c.thumb && <img src={c.thumb} alt="" className="w-6 h-6 rounded-full shrink-0" />}
+                                <span className="font-medium text-app-text">{c.name}</span>
+                                <span className="text-app-muted text-xs ml-auto">{c.symbol.toUpperCase()}</span>
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => { setCryptoSelectMode('search'); setCryptoDropdownOpen(false); setTicker(''); }}
+                              className="w-full px-3 py-2.5 text-left text-sm hover:bg-app-subtle flex items-center gap-2 border-t border-app-border text-app-primary font-medium"
+                            >
+                              <Icon name="search" size={18} />
+                              Buscar otra...
+                            </button>
+                            </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCryptoSelectMode('search')}
+                        className="text-xs text-app-muted hover:text-app-primary"
+                      >
+                        No está en la lista? Buscar por nombre
+                      </button>
+                    </>
+                  ) : (
+                    <div className="relative">
+                      <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
+                        <input
+                          type="text"
+                          value={ticker}
+                          onChange={e => setTicker(e.target.value.toLowerCase())}
+                          onFocus={() => ticker.length >= 2 && setShowCoinSuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowCoinSuggestions(false), 200)}
+                          placeholder="Buscar cripto (ej. bitcoin, solana)"
+                          className="w-full bg-transparent text-sm font-medium outline-none text-app-text placeholder:text-app-muted/60"
+                        />
+                      </div>
+                      {showCoinSuggestions && coinSuggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-app-border bg-app-surface shadow-lg z-50 max-h-48 overflow-y-auto">
+                          {coinSuggestions.map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onMouseDown={() => { setTicker(c.id); setName(c.name); setShowCoinSuggestions(false); }}
+                              className="w-full px-3 py-2.5 text-left text-sm hover:bg-app-subtle flex items-center gap-3"
+                            >
+                              {c.thumb && <img src={c.thumb} alt="" className="w-6 h-6 rounded-full shrink-0" />}
+                              <span className="font-medium text-app-text">{c.name}</span>
+                              <span className="text-app-muted text-xs ml-auto">{c.symbol.toUpperCase()}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setCryptoSelectMode('select'); setTicker(''); }}
+                        className="mt-2 text-xs text-app-muted hover:text-app-primary"
+                      >
+                        ← Ver lista de top criptos
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : type === 'STOCK' ? (
+                <div className="space-y-2">
+                  {stockSelectMode === 'select' ? (
+                    <>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setStockDropdownOpen(!stockDropdownOpen); }}
+                          className="w-full bg-app-subtle border border-app-border h-11 rounded-xl pl-3 pr-10 text-sm font-medium text-app-text text-left flex items-center gap-2 outline-none focus:ring-2 focus:ring-app-primary/50 focus:border-app-primary"
+                        >
+                          {ticker ? (
+                            <span>{POPULAR_STOCKS_MX.find(s => s.symbol === ticker)?.name || ticker}</span>
+                          ) : (
+                            <span className="text-app-muted">Populares México / USA...</span>
+                          )}
+                          <Icon name="expand_more" size={20} className="absolute right-3 text-app-muted" />
+                        </button>
+                        {stockDropdownOpen && (
+                          <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-app-border bg-app-surface shadow-xl z-50 max-h-60 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                            <div className="px-3 py-2 text-[10px] font-bold text-app-muted uppercase">Acciones populares</div>
+                            {POPULAR_STOCKS_MX.map((s) => (
+                              <button
+                                key={s.symbol}
+                                type="button"
+                                onClick={() => {
+                                  setTicker(s.symbol);
+                                  setName(s.name);
+                                  setStockDropdownOpen(false);
+                                }}
+                                className="w-full px-3 py-2.5 text-left text-sm hover:bg-app-subtle flex items-center justify-between"
+                              >
+                                <span className="font-medium text-app-text">{s.name}</span>
+                                <span className="text-app-muted text-xs">{s.symbol}</span>
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => { setStockSelectMode('search'); setStockDropdownOpen(false); setTicker(''); }}
+                              className="w-full px-3 py-2.5 text-left text-sm hover:bg-app-subtle flex items-center gap-2 border-t border-app-border text-app-primary font-medium"
+                            >
+                              <Icon name="search" size={18} />
+                              Buscar otra...
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStockSelectMode('search')}
+                        className="text-xs text-app-muted hover:text-app-primary"
+                      >
+                        No está en la lista? Buscar por nombre o símbolo
+                      </button>
+                    </>
+                  ) : (
+                    <div className="relative">
+                      <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
+                        <input
+                          type="text"
+                          value={ticker}
+                          onChange={e => setTicker(e.target.value.toUpperCase())}
+                          onFocus={() => ticker.length >= 2 && setShowStockSuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowStockSuggestions(false), 200)}
+                          placeholder={tickerPlaceholder}
+                          className="w-full bg-transparent text-sm font-medium outline-none text-app-text placeholder:text-app-muted/60 uppercase"
+                        />
+                      </div>
+                      {showStockSuggestions && stockSuggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-app-border bg-app-surface shadow-lg z-50 max-h-48 overflow-y-auto">
+                          {stockSuggestions.map((q) => (
+                            <button
+                              key={q.symbol}
+                              type="button"
+                              onMouseDown={() => {
+                                setTicker(q.symbol);
+                                setName(q.shortname || q.longname || q.symbol);
+                                setShowStockSuggestions(false);
+                              }}
+                              className="w-full px-3 py-2.5 text-left text-sm hover:bg-app-subtle flex items-center justify-between gap-2"
+                            >
+                              <span className="font-medium text-app-text">{q.shortname || q.longname || q.symbol}</span>
+                              <span className="text-app-muted text-xs">{q.symbol}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setStockSelectMode('select'); setTicker(''); }}
+                        className="mt-2 text-xs text-app-muted hover:text-app-primary"
+                      >
+                        ← Ver acciones populares
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
+                  <input
+                    type="text"
+                    value={ticker}
+                    onChange={e => setTicker(e.target.value.toUpperCase())}
+                    placeholder={tickerPlaceholder}
+                    className="w-full bg-transparent text-sm font-medium outline-none text-app-text placeholder:text-app-muted/60 uppercase"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Qty & Price Grid */}
@@ -149,13 +539,30 @@ export const InvestmentForm: React.FC<{
               </div>
             </div>
 
-            {/* Current Price */}
+            {/* Live Total */}
+            {(parseFloat(quantity) || 0) > 0 && (parseFloat(avgBuyPrice) || 0) > 0 && (
+              <div className="shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-2">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Valor estimado</span>
+                <p className="text-lg font-bold text-app-text font-numbers">${liveTotal().toLocaleString('es-MX')}</p>
+              </div>
+            )}
+
+            {/* Current Price - auto para CRYPTO/STOCK con ticker */}
             <div className="shrink-0">
-              <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">Precio Actual (Opcional)</span>
+              <span className="text-[10px] font-bold text-app-text ml-1 mb-1 block uppercase tracking-wide opacity-70">
+                Precio Actual {(type === 'CRYPTO' && ticker) ? '(auto CoinGecko)' : (type === 'STOCK' && ticker) ? '(auto Yahoo Finance)' : '(Opcional)'}
+                {priceLoading && <span className="ml-2 text-amber-600 dark:text-amber-400 font-normal">Cargando...</span>}
+              </span>
               <div className="bg-app-subtle border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all h-11 flex items-center">
                 <span className="text-app-muted text-xs mr-1">$</span>
-                <input type="number" step="any" value={currentPrice} onChange={e => setCurrentPrice(e.target.value)} placeholder="Igual a precio compra" className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60" />
+                <input type="number" step="any" value={currentPrice} onChange={e => setCurrentPrice(e.target.value)} placeholder="Igual a precio compra" disabled={priceLoading} className="w-full bg-transparent text-sm font-bold text-app-text outline-none placeholder:text-app-muted/60 disabled:opacity-70" />
               </div>
+              {priceError && (
+                <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <Icon name="info" size={14} />
+                  {priceError}
+                </p>
+              )}
             </div>
 
             {/* Funding Source (Only Create) */}

@@ -50,9 +50,9 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 ### Credit Cards
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| GET | /api/credit-card/statement/:accountId | Estado de cuenta TDC |
-| POST | /api/credit-card/statement/:accountId/pay | Pagar corte |
-| POST | /api/credit-card/msi/:installmentId/pay | Pagar cuota MSI |
+| GET | /api/credit-card/statement/:accountId | Estado de cuenta TDC (regular + MSI del ciclo, solo cuotas con vencimiento en el período) |
+| POST | /api/credit-card/statement/:accountId/pay | Pagar corte. Body: `{ sourceAccountId, amount, date? }` |
+| POST | /api/credit-card/msi/:installmentId/pay | Pagar cuota MSI. Body: `{ sourceAccountId, date? }` |
 | POST | /api/credit-card/revert/:transactionId | Revertir pago TDC (soft delete) |
 
 ### Installments (MSI)
@@ -67,12 +67,17 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | GET, POST | /api/investments | CRUD inversiones |
+| GET | /api/investments/coins/top?limit=50 | Top criptos (select). Query: `limit`. Resp: `{ coins: [...] }` |
+| GET | /api/investments/coins/search?q= | Buscar criptos (CoinGecko). Query: `q`. Resp: `{ coins: [...] }` |
+| GET | /api/investments/coins/price?id= | Precio crypto (CoinGecko). Query: `id`. Resp: `{ id, price }` |
+| GET | /api/investments/stocks/search?q= | Buscar acciones/ETFs (Yahoo Finance). Query: `q`. Resp: `{ quotes: [...] }` |
+| GET | /api/investments/stocks/price?symbol= | Precio acción (Yahoo Finance). Query: `symbol`. Resp: `{ symbol, price, currency }` |
 | POST | /api/investments/refresh-prices | Actualizar precios crypto (CoinGecko) + stock (Yahoo Finance). Sin body. Resp: `{ updated, crypto, stock }`. Ver [COINGECKO.md](COINGECKO.md), [YAHOO_FINANCE.md](YAHOO_FINANCE.md) |
 | GET, POST | /api/recurring | CRUD recurrentes + pay/skip |
 | GET | /api/financial-planning/summary | Resumen período (period, mode) |
 | GET | /api/financial-planning/upcoming | Próximos compromisos |
 
-**financial-planning/summary** — Query: `?period=semanal|quincenal|mensual|bimestral|semestral|anual` y `?mode=calendar|projection`. Devuelve proyección completa: `expectedIncome[]`, `expectedExpenses[]`, `msiPaymentsDue[]`, `totalPeriodIncome`, `totalCommitments`, `disposableIncome`, `projectedBalance`, `budgetAnalysis` (needs/wants/savings), `isSufficient`, `warnings`. Ver `docs/PROJECTION-ENGINE.md`.
+**financial-planning/summary** — Query: `?period=semanal|quincenal|mensual|bimestral|semestral|anual` y `?mode=calendar|projection`. Devuelve: `expectedIncome[]`, `expectedExpenses[]`, `msiPaymentsDue[]` (con `accountId`, `accountName` por TDC), `totalPeriodIncome`, `totalCommitments`, `disposableIncome`, `projectedBalance`, `availableFunds`, `totalAssets`, `totalLiabilities`, `netWorth`, `budgetAnalysis` (needs/wants/savings), `isSufficient`, `warnings`. Ver `docs/PROJECTION-ENGINE.md`.
 | GET, PUT | /api/notifications | Listar, marcar leídas |
 
 ### Loans

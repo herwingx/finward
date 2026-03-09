@@ -15,10 +15,11 @@ export function useDashboardStats(
     let available = 0;
     if (accounts) {
       accounts.forEach((a) => {
-        if (a.type === 'CREDIT') net -= a.balance;
-        else {
+        if (['CREDIT', 'LOAN'].includes(a.type)) {
+          net -= Math.abs(a.balance);
+        } else {
           net += a.balance;
-          if (['DEBIT', 'CASH'].includes(a.type)) available += a.balance;
+          if (['DEBIT', 'CASH', 'SAVINGS'].includes(a.type)) available += a.balance;
         }
       });
     }
@@ -27,6 +28,10 @@ export function useDashboardStats(
     }
     if (goals) {
       net += goals.reduce((sum, g) => sum + g.currentAmount, 0);
+    }
+    if (loans) {
+      net += loans.filter((l) => l.loanType === 'lent' && ['active', 'partial'].includes(l.status)).reduce((s, l) => s + l.remainingAmount, 0);
+      net -= loans.filter((l) => l.loanType === 'borrowed' && ['active', 'partial'].includes(l.status)).reduce((s, l) => s + l.remainingAmount, 0);
     }
     return { netWorth: net, availableFunds: available };
   }, [accounts, investments, loans, goals]);

@@ -10,7 +10,13 @@ const connectionString =
     : process.env.DATABASE_URL;
 if (!connectionString) throw new Error('DATABASE_URL (o DIRECT_URL si USE_DIRECT_URL=true) es requerido');
 
-const pool = new Pool({ connectionString });
+// Render free tier: timeouts altos (DB cold), pool pequeño para evitar connection churn
+const pool = new Pool({
+  connectionString,
+  connectionTimeoutMillis: 30000,
+  idleTimeoutMillis: 20000,
+  max: process.env.NODE_ENV === 'production' ? 3 : 10,
+});
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };

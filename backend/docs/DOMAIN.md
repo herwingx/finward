@@ -117,7 +117,7 @@ Meta de ahorro. `targetAmount`, `currentAmount`, `deadline`.
 
 - Cada cuota se carga el mismo día del mes que la compra.
 - La cuota mensual genera una transacción de transferencia (banco → TDC) cuando el usuario la paga.
-- Job de statements suma `monthlyPayment` de MSI activos al `totalDue` del ciclo.
+- **Estado de cuenta (statement):** El `msiTotal` incluye solo las cuotas con vencimiento entre `cycleStartDate` y `paymentDate` del ciclo. Usa `getMsiAmountForBillingCycle()` (`msiForStatement.ts`) con `expandMsiInPeriod`.
 
 ---
 
@@ -126,4 +126,15 @@ Meta de ahorro. `targetAmount`, `currentAmount`, `deadline`.
 1. **Crear gasto:** Validar cuenta, categoría → crear Transaction → crear LedgerEntries (débito cuenta, crédito gasto) → actualizar balance cache.
 2. **Pagar TDC:** Validar origen y destino → crear Transaction (transfer) → LedgerEntries → actualizar balances.
 3. **Pago MSI:** Crear transfer con `installmentPurchaseId` → actualizar `paidInstallments`, `paidAmount`.
-4. **Corte diario:** Job identifica TDC con cutoff=hoy → calcula totalDue (gastos + MSI) → crea CreditCardStatement.
+4. **Corte diario:** Job identifica TDC con cutoff=hoy → calcula totalDue (gastos regulares + MSI del ciclo) → crea CreditCardStatement.
+
+### Balances financieros unificados
+
+`computeFinancialBalances()` (`financialBalances.ts`):
+
+- **availableFunds:** DEBIT + CASH + SAVINGS (dinero líquido).
+- **totalAssets:** Cuentas no-deuda + inversiones + metas de ahorro + préstamos prestados (lent).
+- **totalLiabilities:** CREDIT + LOAN + préstamos recibidos (borrowed).
+- **netWorth:** totalAssets - totalLiabilities.
+
+Usado por Financial Planning, Dashboard y contexto AI.

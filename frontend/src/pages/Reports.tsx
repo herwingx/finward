@@ -53,7 +53,7 @@ const Reports: React.FC = () => {
     const {
         totalPeriodIncome = 0,
         totalCommitments = 0,
-        currentBalance = 0,
+        availableFunds = 0,
         disposableIncome = 0,
         budgetAnalysis
     } = summary;
@@ -120,7 +120,7 @@ const Reports: React.FC = () => {
                             </p>
                         </div>
                         <div className="flex gap-4 pt-2 mt-2 border-t border-app-border/40 text-[11px] font-medium text-app-muted">
-                            <span>Saldo actual: <strong>{formatCurrency(currentBalance)}</strong></span>
+                            <span>Disponible: <strong>{formatCurrency(availableFunds)}</strong></span>
                         </div>
                     </div>
 

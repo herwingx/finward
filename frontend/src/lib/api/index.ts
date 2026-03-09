@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchNoJson } from './client';
+import { apiFetch, apiFetchNoJson, API_BASE_URL } from './client';
 import type {
   Transaction,
   Category,
@@ -16,7 +16,7 @@ import type {
 
 // Auth (no token needed - public endpoints)
 export async function login(email: string, password: string): Promise<{ token: string }> {
-  const res = await fetch('/api/auth/login', {
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -29,7 +29,7 @@ export async function login(email: string, password: string): Promise<{ token: s
 }
 
 export async function register(data: { email: string; password: string; name?: string }): Promise<{ token: string }> {
-  const res = await fetch('/api/auth/register', {
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -42,7 +42,7 @@ export async function register(data: { email: string; password: string; name?: s
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-  const res = await fetch('/api/auth/request-reset', {
+  const res = await fetch(`${API_BASE_URL}/auth/request-reset`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -54,7 +54,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
 }
 
 export async function resetPassword(token: string, password: string): Promise<void> {
-  const res = await fetch('/api/auth/reset-password', {
+  const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, password }),
@@ -125,7 +125,7 @@ export const addCategory = (data: Omit<Category, 'id'>) =>
 export const updateCategory = (id: string, data: Partial<Category>) =>
   apiFetch<Category>(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export async function deleteCategory(id: string, newCategoryId?: string): Promise<void> {
-  const res = await fetch(`/api/categories/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
     body: newCategoryId ? JSON.stringify({ newCategoryId }) : undefined,
@@ -191,10 +191,10 @@ export const getUpcomingCommitments = (days = 7) =>
 // Credit Card
 export const getCreditCardStatement = (accountId: string) =>
   apiFetch<CreditCardStatement>(`/credit-card/statement/${accountId}`);
-export const payFullStatement = (accountId: string, sourceAccountId: string, date?: string) =>
-  apiFetch(`/credit-card/pay-statement/${accountId}`, {
+export const payFullStatement = (accountId: string, sourceAccountId: string, amount: number, date?: string) =>
+  apiFetch(`/credit-card/statement/${accountId}/pay`, {
     method: 'POST',
-    body: JSON.stringify({ sourceAccountId, date }),
+    body: JSON.stringify({ sourceAccountId, amount, date }),
   });
 export const payMsiInstallment = (installmentId: string, sourceAccountId: string, date?: string) =>
   apiFetch(`/credit-card/pay-msi/${installmentId}`, {
@@ -242,6 +242,20 @@ export const deleteInvestment = (id: string) =>
 type RefreshPricesResult = { updated: number; crypto: number; stock: number; message?: string };
 export const refreshInvestmentPrices = () =>
   apiFetch<RefreshPricesResult>('/investments/refresh-prices', { method: 'POST' });
+
+export type CoinGeckoCoin = { id: string; name: string; symbol: string; market_cap_rank?: number; thumb?: string };
+export const searchCoins = (query: string) =>
+  apiFetch<{ coins: CoinGeckoCoin[] }>(`/investments/coins/search?q=${encodeURIComponent(query)}`);
+export const getTopCoins = (limit = 50) =>
+  apiFetch<{ coins: CoinGeckoCoin[] }>(`/investments/coins/top?limit=${limit}`);
+export const getCoinPrice = (id: string) =>
+  apiFetch<{ id: string; price: number | null }>(`/investments/coins/price?id=${encodeURIComponent(id)}`);
+
+export type YahooQuote = { symbol: string; shortname?: string; longname?: string; quoteType?: string };
+export const searchStocks = (query: string) =>
+  apiFetch<{ quotes: YahooQuote[] }>(`/investments/stocks/search?q=${encodeURIComponent(query)}`);
+export const getStockPrice = (symbol: string) =>
+  apiFetch<{ symbol: string; price: number | null; currency: string | null }>(`/investments/stocks/price?symbol=${encodeURIComponent(symbol)}`);
 
 // Goals
 export const getGoals = () => apiFetch<SavingsGoal[]>('/goals');

@@ -15,16 +15,15 @@ Para **criptomonedas**, ver [COINGECKO.md](COINGECKO.md).
 
 ## Uso en la app: Cómo agregar acciones/ETFs
 
-No existe buscador de símbolos en el frontend. Debes ingresar el **símbolo Yahoo** manualmente en el campo **Ticker** al crear/editar una inversión:
+El formulario incluye **búsqueda por nombre o símbolo** (Yahoo Finance):
 
 1. Ir a **Inversiones** → **Nuevo Activo**
-2. Seleccionar tipo **Acciones** (o el que corresponda)
-3. **Nombre**: ej. "NVIDIA"
-4. **Ticker**: usar el **símbolo Yahoo**, ej. `NVDA`, `AAPL`
-5. Cantidad, Precio compra, Precio actual (opcional)
-6. Guardar
+2. Seleccionar tipo **Acciones**
+3. **Ticker**: escribe nombre o símbolo (ej. `NVDA`, `Apple`) → aparecen sugerencias; selecciona una
+4. **Precio actual**: se rellena automáticamente con Yahoo Finance
+5. Cantidad, Precio compra, guardar
 
-Tras guardar, al ejecutar **refresh-prices** se actualizarán los precios desde Yahoo Finance.
+Tras guardar, **refresh-prices** mantiene los precios actualizados.
 
 ---
 
@@ -50,14 +49,18 @@ Tras guardar, al ejecutar **refresh-prices** se actualizarán los precios desde 
 
 ## Integración técnica
 
-### Endpoint
+### Endpoints
+
+- **Buscar acciones/ETFs:** `GET /api/investments/stocks/search?q=NVDA` → `{ quotes: [{ symbol, shortname, longname }] }`
+- **Precio de una acción:** `GET /api/investments/stocks/price?symbol=NVDA` → `{ symbol, price, currency }`
+- **Actualizar todos los precios:** `POST /api/investments/refresh-prices` (crypto + stock)
 
 ```http
 POST /api/investments/refresh-prices
 Authorization: Bearer <token>
 ```
 
-Sin body ni query params. El mismo endpoint actualiza tanto crypto (CoinGecko) como stock (Yahoo) en una sola llamada.
+Sin body ni query params. Actualiza crypto (CoinGecko) y stock (Yahoo) en una sola llamada.
 
 ### Respuesta
 

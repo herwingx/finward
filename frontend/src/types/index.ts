@@ -178,8 +178,9 @@ export interface FinancialPeriodSummary {
   periodStart: string;
   periodEnd: string;
   periodType: 'quincenal' | 'mensual' | 'semanal';
-  currentBalance: number;
-  currentDebt: number;
+  availableFunds: number;
+  totalAssets: number;
+  totalLiabilities: number;
   currentMSIDebt: number;
   expectedIncome: unknown[];
   totalExpectedIncome: number;
