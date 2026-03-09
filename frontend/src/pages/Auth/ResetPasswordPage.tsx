@@ -11,12 +11,21 @@ const ResetPasswordPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  const token = searchParams.get('token');
+  // Supabase pone el token en el hash (#access_token=...) al hacer redirect desde el email
+  const tokenFromHash = (() => {
+    if (typeof window === 'undefined') return null;
+    const hash = window.location.hash?.slice(1);
+    if (!hash) return null;
+    const params = new URLSearchParams(hash);
+    return params.get('access_token');
+  })();
+  const tokenFromQuery = searchParams.get('token');
+  const token = tokenFromHash ?? tokenFromQuery;
 
   // Validate Token existence immediately
   useEffect(() => {
     if (!token) {
-      setError('El enlace de recuperación no es válido o ha expirado.');
+      setError('El enlace de recuperación no es válido o ha expirado. Verifica que el enlace completo se haya cargado.');
     }
   }, [token]);
 
@@ -40,7 +49,7 @@ const ResetPasswordPage: React.FC = () => {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword: password }),
+        body: JSON.stringify({ token, password }),
       });
 
       const data = await response.json();
