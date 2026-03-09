@@ -11,8 +11,18 @@ import { logger } from '../shared/logger';
 const PUBLIC_URL = 'https://api.coingecko.com/api/v3';
 const PRO_URL = 'https://pro-api.coingecko.com/api/v3';
 
+/** Demo API keys (plan gratuito) usan api.coingecko.com; Pro keys usan pro-api.coingecko.com */
 function getBaseUrl(): string {
-  return process.env.COINGECKO_API_KEY ? PRO_URL : PUBLIC_URL;
+  const key = process.env.COINGECKO_API_KEY;
+  if (!key) return PUBLIC_URL;
+  return process.env.COINGECKO_DEMO_API === 'true' ? PUBLIC_URL : PRO_URL;
+}
+
+function getApiKeyHeader(): { key: string; value: string } | null {
+  const apiKey = process.env.COINGECKO_API_KEY;
+  if (!apiKey) return null;
+  const isDemo = process.env.COINGECKO_DEMO_API === 'true';
+  return { key: isDemo ? 'x-cg-demo-api-key' : 'x-cg-pro-api-key', value: apiKey };
 }
 
 export type CoinGeckoPriceResult = Record<string, Record<string, number>>;
@@ -34,8 +44,8 @@ export async function fetchPrices(
   const url = `${baseUrl}/simple/price?ids=${encodeURIComponent(idsParam)}&vs_currencies=${vsCurrency}`;
 
   const headers: Record<string, string> = { Accept: 'application/json' };
-  const apiKey = process.env.COINGECKO_API_KEY;
-  if (apiKey) headers['x-cg-pro-api-key'] = apiKey;
+  const keyHeader = getApiKeyHeader();
+  if (keyHeader) headers[keyHeader.key] = keyHeader.value;
 
   try {
     const res = await fetch(url, {
@@ -82,8 +92,8 @@ export async function searchCoins(query: string): Promise<CoinGeckoSearchCoin[]>
   const url = `${baseUrl}/search?query=${encodeURIComponent(q)}`;
 
   const headers: Record<string, string> = { Accept: 'application/json' };
-  const apiKey = process.env.COINGECKO_API_KEY;
-  if (apiKey) headers['x-cg-pro-api-key'] = apiKey;
+  const keyHeader = getApiKeyHeader();
+  if (keyHeader) headers[keyHeader.key] = keyHeader.value;
 
   try {
     const res = await fetch(url, {
@@ -123,8 +133,8 @@ export async function getTopCoins(limit = 50): Promise<CoinGeckoSearchCoin[]> {
   const url = `${baseUrl}/coins/markets?vs_currency=mxn&order=market_cap_desc&per_page=${Math.min(limit, 100)}&page=1&sparkline=false`;
 
   const headers: Record<string, string> = { Accept: 'application/json' };
-  const apiKey = process.env.COINGECKO_API_KEY;
-  if (apiKey) headers['x-cg-pro-api-key'] = apiKey;
+  const keyHeader = getApiKeyHeader();
+  if (keyHeader) headers[keyHeader.key] = keyHeader.value;
 
   try {
     const res = await fetch(url, {

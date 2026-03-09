@@ -16,6 +16,25 @@ const InvestmentTypeLabel: Record<InvestmentType, string> = {
   OTHER: 'Otros'
 };
 
+/** Criptos populares como fallback cuando la API no responde */
+const FALLBACK_CRYPTO_LIST: { id: string; name: string; symbol: string }[] = [
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'eth' },
+  { id: 'tether', name: 'Tether', symbol: 'usdt' },
+  { id: 'binancecoin', name: 'BNB', symbol: 'bnb' },
+  { id: 'solana', name: 'Solana', symbol: 'sol' },
+  { id: 'usd-coin', name: 'USD Coin', symbol: 'usdc' },
+  { id: 'xrp', name: 'XRP', symbol: 'xrp' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ada' },
+  { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge' },
+  { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax' },
+  { id: 'chainlink', name: 'Chainlink', symbol: 'link' },
+  { id: 'polkadot', name: 'Polkadot', symbol: 'dot' },
+  { id: 'matic-network', name: 'Polygon', symbol: 'matic' },
+  { id: 'litecoin', name: 'Litecoin', symbol: 'ltc' },
+  { id: 'uniswap', name: 'Uniswap', symbol: 'uni' },
+];
+
 /** Acciones populares México (BMV) y USA para select rápido */
 const POPULAR_STOCKS_MX: { symbol: string; name: string }[] = [
   { symbol: 'AMXL.MX', name: 'América Móvil' },
@@ -53,7 +72,9 @@ export const InvestmentForm: React.FC<{
   const [avgBuyPrice, setAvgBuyPrice] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [sourceAccountId, setSourceAccountId] = useState('');
-  const [topCoins, setTopCoins] = useState<{ id: string; name: string; symbol: string }[]>([]);
+  const [topCoins, setTopCoins] = useState<{ id: string; name: string; symbol: string; thumb?: string }[]>([]);
+  const [topCoinsLoading, setTopCoinsLoading] = useState(false);
+  const [topCoinsError, setTopCoinsError] = useState(false);
   const [coinSuggestions, setCoinSuggestions] = useState<{ id: string; name: string; symbol: string }[]>([]);
   const [showCoinSuggestions, setShowCoinSuggestions] = useState(false);
   const [cryptoSelectMode, setCryptoSelectMode] = useState<'select' | 'search'>('select');
@@ -65,11 +86,22 @@ export const InvestmentForm: React.FC<{
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
 
-  // Load top cryptos when type = CRYPTO
+  // Load top cryptos when type = CRYPTO (con fallback si falla la API)
   useEffect(() => {
-    if (type === 'CRYPTO' && topCoins.length === 0) {
-      getTopCoins(50).then((r) => setTopCoins(r.coins || [])).catch(() => setTopCoins([]));
-    }
+    if (type !== 'CRYPTO' || topCoins.length > 0) return;
+    setTopCoinsError(false);
+    setTopCoinsLoading(true);
+    getTopCoins(50)
+      .then((r) => {
+        const coins = r.coins || [];
+        setTopCoins(coins.length > 0 ? coins : FALLBACK_CRYPTO_LIST);
+        setTopCoinsError(coins.length === 0);
+      })
+      .catch(() => {
+        setTopCoins(FALLBACK_CRYPTO_LIST);
+        setTopCoinsError(true);
+      })
+      .finally(() => setTopCoinsLoading(false));
   }, [type]);
 
   // Cerrar dropdowns al hacer clic fuera
@@ -225,7 +257,8 @@ export const InvestmentForm: React.FC<{
       }
       onClose();
     } catch (error) {
-      toastError('Error al guardar inversión');
+      const msg = error instanceof Error ? error.message : 'Error al guardar inversión';
+      toastError('Error al guardar inversión', msg);
     }
   };
 
@@ -291,12 +324,19 @@ export const InvestmentForm: React.FC<{
                               ) : <span>{ticker}</span>;
                             })()
                           ) : (
-                            <span className="text-app-muted">Selecciona una cripto...</span>
+                            <span className="text-app-muted">{topCoinsLoading ? 'Cargando criptos...' : 'Selecciona una cripto...'}</span>
                           )}
                           <Icon name="expand_more" size={20} className="absolute right-3 text-app-muted" />
                         </button>
                         {cryptoDropdownOpen && (
                           <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-app-border bg-app-surface shadow-xl z-50 max-h-60 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                            {topCoinsError && (
+                              <p className="px-3 py-2 text-xs text-amber-600 bg-amber-500/10">API no disponible. Mostrando lista de respaldo.</p>
+                            )}
+                            {topCoinsLoading ? (
+                              <p className="px-3 py-4 text-sm text-app-muted text-center">Cargando...</p>
+                            ) : (
+                            <>
                             {topCoins.map((c) => (
                               <button
                                 key={c.id}
@@ -321,6 +361,8 @@ export const InvestmentForm: React.FC<{
                               <Icon name="search" size={18} />
                               Buscar otra...
                             </button>
+                            </>
+                            )}
                           </div>
                         )}
                       </div>

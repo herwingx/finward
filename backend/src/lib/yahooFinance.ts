@@ -7,7 +7,7 @@
 import YahooFinance from 'yahoo-finance2';
 import { logger } from '../shared/logger';
 
-const client = new YahooFinance();
+const client = new YahooFinance({ validation: { logErrors: false } });
 
 export type YahooQuoteResult = { price: number; currency: string } | null;
 

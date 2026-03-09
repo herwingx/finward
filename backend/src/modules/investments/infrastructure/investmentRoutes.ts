@@ -69,15 +69,23 @@ router.post('/refresh-prices', async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/coins/search', async (req: AuthRequest, res: Response) => {
-  const q = (req.query.q as string) || '';
-  const coins = await searchCoins(q);
-  res.json({ coins });
+  try {
+    const q = (req.query.q as string) || '';
+    const coins = await searchCoins(q);
+    res.json({ coins });
+  } catch {
+    res.json({ coins: [] });
+  }
 });
 
 router.get('/coins/top', async (_req: AuthRequest, res: Response) => {
-  const limit = Math.min(parseInt(String(_req.query.limit || 50), 10) || 50, 100);
-  const coins = await getTopCoins(limit);
-  res.json({ coins });
+  try {
+    const limit = Math.min(parseInt(String(_req.query.limit || 50), 10) || 50, 100);
+    const coins = await getTopCoins(limit);
+    res.json({ coins });
+  } catch {
+    res.json({ coins: [] });
+  }
 });
 
 router.get('/coins/price', async (req: AuthRequest, res: Response) => {

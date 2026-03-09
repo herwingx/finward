@@ -87,10 +87,21 @@ Respuesta: `{ updated, crypto, stock }` (updated = inversiones actualizadas).
 
 | Variable | Obligatorio | Descripción |
 |----------|-------------|-------------|
-| `COINGECKO_API_KEY` | No | API key Pro. Sin ella usa API pública (~30/min). Obtener en [CoinGecko Pricing](https://www.coingecko.com/en/api/pricing) |
+| `COINGECKO_API_KEY` | No | API key. Sin ella usa API pública (~30/min). Obtener en [CoinGecko](https://www.coingecko.com/en/api/pricing) |
+| `COINGECKO_DEMO_API` | No | Si es `true`, usa **Demo API** (api.coingecko.com). Las keys que empiezan con `CG-` son Demo. Si es Pro (de pago), omitir o `false`. |
 
-En `backend/.env`:
+**Demo API (gratuita):** usa `api.coingecko.com` y header `x-cg-demo-api-key`.  
+**Pro API (de pago):** usa `pro-api.coingecko.com` y header `x-cg-pro-api-key`.
+
+En `backend/.env` (Demo key):
 ```
+COINGECKO_DEMO_API=true
+COINGECKO_API_KEY=CG-xxxxx
+```
+
+En `backend/.env` (Pro key o sin key):
+```
+# Sin COINGECKO_DEMO_API o =false
 COINGECKO_API_KEY=cg_xxxxx
 ```
 
