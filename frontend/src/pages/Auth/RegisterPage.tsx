@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 // Utils
 import { toastSuccess, toastError } from '@/utils/toast';
+import { API_BASE_URL } from '@/lib/api/client';
 
 const RegisterPage: React.FC = () => {
     const [name, setName] = useState('');
@@ -18,7 +19,7 @@ const RegisterPage: React.FC = () => {
 
         try {
             // Reemplaza con fetch a tu backend real
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
