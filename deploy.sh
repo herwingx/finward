@@ -6,8 +6,7 @@
 #
 # Requisitos:
 #   - backend/.env (DATABASE_URL, SUPABASE_*, ALLOWED_ORIGINS, etc.)
-#   - .env en raíz (opcional): VITE_API_URL=/api, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
-#     Ver .env.docker.example | Sin .env: VITE_API_URL=/api por defecto
+#   - .env en raíz: se crea auto desde frontend/.env si no existe (VITE_API_URL, VITE_SUPABASE_*)
 #
 # COMANDOS:
 #   start     - Inicia backend, frontend y proxy nginx
@@ -45,6 +44,19 @@ check_env() {
   [[ -f backend/.env ]] || { log_error "Crea backend/.env desde backend/.env.example"; exit 1; }
 }
 
+# Crea .env en raíz con VITE_* si no existe (para build del frontend)
+ensure_root_env() {
+  local ROOT_ENV=".env"
+  local FRONT_ENV="frontend/.env"
+  if [[ ! -f "$ROOT_ENV" ]] && [[ -f "$FRONT_ENV" ]]; then
+    log_info "Creando $ROOT_ENV desde $FRONT_ENV (VITE_*)..."
+    echo "VITE_API_URL=/api" >> "$ROOT_ENV"
+    grep -E "^VITE_SUPABASE_URL=" "$FRONT_ENV" 2>/dev/null >> "$ROOT_ENV" || true
+    grep -E "^VITE_SUPABASE_ANON_KEY=" "$FRONT_ENV" 2>/dev/null >> "$ROOT_ENV" || true
+    log_success "$ROOT_ENV creado"
+  fi
+}
+
 compose_cmd() {
   if docker compose version &>/dev/null; then
     docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" "$@"
@@ -54,6 +66,7 @@ compose_cmd() {
 }
 
 cmd_start() {
+  ensure_root_env
   log_info "Iniciando Finward (backend + frontend + nginx)..."
   compose_cmd up -d
   log_success "Servicios iniciados. App: http://localhost"
@@ -73,6 +86,7 @@ cmd_restart() {
 }
 
 cmd_update() {
+  ensure_root_env
   log_info "Actualizando Finward (build + up)..."
   git pull origin main 2>/dev/null || true
   compose_cmd build --no-cache
