@@ -11,7 +11,7 @@ RUN npm install
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-RUN DATABASE_URL="postgresql://dummy:5432/db" npx prisma generate
+RUN DATABASE_URL="postgresql://dummy:5432/db" DIRECT_URL="postgresql://dummy:5432/db" npx prisma generate
 
 COPY . .
 RUN npm run build
@@ -26,7 +26,7 @@ RUN npm install --production
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-RUN DATABASE_URL="postgresql://dummy:5432/db" npx prisma generate
+RUN DATABASE_URL="postgresql://dummy:5432/db" DIRECT_URL="postgresql://dummy:5432/db" npx prisma generate
 
 COPY --from=builder /usr/src/app/dist ./dist
 
