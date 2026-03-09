@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import LoginPage from '@/pages/Auth/LoginPage';
 import RegisterPage from '@/pages/Auth/RegisterPage';
@@ -21,6 +22,7 @@ export function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Analytics />
     </>
   );
 }
