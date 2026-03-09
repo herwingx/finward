@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toastSuccess, toastError } from '@/utils/toast';
 import { AppLogo } from '@/components/AppLogo';
 import { Icon } from '@/components/Icon';
+import { API_BASE_URL } from '@/lib/api/client';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
