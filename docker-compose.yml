@@ -1,3 +1,6 @@
+# Finward - Docker Compose
+# Requiere: backend/.env
+# Opcional: .env en raíz con VITE_* (ver .env.docker.example)
 services:
   backend:
     build: ./backend

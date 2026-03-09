@@ -26,6 +26,16 @@ finward/
 
 Ver [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) para el flujo completo.
 
+## Docker (self-hosted)
+
+```bash
+cp backend/.env.example backend/.env   # Editar con Supabase, DATABASE_URL, etc.
+cp .env.docker.example .env            # Opcional: VITE_* para build frontend
+./deploy.sh start
+```
+
+App en `http://localhost`. Ver `./deploy.sh` (sin args muestra ayuda): start, stop, update, db:push, logs, etc.
+
 ## Docs
 
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md) - Optimizaciones de rendimiento (auditoría 2025)
