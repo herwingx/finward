@@ -32,7 +32,7 @@ Cuenta financiera del usuario.
 | INVESTMENT| Inversión         | Activo                             |
 | SAVINGS  | Ahorro             | Activo                             |
 
-- `cutoffDay`, `paymentDay`: Para TDC (ej. corte día 15, pago día 5).
+- `cutoffDay`, `daysToPayAfterCutoff`: Para TDC (ej. corte día 15, pago 20 días después).
 - `creditLimit`: Para TDC.
 - `balance`: Cache del balance actual (actualizado vía Ledger).
 
@@ -109,7 +109,7 @@ Meta de ahorro. `targetAmount`, `currentAmount`, `deadline`.
 ### Ciclos de Corte (TDC)
 
 - `cutoffDay`: Día de corte (ej. 15).
-- `paymentDay`: Día límite de pago (ej. 5).
+- `daysToPayAfterCutoff`: Días naturales para pagar después del corte (ej. 20 o 30).
 - Ciclo: desde día después del corte anterior hasta el día de corte actual.
 - Job diario 00:05: genera `CreditCardStatement` para cuentas cuyo `cutoffDay` = hoy.
 

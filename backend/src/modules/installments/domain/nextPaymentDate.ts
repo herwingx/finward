@@ -14,14 +14,14 @@ function setDaySafe(d: Date, day: number): void {
 export function getPaymentDateForInstallment(
   purchase: {
     purchaseDate: Date;
-    account?: { cutoffDay: number | null; paymentDay: number | null } | null;
+    account?: { cutoffDay: number | null; daysToPayAfterCutoff: number | null } | null;
   },
   installmentNum: number
 ): Date {
   const account = purchase.account;
   const purchaseDate = new Date(purchase.purchaseDate);
 
-  if (!account?.cutoffDay || !account.paymentDay) {
+  if (!account?.cutoffDay || account.daysToPayAfterCutoff == null) {
     return addMonthsPreservingDay(purchaseDate, installmentNum - 1);
   }
 
@@ -34,12 +34,9 @@ export function getPaymentDateForInstallment(
     cutoffDate.setTime(next.getTime());
   }
 
-  const paymentDate = new Date(cutoffDate.getFullYear(), cutoffDate.getMonth(), 1);
-  setDaySafe(paymentDate, account.paymentDay);
-  if (account.paymentDay <= account.cutoffDay) {
-    const next = addMonthsPreservingDay(paymentDate, 1);
-    paymentDate.setTime(next.getTime());
-  }
+  const paymentDate = new Date(cutoffDate);
+  paymentDate.setDate(paymentDate.getDate() + account.daysToPayAfterCutoff);
+  paymentDate.setHours(12, 0, 0, 0);
 
   return paymentDate;
 }
@@ -52,7 +49,7 @@ export function getNextPaymentDate(purchase: {
   installments: number;
   paidInstallments: number;
   purchaseDate: Date;
-  account?: { cutoffDay: number | null; paymentDay: number | null } | null;
+  account?: { cutoffDay: number | null; daysToPayAfterCutoff: number | null } | null;
 }): Date | null {
   if (purchase.paidInstallments >= purchase.installments) return null;
   return getPaymentDateForInstallment(purchase, purchase.paidInstallments + 1);

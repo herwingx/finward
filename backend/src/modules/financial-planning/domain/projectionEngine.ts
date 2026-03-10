@@ -102,7 +102,7 @@ export function expandMsiInPeriod(
     paidAmount: number;
     monthlyPayment: number;
     purchaseDate: Date;
-    account?: { cutoffDay: number | null; paymentDay: number | null } | null;
+    account?: { cutoffDay: number | null; daysToPayAfterCutoff: number | null } | null;
     category?: { id: string; name: string; icon: string; color: string };
   },
   periodStart: Date,

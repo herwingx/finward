@@ -71,7 +71,7 @@ export interface Account {
   balance: number;
   creditLimit?: number;
   cutoffDay?: number;
-  paymentDay?: number;
+  daysToPayAfterCutoff?: number;
   interestRate?: number;
   userId: string;
   transactions?: Transaction[];
@@ -177,7 +177,7 @@ export interface TransactionFormInitialData {
 export interface FinancialPeriodSummary {
   periodStart: string;
   periodEnd: string;
-  periodType: 'quincenal' | 'mensual' | 'semanal';
+  periodType: 'quincenal' | 'mensual' | 'semanal' | 'bimestral' | 'semestral' | 'anual';
   availableFunds: number;
   totalAssets: number;
   totalLiabilities: number;

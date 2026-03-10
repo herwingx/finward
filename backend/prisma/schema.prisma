@@ -67,7 +67,7 @@ model Account {
   currency   String      @default("MXN")
   creditLimit Float?
   cutoffDay  Int?
-  paymentDay Int?
+  daysToPayAfterCutoff Int?
   interestRate Float?
 
   isArchived       Boolean @default(false)

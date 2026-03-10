@@ -22,15 +22,28 @@ function getPeriodDates(periodType: PeriodType, mode: 'calendar' | 'projection')
         end: addDays(today, 7),
       };
     case 'quincenal':
-      return mode === 'projection'
-        ? { start: today, end: addDays(today, 30) }
-        : { start: today, end: addDays(today, 15) };
+      if (today.getDate() <= 15) {
+        return {
+          start: startOfMonth(now),
+          end: new Date(now.getFullYear(), now.getMonth(), 15, 23, 59, 59, 999),
+        };
+      }
+      return {
+        start: new Date(now.getFullYear(), now.getMonth(), 16),
+        end: endOfMonth(now),
+      };
     case 'mensual':
       return {
         start: startOfMonth(now),
         end: endOfMonth(now),
       };
     case 'bimestral':
+      if (mode === 'projection') {
+        return {
+          start: today,
+          end: addMonths(today, 2),
+        };
+      }
       return {
         start: startOfMonth(now),
         end: endOfMonth(addMonths(now, 1)),
@@ -110,11 +123,11 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
     loansBorrowed,
   });
 
-  const creditAccounts = accounts.filter(a => a.type === 'CREDIT' && a.cutoffDay && a.paymentDay);
+  const creditAccounts = accounts.filter(a => a.type === 'CREDIT' && a.cutoffDay && a.daysToPayAfterCutoff != null);
   const creditCardRegularPayments = [];
 
   for (const acc of creditAccounts) {
-    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay!, paymentDay: acc.paymentDay! });
+    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay!, daysToPayAfterCutoff: acc.daysToPayAfterCutoff! });
 
     // Obtener compras regulares en este ciclo
     const aggResult = await prisma.transaction.aggregate({
@@ -264,9 +277,9 @@ router.get('/upcoming', async (req: AuthRequest, res: Response) => {
   }
 
   for (const acc of accounts) {
-    if (!acc.cutoffDay || !acc.paymentDay) continue;
+    if (!acc.cutoffDay || acc.daysToPayAfterCutoff == null) continue;
 
-    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay, paymentDay: acc.paymentDay });
+    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay, daysToPayAfterCutoff: acc.daysToPayAfterCutoff });
 
     // Si la fecha de pago está después del endDate de upcoming, no lo mostramos (pero si está antes o vencido, sí)
     if (cycle.paymentDate > endDate) continue;
