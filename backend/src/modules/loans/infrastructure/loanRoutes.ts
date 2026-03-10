@@ -54,8 +54,8 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const { borrowerName, borrowerPhone, borrowerEmail, reason, loanType, originalAmount, remainingAmount, loanDate, expectedPayDate, notes, interestRate, accountId } = req.body ?? {};
-  if (!borrowerName || !originalAmount || !remainingAmount || !loanDate) {
-    throw AppError.badRequest('Missing: borrowerName, originalAmount, remainingAmount, loanDate');
+  if (!borrowerName || !originalAmount || !loanDate) {
+    throw AppError.badRequest('Missing: borrowerName, originalAmount, loanDate');
   }
   validateMaxLength(borrowerName, MAX_NAME_LENGTH, 'borrowerName');
   validateMaxLength(notes, MAX_NOTES_LENGTH, 'notes');
@@ -63,6 +63,11 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     const acc = await prisma.account.findFirst({ where: { id: accountId, userId } });
     if (!acc) throw AppError.notFound('Account not found');
   }
+  const parsedOriginalAmount = parseAndValidateAmount(originalAmount, 'originalAmount');
+  const parsedRemainingAmount = remainingAmount != null
+    ? parseAndValidateAmount(remainingAmount, 'remainingAmount')
+    : parsedOriginalAmount;
+
   const loan = await prisma.loan.create({
     data: {
       userId,
@@ -71,8 +76,8 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       borrowerEmail,
       reason,
       loanType: loanType ?? 'lent',
-      originalAmount: parseAndValidateAmount(originalAmount, 'originalAmount'),
-      remainingAmount: parseAndValidateAmount(remainingAmount, 'remainingAmount'),
+      originalAmount: parsedOriginalAmount,
+      remainingAmount: parsedRemainingAmount,
       loanDate: new Date(loanDate),
       expectedPayDate: expectedPayDate ? new Date(expectedPayDate) : null,
       notes,

@@ -13,9 +13,9 @@ router.get('/statement/:accountId', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const accountId = req.params.accountId as string;
   const account = await prisma.account.findFirst({ where: { id: accountId, userId, type: 'CREDIT' } });
-  if (!account || !account.cutoffDay || !account.paymentDay) throw AppError.notFound('Credit card not found');
+  if (!account || !account.cutoffDay || account.daysToPayAfterCutoff == null) throw AppError.notFound('Credit card not found');
 
-  const cycle = getBillingCycle({ cutoffDay: account.cutoffDay, paymentDay: account.paymentDay });
+  const cycle = getBillingCycle({ cutoffDay: account.cutoffDay, daysToPayAfterCutoff: account.daysToPayAfterCutoff });
 
   const [regularPurchases, msiPurchases] = await Promise.all([
     prisma.transaction.findMany({
@@ -30,7 +30,7 @@ router.get('/statement/:accountId', async (req: AuthRequest, res: Response) => {
     }),
     prisma.installmentPurchase.findMany({
       where: { accountId, userId },
-      include: { category: true, account: { select: { cutoffDay: true, paymentDay: true } } },
+      include: { category: true, account: { select: { cutoffDay: true, daysToPayAfterCutoff: true } } },
     }),
   ]);
 
@@ -65,7 +65,7 @@ router.post('/statement/:accountId/pay', async (req: AuthRequest, res: Response)
   if (!sourceAccountId || !amount) throw AppError.badRequest('Missing sourceAccountId or amount');
 
   const account = await prisma.account.findFirst({ where: { id: accountId, userId, type: 'CREDIT' } });
-  if (!account || !account.cutoffDay || !account.paymentDay) throw AppError.notFound('Credit card not found');
+  if (!account || !account.cutoffDay || account.daysToPayAfterCutoff == null) throw AppError.notFound('Credit card not found');
 
   const sourceAccount = await prisma.account.findFirst({ where: { id: sourceAccountId, userId } });
   if (!sourceAccount) throw AppError.notFound('Source account not found');

@@ -30,7 +30,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
   // Credit details
   const [limit, setLimit] = useState('');
   const [cutoff, setCutoff] = useState('');
-  const [payDay, setPayDay] = useState('');
+  const [daysToPayAfterCutoff, setDaysToPayAfterCutoff] = useState('');
   const [rate, setRate] = useState('');
 
   // Adjustment Logic
@@ -47,7 +47,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
       setBalance(String(existingAccount.balance));
       setLimit(existingAccount.creditLimit?.toString() || '');
       setCutoff(existingAccount.cutoffDay?.toString() || '');
-      setPayDay(existingAccount.paymentDay?.toString() || '');
+      setDaysToPayAfterCutoff(existingAccount.daysToPayAfterCutoff?.toString() || '');
       setRate(existingAccount.interestRate?.toString() || '');
     } else {
       setType('DEBIT');
@@ -65,7 +65,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
       balance: parseFloat(balance) || 0,
       creditLimit: limit ? parseFloat(limit) : undefined,
       cutoffDay: cutoff ? parseInt(cutoff) : undefined,
-      paymentDay: payDay ? parseInt(payDay) : undefined,
+      daysToPayAfterCutoff: daysToPayAfterCutoff ? parseInt(daysToPayAfterCutoff) : undefined,
       interestRate: rate ? parseFloat(rate) : undefined
     };
 
@@ -268,14 +268,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="acc-payday" className="text-[10px] font-bold text-app-muted uppercase ml-1">Límite Pago</label>
+                  <label htmlFor="acc-days-to-pay" className="text-[10px] font-bold text-app-muted uppercase ml-1">Días para Pagar</label>
                   <div className="bg-app-surface border border-app-border rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-app-primary/50 focus-within:border-app-primary transition-all">
                     <input
-                      id="acc-payday"
+                      id="acc-days-to-pay"
                       type="number"
-                      placeholder="Ej. 4"
-                      value={payDay}
-                      onChange={e => setPayDay(e.target.value)}
+                      placeholder="Ej. 20"
+                      value={daysToPayAfterCutoff}
+                      onChange={e => setDaysToPayAfterCutoff(e.target.value)}
                       className="w-full bg-transparent text-sm font-bold outline-none text-app-text text-center"
                     />
                   </div>

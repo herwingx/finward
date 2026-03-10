@@ -43,7 +43,7 @@ export interface FinancialSummaryInput {
     paidAmount: number;
     monthlyPayment: number;
     purchaseDate: Date;
-    account?: { id?: string; name?: string; cutoffDay: number | null; paymentDay: number | null } | null;
+    account?: { id?: string; name?: string; cutoffDay: number | null; daysToPayAfterCutoff: number | null } | null;
     category?: { id: string; name: string; icon: string; color: string };
   }>;
   creditCardRegularPayments?: Array<{

@@ -10,10 +10,10 @@ export async function generateCreditCardStatements(): Promise<{ processed: numbe
   const created: string[] = [];
 
   const accounts = await prisma.account.findMany({
-    where: { type: 'CREDIT', cutoffDay: dayOfMonth },
+    where: { type: 'CREDIT', cutoffDay: dayOfMonth, daysToPayAfterCutoff: { not: null } },
     include: {
       installmentPurchases: {
-        include: { account: { select: { cutoffDay: true, paymentDay: true } } },
+        include: { account: { select: { cutoffDay: true, daysToPayAfterCutoff: true } } },
       },
     },
   });
@@ -24,7 +24,7 @@ export async function generateCreditCardStatements(): Promise<{ processed: numbe
     await Promise.all(
       batch.map(async (account) => {
         try {
-          const cycle = getBillingCycle({ cutoffDay: account.cutoffDay!, paymentDay: account.paymentDay! }, today);
+          const cycle = getBillingCycle({ cutoffDay: account.cutoffDay!, daysToPayAfterCutoff: account.daysToPayAfterCutoff! }, today);
           const cycleStart = cycle.cycleStartDate;
           const cycleEnd = startOfDay(today);
 

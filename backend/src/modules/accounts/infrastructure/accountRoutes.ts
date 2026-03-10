@@ -26,7 +26,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 
 router.post('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const { name, type, balance, creditLimit, cutoffDay, paymentDay } = req.body ?? {};
+  const { name, type, balance, creditLimit, cutoffDay, daysToPayAfterCutoff } = req.body ?? {};
   if (!name || !type || balance === undefined) throw AppError.badRequest('Missing: name, type, balance');
 
   validateName(name);
@@ -52,7 +52,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       balance: initialBalance,
       creditLimit: t === 'CREDIT' && creditLimit != null ? parseSafeFloat(creditLimit, 'creditLimit') : null,
       cutoffDay: t === 'CREDIT' ? (cutoffDay != null ? parseSafeFloat(cutoffDay, 'cutoffDay') : null) : null,
-      paymentDay: t === 'CREDIT' ? (paymentDay != null ? parseSafeFloat(paymentDay, 'paymentDay') : null) : null,
+      daysToPayAfterCutoff: t === 'CREDIT' ? (daysToPayAfterCutoff != null ? parseSafeFloat(daysToPayAfterCutoff, 'daysToPayAfterCutoff') : null) : null,
     },
   });
   res.status(201).json(account);
@@ -61,7 +61,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
-  const { name, type, creditLimit, cutoffDay, paymentDay } = req.body ?? {};
+  const { name, type, creditLimit, cutoffDay, daysToPayAfterCutoff } = req.body ?? {};
 
   const existing = await prisma.account.findFirst({ where: { id, userId } });
   if (!existing) throw AppError.notFound('Account not found');
@@ -82,7 +82,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     if (update.creditLimit != null) validateAmount(update.creditLimit as number, 'creditLimit');
   }
   if (cutoffDay !== undefined) update.cutoffDay = cutoffDay != null ? parseSafeFloat(cutoffDay, 'cutoffDay') : null;
-  if (paymentDay !== undefined) update.paymentDay = paymentDay != null ? parseSafeFloat(paymentDay, 'paymentDay') : null;
+  if (daysToPayAfterCutoff !== undefined) {
+    update.daysToPayAfterCutoff = daysToPayAfterCutoff != null ? parseSafeFloat(daysToPayAfterCutoff, 'daysToPayAfterCutoff') : null;
+  }
 
   const account = await prisma.account.update({
     where: { id },
