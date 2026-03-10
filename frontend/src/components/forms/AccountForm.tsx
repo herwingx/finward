@@ -232,7 +232,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
                   key={t.v}
                   type="button"
                   onClick={() => setType(t.v)}
-                  className={`flex flex-col items-center justify-center min-w-[68px] min-h-[68px] rounded-2xl border transition-all duration-200 shadow-sm
+                  className={`flex flex-col items-center justify-center min-w-17 min-h-17 rounded-2xl border transition-all duration-200 shadow-sm
                     ${type === t.v
                       ? 'bg-app-primary border-app-primary text-white scale-[1.02] shadow-app-primary/30 z-10'
                       : 'bg-app-surface border-app-border text-app-muted hover:border-app-border-strong hover:bg-app-subtle'
@@ -331,7 +331,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ existingAccount, onClo
       {/* ADJUSTMENT MODAL OVERLAY (Sleek Alert Style) */}
       {showAdj && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-app-surface border border-app-border rounded-[32px] p-8 w-full max-w-sm shadow-2xl animate-scale-in">
+          <div className="bg-app-surface border border-app-border rounded-4xl p-8 w-full max-w-sm shadow-2xl animate-scale-in">
             <div className="flex flex-col items-center text-center mb-8">
               <div className="size-16 rounded-3xl bg-app-primary/10 flex items-center justify-center mb-4 text-app-primary">
                 <Icon name="account_balance_wallet" size={32} />

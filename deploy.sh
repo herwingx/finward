@@ -67,8 +67,8 @@ compose_cmd() {
 
 cmd_start() {
   ensure_root_env
-  log_info "Iniciando Finward (backend + frontend + nginx)..."
-  compose_cmd up -d
+  log_info "Iniciando Finward (backend + frontend + nginx) con rebuild..."
+  compose_cmd up -d --build
   log_success "Servicios iniciados. App: http://localhost"
   cmd_status
 }

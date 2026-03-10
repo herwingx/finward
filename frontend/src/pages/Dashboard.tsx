@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
     <div className="w-full bg-app-bg transition-colors duration-300">
 
       {/* === HEADER CON CAMPANA DE NOTIFICACIONES === */}
-      <header className="pt-4 pb-2 px-4 md:px-8 max-w-[1400px] mx-auto flex justify-between items-center sticky top-0 z-30 bg-app-bg/80 backdrop-blur-xl md:static md:bg-transparent">
+      <header className="pt-4 pb-2 px-4 md:px-8 max-w-350 mx-auto flex justify-between items-center sticky top-0 z-30 bg-app-bg/80 backdrop-blur-xl md:static md:bg-transparent">
         <div className="animate-fade-in flex items-center gap-3">
           <Link to="/profile" className="size-10 rounded-full overflow-hidden border border-app-border hover:ring-2 ring-app-primary transition-all md:hidden">
             <img src={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}`} alt="Avatar" className="w-full h-full object-cover" />
@@ -150,10 +150,10 @@ const Dashboard: React.FC = () => {
       />
 
       {/* BENTO GRID PRINCIPAL - Cambiado a grid-cols-2 en móvil para permitir KPIs lado a lado */}
-      <main className="px-4 md:px-8 py-2 max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 animate-fade-in">
+      <main className="px-4 md:px-8 py-2 max-w-350 mx-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 animate-fade-in">
 
         {/* 1. Main Balance con Privacidad */}
-        <div className="col-span-2 md:col-span-2 row-span-2 min-h-[180px] md:h-auto bento-card relative overflow-hidden bg-linear-to-br from-app-surface to-app-subtle dark:to-[#0A0A0A] p-5 md:p-6 flex flex-col justify-between border-0 shadow-lg">
+        <div className="col-span-2 md:col-span-2 row-span-2 min-h-45 md:h-auto bento-card relative overflow-hidden bg-linear-to-br from-app-surface to-app-subtle dark:to-[#0A0A0A] p-5 md:p-6 flex flex-col justify-between border-0 shadow-lg">
           <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-app-primary opacity-10 blur-[80px] rounded-full pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-1 md:mb-2 opacity-80">
@@ -195,14 +195,14 @@ const Dashboard: React.FC = () => {
           <FinancialPlanningWidget />
         </div>
         {/* 4. Chart Grande */}
-        <BentoCard title="Tendencia" className="col-span-2 md:col-span-2 lg:col-span-3 min-h-[300px]" action={reportsLink}>
+        <BentoCard title="Tendencia" className="col-span-2 md:col-span-2 lg:col-span-3 min-h-75" action={reportsLink}>
           <React.Suspense fallback={<div className="h-48 bg-app-subtle/50 rounded-2xl animate-pulse" />}>
             <SpendingTrendChart transactions={txList} />
           </React.Suspense>
         </BentoCard>
 
         {/* 5. Placeholder Presupuesto */}
-        <BentoCard className="col-span-2 md:col-span-2 lg:col-span-1 min-h-[160px] md:min-h-[200px]" title="Alertas">
+        <BentoCard className="col-span-2 md:col-span-2 lg:col-span-1 min-h-40 md:min-h-50" title="Alertas">
           {unreadCount > 0 ? (
             <div className="h-full flex flex-col justify-center items-center text-center">
               <span className="size-3 bg-app-danger rounded-full animate-ping mb-2" />

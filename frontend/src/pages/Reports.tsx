@@ -19,7 +19,7 @@ const CustomTooltip = ({ active, payload, formatter }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="bg-app-surface/90 backdrop-blur-md border border-app-border rounded-xl shadow-lg p-3 min-w-[120px] animate-fade-in z-50">
+            <div className="bg-app-surface/90 backdrop-blur-md border border-app-border rounded-xl shadow-lg p-3 min-w-30 animate-fade-in z-50">
                 <div className="flex items-center gap-2 mb-1">
                     <span className="size-2.5 rounded-full" style={{ backgroundColor: data.color }} />
                     <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">{data.name}</span>
@@ -109,7 +109,7 @@ const Reports: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
                     {/* Main Balance Card - Spans 2 cols on mobile */}
-                    <div className="col-span-2 md:col-span-2 bento-card p-5 bg-linear-to-br from-app-surface to-app-subtle dark:to-zinc-900 flex flex-col justify-between h-[140px]">
+                    <div className="col-span-2 md:col-span-2 bento-card p-5 bg-linear-to-br from-app-surface to-app-subtle dark:to-zinc-900 flex flex-col justify-between h-35">
                         <div>
                             <div className="flex items-center gap-2 opacity-70 mb-1">
                                 <Icon name="account_balance_wallet" size={18} />
@@ -163,7 +163,7 @@ const Reports: React.FC = () => {
                         <div className="flex flex-col md:flex-row items-center p-6 gap-8">
 
                             {/* Donut Chart */}
-                            <div className="relative shrink-0 size-[180px]">
+                            <div className="relative shrink-0 size-45">
                                 <PieChart width={180} height={180}>
                                     <Pie
                                         data={chartData}
