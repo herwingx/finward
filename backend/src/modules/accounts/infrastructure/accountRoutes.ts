@@ -5,6 +5,7 @@ import {
   parseSafeFloat,
   validateAmount,
   validateName,
+  validateNonNegativeAmount,
 } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
@@ -35,7 +36,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   }
 
   const initialBalance = parseSafeFloat(balance, 'balance');
-  validateAmount(Math.abs(initialBalance), 'balance');
+  const absBalance = Math.abs(initialBalance);
+  // Credit cards allow 0 debt; other account types require at least 0.01
+  if (t === 'CREDIT') {
+    validateNonNegativeAmount(absBalance, 'balance');
+  } else {
+    validateAmount(absBalance, 'balance');
+  }
 
   const account = await prisma.account.create({
     data: {
