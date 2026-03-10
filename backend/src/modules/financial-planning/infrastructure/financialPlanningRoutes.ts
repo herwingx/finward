@@ -15,6 +15,46 @@ function getPeriodDates(periodType: PeriodType, mode: 'calendar' | 'projection')
   const now = new Date();
   const today = startOfDay(now);
 
+  if (mode === 'projection') {
+    switch (periodType) {
+      case 'semanal':
+        return {
+          start: today,
+          end: addDays(today, 7),
+        };
+      case 'quincenal':
+        return {
+          start: today,
+          end: addDays(today, 15),
+        };
+      case 'mensual':
+        return {
+          start: today,
+          end: addMonths(today, 1),
+        };
+      case 'bimestral':
+        return {
+          start: today,
+          end: addMonths(today, 2),
+        };
+      case 'semestral':
+        return {
+          start: today,
+          end: addMonths(today, 6),
+        };
+      case 'anual':
+        return {
+          start: today,
+          end: addMonths(today, 12),
+        };
+      default:
+        return {
+          start: today,
+          end: addDays(today, 15),
+        };
+    }
+  }
+
   switch (periodType) {
     case 'semanal':
       return {
@@ -38,12 +78,6 @@ function getPeriodDates(periodType: PeriodType, mode: 'calendar' | 'projection')
         end: endOfMonth(now),
       };
     case 'bimestral':
-      if (mode === 'projection') {
-        return {
-          start: today,
-          end: addMonths(today, 2),
-        };
-      }
       return {
         start: startOfMonth(now),
         end: endOfMonth(addMonths(now, 1)),
