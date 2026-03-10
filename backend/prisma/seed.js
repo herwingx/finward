@@ -93,7 +93,17 @@ O desde .env: SEED_USER_ID=tu-uuid
   let accountCredit = await prisma.account.findFirst({ where: { userId, name: 'TDC Santander' } });
   if (!accountCredit) {
     accountCredit = await prisma.account.create({
-      data: { userId, name: 'TDC Santander', type: 'CREDIT', balance: 0, currency: 'MXN', creditLimit: 30000, cutoffDay: 15, paymentDay: 25, interestRate: 24 },
+      data: {
+        userId,
+        name: 'TDC Santander',
+        type: 'CREDIT',
+        balance: 0,
+        currency: 'MXN',
+        creditLimit: 30000,
+        cutoffDay: 15,
+        daysToPayAfterCutoff: 10,
+        interestRate: 24,
+      },
     });
   }
   console.log('✓ Accounts');

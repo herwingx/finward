@@ -25,7 +25,7 @@ const CustomChartTooltip = ({ active, payload, label, formatCurrency }: any) => 
     const hasChange = income > 0 || expense > 0;
 
     return (
-      <div className="bg-app-surface/95 backdrop-blur-md border border-app-border rounded-xl shadow-lg p-3 min-w-[160px] z-50">
+      <div className="bg-app-surface/95 backdrop-blur-md border border-app-border rounded-xl shadow-lg p-3 min-w-40 z-50">
         <p className="text-[10px] text-app-muted uppercase font-bold tracking-wider mb-2">{label}</p>
 
         <div className="space-y-2">
@@ -268,7 +268,7 @@ const FinancialAnalysis: React.FC = () => {
         </div>
 
         {/* --- B. CHART CARD --- */}
-        <div className="bento-card bg-app-surface overflow-hidden shadow-sm h-[320px] md:h-[380px] flex flex-col p-0 border border-app-border/80">
+        <div className="bento-card bg-app-surface overflow-hidden shadow-sm h-80 md:h-95 flex flex-col p-0 border border-app-border/80">
           <div className="px-5 py-4 border-b border-app-subtle/60 flex justify-between items-start shrink-0">
             <div>
               <h3 className="text-sm font-bold text-app-text">Liquidez Proyectada</h3>
