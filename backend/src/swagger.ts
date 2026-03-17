@@ -10,6 +10,15 @@ const spec = {
       securitySchemes: {
         bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       },
+      schemas: {
+        Error: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', description: 'Mensaje de error' },
+            code: { type: 'string', description: 'Código (BAD_REQUEST, NOT_FOUND, etc.)' },
+          },
+        },
+      },
     },
     security: [{ bearerAuth: [] }],
     paths: {
@@ -25,6 +34,9 @@ const spec = {
           tags: ['Profile'],
         },
       },
+      '/transactions/deleted': {
+        get: { summary: 'List deleted transactions', tags: ['Transactions'] },
+      },
       '/profile/avatar-url': {
         get: {
           summary: 'Get signed URL to display profile picture',
@@ -33,8 +45,8 @@ const spec = {
         },
       },
       '/transactions': {
-        get: { summary: 'List transactions', tags: ['Transactions'] },
-        post: { summary: 'Create transaction (income/expense/transfer)', tags: ['Transactions'] },
+        get: { summary: 'List transactions', tags: ['Transactions'], description: 'Query: take (1-500), skip' },
+        post: { summary: 'Create transaction', tags: ['Transactions'], description: 'Body: amount, date, type (income|expense|transfer), accountId, categoryId (income/expense), destinationAccountId (transfer)' },
       },
       '/accounts': {
         get: { summary: 'List accounts', tags: ['Accounts'] },

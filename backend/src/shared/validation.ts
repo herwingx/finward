@@ -125,6 +125,31 @@ export function validateName(name: string | undefined | null): void {
 }
 
 /**
+ * Parse and validate a date value. Rejects invalid dates (NaN).
+ * @throws AppError.badRequest if value is not a valid date
+ */
+export function parseAndValidateDate(value: unknown, field = 'date'): Date {
+  const d = value instanceof Date ? value : new Date(String(value ?? ''));
+  if (Number.isNaN(d.getTime())) {
+    throw AppError.badRequest(`${field} must be a valid date`);
+  }
+  return d;
+}
+
+/** UUID v4 regex for validation */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[14][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Validate string is a valid UUID format.
+ * @throws AppError.badRequest if invalid
+ */
+export function validateUuid(value: string | undefined | null, field = 'id'): asserts value is string {
+  if (!value || typeof value !== 'string' || !UUID_REGEX.test(value)) {
+    throw AppError.badRequest(`${field} must be a valid UUID`);
+  }
+}
+
+/**
  * Parse pagination params from query string.
  * take: 1..MAX_PAGE_TAKE (default DEFAULT_PAGE_TAKE)
  * skip: >= 0 (default 0)

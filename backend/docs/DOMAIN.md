@@ -138,3 +138,9 @@ Meta de ahorro. `targetAmount`, `currentAmount`, `deadline`.
 - **netWorth:** totalAssets - totalLiabilities.
 
 Usado por Financial Planning, Dashboard y contexto AI.
+
+---
+
+## Referencias
+
+- [CALCULATIONS.md](CALCULATIONS.md) — Fórmulas detalladas (MSI, proyección, redondeo)

@@ -79,6 +79,7 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 
 **financial-planning/summary** — Query: `?period=semanal|quincenal|mensual|bimestral|semestral|anual` y `?mode=calendar|projection`. Devuelve: `expectedIncome[]`, `expectedExpenses[]`, `msiPaymentsDue[]` (con `accountId`, `accountName` por TDC), `totalPeriodIncome`, `totalCommitments`, `disposableIncome`, `projectedBalance`, `availableFunds`, `totalAssets`, `totalLiabilities`, `netWorth`, `budgetAnalysis` (needs/wants/savings), `isSufficient`, `warnings`. Ver `docs/PROJECTION-ENGINE.md`.
 | GET, PUT | /api/notifications | Listar, marcar leídas |
+| POST | /api/notifications/debug-trigger | (Solo dev) Crear notificación de prueba. Requiere `NODE_ENV=development` o `ENABLE_DEBUG_NOTIFICATIONS=true` |
 
 ### Loans
 | Método | Ruta | Descripción |
@@ -114,3 +115,8 @@ El JWT debe ser válido (Supabase Auth). El backend valida con `supabase.auth.ge
 | 500 | Internal Server Error |
 
 Las respuestas de error usan `{ error: string, code?: string }`. El frontend muestra `error` al usuario.
+
+## Documentación adicional
+
+- [CALCULATIONS.md](CALCULATIONS.md) — Fórmulas y reglas de cálculo (MSI, ledger, balances, proyección)
+- [DOMAIN.md](DOMAIN.md) — Entidades y reglas de negocio

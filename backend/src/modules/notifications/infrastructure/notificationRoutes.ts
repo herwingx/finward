@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
-import { parseSafeInt } from '../../../shared/validation';
+import { parseSafeInt, validateUuid } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -34,6 +34,7 @@ router.put('/read-all', async (req: AuthRequest, res: Response) => {
 router.put('/:id/read', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
 
   const notification = await prisma.notification.findFirst({
     where: { id, userId },
@@ -47,20 +48,21 @@ router.put('/:id/read', async (req: AuthRequest, res: Response) => {
   res.json({ success: true });
 });
 
-router.post('/debug-trigger', async (req: AuthRequest, res: Response) => {
-  const userId = req.user!.id;
-
-  const notification = await prisma.notification.create({
-    data: {
-      userId,
-      type: 'DEBUG',
-      title: '🚀 Prueba Realtime',
-      body: 'Si ves esto, tu conexión por WebSockets de Supabase está funcionando perfectamente.',
-      data: { timestamp: new Date().toISOString() },
-    },
+// Solo disponible en desarrollo o con ENABLE_DEBUG_NOTIFICATIONS=true
+if (process.env.NODE_ENV === 'development' || process.env.ENABLE_DEBUG_NOTIFICATIONS === 'true') {
+  router.post('/debug-trigger', async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const notification = await prisma.notification.create({
+      data: {
+        userId,
+        type: 'DEBUG',
+        title: '🚀 Prueba Realtime',
+        body: 'Si ves esto, tu conexión por WebSockets de Supabase está funcionando perfectamente.',
+        data: { timestamp: new Date().toISOString() },
+      },
+    });
+    res.json(notification);
   });
-
-  res.json(notification);
-});
+}
 
 export default router;

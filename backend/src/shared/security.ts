@@ -27,9 +27,10 @@ export const corsMiddleware = () => {
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { message: 'Too many requests', retryAfter: 15 },
+  message: { error: 'Too many requests', retryAfter: 15, code: 'RATE_LIMIT' },
   standardHeaders: true,
   legacyHeaders: false,
+  /** En producción activo por defecto; desactivar solo con RATE_LIMIT_ENABLED=false */
   skip: () => process.env.RATE_LIMIT_ENABLED === 'false',
 });
 

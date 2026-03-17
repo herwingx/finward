@@ -3,8 +3,10 @@ import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 import {
   parseAndValidateAmount,
+  parseAndValidateDate,
   parseSafeInt,
   validateName,
+  validateUuid,
 } from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import { createIncome } from '../../transactions/useCases/CreateIncomeUseCase';
@@ -33,7 +35,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       name,
       targetAmount: parseAndValidateAmount(targetAmount, 'targetAmount'),
       currentAmount: currentAmount != null ? parseAndValidateAmount(currentAmount, 'currentAmount') : 0,
-      deadline: deadline ? new Date(deadline) : null,
+      deadline: deadline ? parseAndValidateDate(deadline, 'deadline') : null,
       icon,
       color,
       priority: priority ?? 1,
@@ -45,6 +47,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { name, targetAmount, deadline, icon, color, priority, status } = req.body ?? {};
 
   const goal = await prisma.savingsGoal.findFirst({ where: { id, userId } });
@@ -55,7 +58,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     data: {
       name: name ?? goal.name,
       targetAmount: targetAmount !== undefined ? parseAndValidateAmount(targetAmount, 'targetAmount') : goal.targetAmount,
-      deadline: deadline === null ? null : deadline ? new Date(deadline) : goal.deadline,
+      deadline: deadline === null ? null : deadline ? parseAndValidateDate(deadline, 'deadline') : goal.deadline,
       icon: icon ?? goal.icon,
       color: color ?? goal.color,
       priority: priority !== undefined ? parseSafeInt(priority, 'priority') : goal.priority,
@@ -68,6 +71,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
 
   const goal = await prisma.savingsGoal.findFirst({ where: { id, userId } });
   if (!goal) throw AppError.notFound('Goal not found');
@@ -79,6 +83,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/:id/contribute', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, date, notes, sourceAccountId } = req.body ?? {};
 
   if (!amount || !sourceAccountId) throw AppError.badRequest('amount and sourceAccountId required');
@@ -100,14 +105,14 @@ router.post('/:id/contribute', async (req: AuthRequest, res: Response) => {
     categoryId: cat.id,
     amount: amt,
     description: `Ahorro: ${goal.name}`,
-    date: date ? new Date(date) : new Date(),
+    date: date ? parseAndValidateDate(date, 'date') : new Date(),
   });
   if (!tx) throw AppError.badRequest('Failed to create transaction');
 
   await prisma.savingsContribution.create({
     data: {
       amount: amt,
-      date: date ? new Date(date) : new Date(),
+      date: date ? parseAndValidateDate(date, 'date') : new Date(),
       notes: notes ?? null,
       savingsGoalId: id,
       transactionId: tx.id,
@@ -125,6 +130,7 @@ router.post('/:id/contribute', async (req: AuthRequest, res: Response) => {
 router.post('/:id/withdraw', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, targetAccountId } = req.body ?? {};
 
   if (!amount || !targetAccountId) throw AppError.badRequest('amount and targetAccountId required');

@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
-import { validateName } from '../../../shared/validation';
+import { validateName, validateUuid } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
@@ -27,6 +27,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { name, icon, color, type, budgetType } = req.body ?? {};
 
   const existing = await prisma.category.findFirst({ where: { id, userId } });
@@ -51,6 +52,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const existing = await prisma.category.findFirst({ where: { id, userId } });
   if (!existing) throw AppError.notFound('Category not found');
   await prisma.category.delete({ where: { id } });

@@ -30,7 +30,7 @@ Ver [backend/docs/DEVELOPMENT.md](backend/docs/DEVELOPMENT.md) para el flujo com
 
 ```bash
 cp backend/.env.example backend/.env   # Editar con Supabase, DATABASE_URL, etc.
-cp .env.docker.example .env            # Opcional: VITE_* para build frontend
+cp .env.docker.example .env            # VITE_SUPABASE_* requeridos para login
 ./deploy.sh start
 ```
 
@@ -38,6 +38,8 @@ App en `http://localhost`. Ver `./deploy.sh` (sin args muestra ayuda): start, st
 
 ## Docs
 
+- [docs/DOCKER.md](docs/DOCKER.md) - Docker: variables .env, arquitectura, base de datos
+- [docs/PENDIENTES.md](docs/PENDIENTES.md) - Tareas futuras (tests, health check, etc.)
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md) - Optimizaciones de rendimiento (auditoría 2025)
 - [docs/UX-UI.md](docs/UX-UI.md) - Guía UX/UI, componentes, validación y touch targets
 - [docs/PROJECTION-ENGINE.md](docs/PROJECTION-ENGINE.md) - Motor de proyección financiera

@@ -3,9 +3,11 @@ import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 import {
   parseAndValidateAmount,
+  parseAndValidateDate,
   parseSafeFloat,
   parseSafeInt,
   validateDescription,
+  validateUuid,
 } from '../../../shared/validation';
 import { createInstallmentPurchase } from '../useCases/CreateInstallmentPurchaseUseCase';
 import { payInstallment } from '../useCases/PayInstallmentUseCase';
@@ -32,6 +34,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const purchase = await prisma.installmentPurchase.findFirst({
     where: { id, userId },
     include: { account: true, category: true },
@@ -58,7 +61,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     description,
     totalAmount: parseAndValidateAmount(totalAmount, 'totalAmount'),
     installments: parseSafeInt(installments, 'installments'),
-    purchaseDate: new Date(purchaseDate),
+    purchaseDate: parseAndValidateDate(purchaseDate, 'purchaseDate'),
     accountId,
     categoryId,
     initialPaidInstallments: initialPaidInstallments != null ? parseSafeInt(initialPaidInstallments, 'initialPaidInstallments') : undefined,
@@ -69,6 +72,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { description, totalAmount, installments, purchaseDate, categoryId } = req.body ?? {};
 
   const purchase = await prisma.installmentPurchase.findFirst({ where: { id, userId }, include: { account: true } });
@@ -87,7 +91,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   if (currentPaid > 0 && newTotal < currentPaid - 0.01) {
     throw AppError.badRequest('Cannot reduce total below paid amount');
   }
-  const newMonthlyPayment = parseSafeFloat(Number((newTotal / newInstallments).toFixed(2)), 'monthlyPayment');
+  const newMonthlyPayment = Math.floor((newTotal / newInstallments) * 100) / 100;
   let recalcPaid = purchase.paidInstallments;
   if (currentPaid > 0 && (totalAmount !== undefined || installments !== undefined)) {
     recalcPaid = Math.min(newInstallments, Math.floor(currentPaid / newMonthlyPayment));
@@ -101,7 +105,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       installments: newInstallments,
       monthlyPayment: newMonthlyPayment,
       paidInstallments: recalcPaid,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : purchase.purchaseDate,
+      purchaseDate: purchaseDate ? parseAndValidateDate(purchaseDate, 'purchaseDate') : purchase.purchaseDate,
       categoryId: categoryId ?? purchase.categoryId,
     },
     include: { account: true, category: true },
@@ -112,6 +116,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const revert = req.query.revert === 'true';
 
   const purchase = await prisma.installmentPurchase.findFirst({
@@ -162,6 +167,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/:id/pay', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, date, accountId, description } = req.body ?? {};
 
   if (!amount || !date || !accountId) {
@@ -172,7 +178,7 @@ router.post('/:id/pay', async (req: AuthRequest, res: Response) => {
     userId,
     installmentPurchaseId: id,
     amount: parseAndValidateAmount(amount, 'amount'),
-    date: new Date(date),
+    date: parseAndValidateDate(date, 'date'),
     sourceAccountId: accountId,
     description,
   });

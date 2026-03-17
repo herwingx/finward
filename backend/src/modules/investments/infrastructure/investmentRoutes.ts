@@ -3,7 +3,8 @@ import { prisma } from '../../../lib/prisma';
 import { fetchPrices, searchCoins, getTopCoins } from '../../../lib/coingecko';
 import { fetchStockPrice, searchStocks } from '../../../lib/yahooFinance';
 import { AppError } from '../../../shared/errors';
-import { parseSafeFloat, validateAmount } from '../../../shared/validation';
+import { logger } from '../../../shared/logger';
+import { parseSafeFloat, validateAmount, validateUuid } from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import type { AuthRequest } from '../../../shared/types';
 
@@ -42,7 +43,7 @@ router.post('/refresh-prices', async (req: AuthRequest, res: Response) => {
           }
         }
       } catch (err) {
-        // CoinGecko rate limit o error de red → no actualizamos, pero devolvemos 200
+        logger.warn({ err }, '[investments/refresh-prices] CoinGecko failed');
       }
     }
 
@@ -73,31 +74,32 @@ router.get('/coins/search', async (req: AuthRequest, res: Response) => {
     const q = (req.query.q as string) || '';
     const coins = await searchCoins(q);
     res.json({ coins });
-  } catch {
+  } catch (err) {
+    logger.warn({ err, q: req.query.q }, '[investments/coins/search] CoinGecko failed');
     res.json({ coins: [] });
   }
 });
 
-router.get('/coins/top', async (_req: AuthRequest, res: Response) => {
+router.get('/coins/top', async (req: AuthRequest, res: Response) => {
   try {
-    const limit = Math.min(parseInt(String(_req.query.limit || 50), 10) || 50, 100);
+    const limit = Math.min(parseInt(String(req.query.limit || 50), 10) || 50, 100);
     const coins = await getTopCoins(limit);
     res.json({ coins });
-  } catch {
+  } catch (err) {
+    logger.warn({ err }, '[investments/coins/top] CoinGecko failed');
     res.json({ coins: [] });
   }
 });
 
 router.get('/coins/price', async (req: AuthRequest, res: Response) => {
+  const id = (req.query.id as string)?.trim().toLowerCase();
+  if (!id) return res.status(400).json({ error: 'Missing id' });
   try {
-    const id = (req.query.id as string)?.trim().toLowerCase();
-    if (!id) return res.status(400).json({ error: 'Missing id' });
     const prices = await fetchPrices([id], 'mxn');
     const price = prices[id]?.['mxn'];
     res.json({ id, price: typeof price === 'number' ? price : null });
-  } catch {
-    // CoinGecko falló (rate limit, red, id inválido) → 200 con price null
-    const id = (req.query.id as string)?.trim().toLowerCase() || '';
+  } catch (err) {
+    logger.warn({ err, id }, '[investments/coins/price] CoinGecko failed');
     res.json({ id, price: null });
   }
 });
@@ -127,6 +129,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const investment = await prisma.investment.findFirst({
     where: { id, userId },
   });
@@ -210,6 +213,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { name, type, ticker, quantity, avgBuyPrice, currentPrice, currency, purchaseDate, notes } = req.body ?? {};
 
   const existing = await prisma.investment.findFirst({ where: { id, userId } });
@@ -236,6 +240,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const existing = await prisma.investment.findFirst({ where: { id, userId } });
   if (!existing) throw AppError.notFound('Investment not found');
   await prisma.investment.delete({ where: { id } });

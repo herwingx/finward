@@ -3,7 +3,9 @@ import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 import {
   parseAndValidateAmount,
+  parseAndValidateDate,
   validateDescription,
+  validateUuid,
 } from '../../../shared/validation';
 import { createExpense } from '../../transactions/useCases/CreateExpenseUseCase';
 import { createIncome } from '../../transactions/useCases/CreateIncomeUseCase';
@@ -12,7 +14,15 @@ import type { AuthRequest } from '../../../shared/types';
 
 const router = Router();
 
-function createIncomeOrExpense(userId: string, recurring: any, amount: number, date: Date) {
+interface RecurringForPay {
+  id: string;
+  type: string;
+  accountId: string;
+  categoryId: string;
+  description: string;
+}
+
+function createIncomeOrExpense(userId: string, recurring: RecurringForPay, amount: number, date: Date) {
   if (recurring.type === 'income') {
     return createIncome({
       userId,
@@ -49,6 +59,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const item = await prisma.recurringTransaction.findFirst({
     where: { id, userId },
     include: { category: true, account: true },
@@ -75,6 +86,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   if (!category) throw AppError.notFound('Category not found');
   if (!account) throw AppError.notFound('Account not found');
 
+  const start = parseAndValidateDate(startDate, 'startDate');
   const item = await prisma.recurringTransaction.create({
     data: {
       userId,
@@ -82,9 +94,9 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       description,
       type,
       frequency,
-      startDate: new Date(startDate),
-      nextDueDate: nextDueDate ? new Date(nextDueDate) : new Date(startDate),
-      endDate: endDate ? new Date(endDate) : null,
+      startDate: start,
+      nextDueDate: nextDueDate ? parseAndValidateDate(nextDueDate, 'nextDueDate') : start,
+      endDate: endDate ? parseAndValidateDate(endDate, 'endDate') : null,
       categoryId,
       accountId,
     },
@@ -95,6 +107,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, description, type, frequency, startDate, categoryId, accountId, endDate } = req.body ?? {};
 
   const existing = await prisma.recurringTransaction.findFirst({ where: { id, userId } });
@@ -112,7 +125,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 
   let newNextDueDate = existing.nextDueDate;
   if (startDate || frequency) {
-    newNextDueDate = startDate ? new Date(startDate) : existing.nextDueDate;
+    newNextDueDate = startDate ? parseAndValidateDate(startDate, 'startDate') : existing.nextDueDate;
   }
 
   const updated = await prisma.recurringTransaction.update({
@@ -122,9 +135,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       description: description ?? undefined,
       type: type ?? undefined,
       frequency: frequency ?? undefined,
-      startDate: startDate ? new Date(startDate) : undefined,
+      startDate: startDate ? parseAndValidateDate(startDate, 'startDate') : undefined,
       nextDueDate: newNextDueDate,
-      endDate: endDate === null ? null : endDate ? new Date(endDate) : undefined,
+      endDate: endDate === null ? null : endDate ? parseAndValidateDate(endDate, 'endDate') : undefined,
       categoryId: categoryId ?? undefined,
       accountId: accountId ?? undefined,
     },
@@ -135,6 +148,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const existing = await prisma.recurringTransaction.findFirst({ where: { id, userId } });
   if (!existing) throw AppError.notFound('Recurring transaction not found');
   await prisma.recurringTransaction.delete({ where: { id } });
@@ -144,6 +158,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/:id/pay', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, date } = req.body ?? {};
 
   const recurring = await prisma.recurringTransaction.findFirst({
@@ -153,7 +168,7 @@ router.post('/:id/pay', async (req: AuthRequest, res: Response) => {
   if (!recurring) throw AppError.notFound('Recurring transaction not found');
 
   const payAmount = amount != null ? parseAndValidateAmount(amount, 'amount') : recurring.amount;
-  const payDate = date ? new Date(date) : new Date(recurring.nextDueDate);
+  const payDate = date ? parseAndValidateDate(date, 'date') : new Date(recurring.nextDueDate);
 
   const tx = await createIncomeOrExpense(userId, recurring, payAmount, payDate);
 
@@ -170,6 +185,7 @@ router.post('/:id/pay', async (req: AuthRequest, res: Response) => {
 router.post('/:id/skip', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
 
   const recurring = await prisma.recurringTransaction.findFirst({ where: { id, userId } });
   if (!recurring) throw AppError.notFound('Recurring transaction not found');

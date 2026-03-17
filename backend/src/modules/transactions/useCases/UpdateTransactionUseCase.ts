@@ -67,12 +67,18 @@ export async function updateTransaction(
 
   return prisma.$transaction(async (db) => {
     const entries = await db.ledgerEntry.findMany({ where: { transactionId } });
+    const balanceDeltas = new Map<string, number>();
     for (const e of entries) {
-      await db.account.update({
-        where: { id: e.accountId },
-        data: { balance: { increment: -e.amount } },
-      });
+      balanceDeltas.set(e.accountId, (balanceDeltas.get(e.accountId) ?? 0) - e.amount);
     }
+    await Promise.all(
+      Array.from(balanceDeltas.entries()).map(([accountId, delta]) =>
+        db.account.update({
+          where: { id: accountId },
+          data: { balance: { increment: delta } },
+        })
+      )
+    );
     await db.ledgerEntry.deleteMany({ where: { transactionId } });
 
     if (original.installmentPurchaseId && (original.type === 'income' || original.type === 'transfer')) {

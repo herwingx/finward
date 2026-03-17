@@ -25,6 +25,8 @@ Antes de modificar recursos referenciados por FKs (`accountId`, `categoryId`, et
 
 - **parseSafeFloat / parseSafeInt:** Evitan NaN e Infinity.
 - **validateAmount / parseAndValidateAmount:** Rangos 0.01 .. 999,999,999.99.
+- **parseAndValidateDate:** Rechaza fechas inválidas (NaN) antes de llegar a Prisma.
+- **validateUuid:** Valida formato UUID para parámetros de ruta.
 - **validateMaxLength / validateDescription / validateName:** Límites de longitud para evitar DoS.
 - **parsePaginationParams:** Parámetros de paginación seguros (take 1..500, skip >= 0).
 
@@ -54,13 +56,18 @@ Antes de modificar recursos referenciados por FKs (`accountId`, `categoryId`, et
 - Las políticas en `rls-policies.sql` protegen accesos directos a Postgres (PostgREST, etc.).
 - El backend usa Prisma con conexión que puede bypassear RLS; la autorización se implementa en capa de aplicación (`where: { userId }` en consultas).
 
-## 7. Middleware de Autenticación
+## 7. Endpoints de Debug
+
+- **POST /api/notifications/debug-trigger:** Solo disponible si `NODE_ENV=development` o `ENABLE_DEBUG_NOTIFICATIONS=true`.
+- En producción, el endpoint no se registra; evita creación arbitraria de notificaciones de prueba.
+
+## 8. Middleware de Autenticación
 
 - `authMiddleware` extrae el JWT del header `Authorization: Bearer <token>`.
 - Valida con Supabase Auth y establece `req.user = { id, email }`.
 - Todas las rutas de API (excepto `/api/auth/*`) pasan por `authMiddleware`.
 
-## 8. Índices de Base de Datos
+## 9. Índices de Base de Datos
 
 - `Transaction`: `@@index([userId, deletedAt, date])` para consultas frecuentes filtradas por usuario y estado.
 - Ejecutar `prisma db push` o crear migración para aplicar cambios en `schema.prisma`.
