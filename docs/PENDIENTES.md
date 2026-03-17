@@ -55,3 +55,4 @@ Documento para tareas futuras. Prioridad orientativa.
 - [API.md](../backend/docs/API.md)
 - [CALCULATIONS.md](../backend/docs/CALCULATIONS.md)
 - [DOCKER.md](./DOCKER.md)
+- [TELEGRAM-GEMINI.md](./TELEGRAM-GEMINI.md) — Plan del bot de Telegram + Gemini
