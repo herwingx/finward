@@ -9,8 +9,10 @@ import { updateTransaction } from '../useCases/UpdateTransactionUseCase';
 import { AppError } from '../../../shared/errors';
 import {
   parseAndValidateAmount,
+  parseAndValidateDate,
   parsePaginationParams,
   validateDescription,
+  validateUuid,
 } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
@@ -60,7 +62,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   }
 
   const amountNum = parseAndValidateAmount(amount, 'amount');
-  const dateObj = new Date(date);
+  const dateObj = parseAndValidateDate(date, 'date');
   const desc = (description ?? '').trim() || (type === 'transfer' ? 'Transfer' : type === 'income' ? 'Income' : 'Expense');
   validateDescription(desc);
 
@@ -113,6 +115,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.post('/:id/restore', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const tx = await restoreTransaction(userId, id);
   res.json(tx);
 });
@@ -120,6 +123,7 @@ router.post('/:id/restore', async (req: AuthRequest, res: Response) => {
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const tx = await prisma.transaction.findFirst({
     where: { id, userId },
     include: { category: true, account: true, destinationAccount: true },
@@ -131,12 +135,13 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, description, date, categoryId, accountId, destinationAccountId } = req.body ?? {};
   if (description !== undefined) validateDescription(description);
   const tx = await updateTransaction(userId, id, {
     amount: amount !== undefined ? parseAndValidateAmount(amount, 'amount') : undefined,
     description: description ?? undefined,
-    date: date ? new Date(date) : undefined,
+    date: date ? parseAndValidateDate(date, 'date') : undefined,
     categoryId: categoryId ?? undefined,
     accountId: accountId ?? undefined,
     destinationAccountId: destinationAccountId ?? undefined,
@@ -147,6 +152,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const force = req.query.force === 'true';
   await deleteTransaction(userId, id, force);
   res.status(204).send();

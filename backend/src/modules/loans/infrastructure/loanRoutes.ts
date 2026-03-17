@@ -3,8 +3,10 @@ import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 import {
   parseAndValidateAmount,
+  parseAndValidateDate,
   parseSafeFloat,
   validateMaxLength,
+  validateUuid,
   MAX_NAME_LENGTH,
   MAX_NOTES_LENGTH,
 } from '../../../shared/validation';
@@ -46,6 +48,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const loan = await prisma.loan.findFirst({ where: { id, userId }, include: { account: true } });
   if (!loan) throw AppError.notFound('Loan not found');
   res.json(loan);
@@ -78,8 +81,8 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       loanType: loanType ?? 'lent',
       originalAmount: parsedOriginalAmount,
       remainingAmount: parsedRemainingAmount,
-      loanDate: new Date(loanDate),
-      expectedPayDate: expectedPayDate ? new Date(expectedPayDate) : null,
+      loanDate: parseAndValidateDate(loanDate, 'loanDate'),
+      expectedPayDate: expectedPayDate ? parseAndValidateDate(expectedPayDate, 'expectedPayDate') : null,
       notes,
       interestRate: interestRate != null ? parseSafeFloat(interestRate, 'interestRate') : null,
       accountId: accountId ?? null,
@@ -91,6 +94,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { borrowerName, borrowerPhone, borrowerEmail, reason, expectedPayDate, notes, originalAmount, accountId } =
     req.body ?? {};
 
@@ -116,7 +120,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       borrowerPhone: borrowerPhone ?? loan.borrowerPhone,
       borrowerEmail: borrowerEmail ?? loan.borrowerEmail,
       reason: reason ?? loan.reason,
-      expectedPayDate: expectedPayDate === null ? null : expectedPayDate ? new Date(expectedPayDate) : loan.expectedPayDate,
+      expectedPayDate: expectedPayDate === null ? null : expectedPayDate ? parseAndValidateDate(expectedPayDate, 'expectedPayDate') : loan.expectedPayDate,
       notes: notes ?? loan.notes,
       originalAmount: newOriginal,
       remainingAmount: newRemaining,
@@ -130,6 +134,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/:id/payment', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { amount, paymentDate, notes, accountId } = req.body ?? {};
 
   if (!amount) throw AppError.badRequest('Amount required');
@@ -139,7 +144,7 @@ router.post('/:id/payment', async (req: AuthRequest, res: Response) => {
   if (loan.status === 'paid') throw AppError.badRequest('Loan already paid');
 
   const payAmount = parseAndValidateAmount(amount, 'amount');
-  const payDate = paymentDate ? new Date(paymentDate) : new Date();
+  const payDate = paymentDate ? parseAndValidateDate(paymentDate, 'paymentDate') : new Date();
   const newRemaining = Math.max(0, loan.remainingAmount - payAmount);
   const status = newRemaining <= 0 ? 'paid' : newRemaining < loan.originalAmount - 0.01 ? 'partial' : 'active';
 
@@ -191,6 +196,7 @@ router.post('/:id/payment', async (req: AuthRequest, res: Response) => {
 router.post('/:id/mark-paid', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
 
   const loan = await prisma.loan.findFirst({ where: { id, userId } });
   if (!loan) throw AppError.notFound('Loan not found');
@@ -205,6 +211,7 @@ router.post('/:id/mark-paid', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
 
   const loan = await prisma.loan.findFirst({ where: { id, userId } });
   if (!loan) throw AppError.notFound('Loan not found');

@@ -1,5 +1,11 @@
 import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
+import { validateAmount } from '../../../shared/validation';
+
+/** Round to 2 decimals (avoid floating point drift in financial calculations) */
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
 
 export interface CreateInstallmentPurchaseInput {
   userId: string;
@@ -17,6 +23,7 @@ export async function createInstallmentPurchase(input: CreateInstallmentPurchase
   const initialPaid = input.initialPaidInstallments ?? 0;
 
   if (installments <= 0) throw AppError.badRequest('Installments must be positive');
+  validateAmount(totalAmount, 'totalAmount');
 
   const account = await prisma.account.findFirst({ where: { id: accountId, userId } });
   if (!account) throw AppError.notFound('Account not found');
@@ -25,9 +32,10 @@ export async function createInstallmentPurchase(input: CreateInstallmentPurchase
   const category = await prisma.category.findFirst({ where: { id: categoryId, userId } });
   if (!category) throw AppError.notFound('Category not found');
 
-  const monthlyPayment = parseFloat((totalAmount / installments).toFixed(2));
-  const initialPaidAmount = initialPaid > 0 ? monthlyPayment * initialPaid : 0;
-  const remainingDebt = totalAmount - initialPaidAmount;
+  /** monthlyPayment redondeado hacia abajo; última cuota absorbe el resto para que total = totalAmount */
+  const monthlyPayment = round2(Math.floor((totalAmount / installments) * 100) / 100);
+  const initialPaidAmount = initialPaid > 0 ? round2(monthlyPayment * initialPaid) : 0;
+  const remainingDebt = round2(Math.max(0, totalAmount - initialPaidAmount));
 
   return prisma.$transaction(async (tx) => {
     const purchase = await tx.installmentPurchase.create({

@@ -2,6 +2,11 @@ import { prisma } from '../../../lib/prisma';
 import { AppError } from '../../../shared/errors';
 import { createTransfer } from '../../transactions/useCases/CreateTransferUseCase';
 
+/** Round to 2 decimals (avoid floating point drift) */
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
 export interface PayInstallmentInput {
   userId: string;
   installmentPurchaseId: string;
@@ -22,16 +27,14 @@ export async function payInstallment(input: PayInstallmentInput) {
   if (!purchase) throw AppError.notFound('Installment purchase not found');
   if (purchase.paidAmount >= purchase.totalAmount) throw AppError.badRequest('Purchase already fully paid');
 
-  const remaining = purchase.totalAmount - purchase.paidAmount;
-  if (amount > remaining) {
+  const remaining = round2(purchase.totalAmount - purchase.paidAmount);
+  if (amount > remaining + 0.01) {
     throw AppError.badRequest(`Amount exceeds remaining balance (${remaining.toFixed(2)})`);
   }
 
-  const installmentsCovered = Math.floor(amount / purchase.monthlyPayment);
-  const newPaidInstallments = Math.min(
-    purchase.installments,
-    purchase.paidInstallments + (installmentsCovered > 0 ? installmentsCovered : 1)
-  );
+  /** Solo incrementar paidInstallments por cuotas completas pagadas (evita desfase en proyección MSI) */
+  const installmentsCovered = Math.floor(amount / (purchase.monthlyPayment + 1e-9));
+  const newPaidInstallments = Math.min(purchase.installments, purchase.paidInstallments + installmentsCovered);
 
   const tx = await createTransfer({
     userId,

@@ -6,6 +6,7 @@ import {
   validateAmount,
   validateName,
   validateNonNegativeAmount,
+  validateUuid,
 } from '../../../shared/validation';
 import type { AuthRequest } from '../../../shared/types';
 
@@ -61,6 +62,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const { name, type, creditLimit, cutoffDay, daysToPayAfterCutoff } = req.body ?? {};
 
   const existing = await prisma.account.findFirst({ where: { id, userId } });
@@ -96,6 +98,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const id = req.params.id as string;
+  validateUuid(id, 'id');
   const existing = await prisma.account.findFirst({ where: { id, userId } });
   if (!existing) throw AppError.notFound('Account not found');
   await prisma.account.delete({ where: { id } });

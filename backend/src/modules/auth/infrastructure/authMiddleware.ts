@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { createSupabaseClient } from '../../../lib/supabase';
 import { AppError } from '../../../shared/errors';
+import { logger } from '../../../shared/logger';
 import type { AuthRequest } from '../../../shared/types';
 
 /**
@@ -29,6 +30,7 @@ export async function authMiddleware(
     req.user = { id: user.id, email: user.email ?? undefined };
     next();
   } catch (err) {
+    logger.warn({ err }, '[auth] Token validation failed');
     next(AppError.unauthorized('Token validation failed'));
   }
 }
