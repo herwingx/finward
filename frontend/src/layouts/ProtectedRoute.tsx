@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SkeletonAppLoading } from '@/components/Skeleton';
@@ -6,34 +6,72 @@ import { Icon } from '@/components/Icon';
 import { apiFetch } from '@/lib/api/client';
 
 const PROFILE_LOAD_TIMEOUT_MS = 15000;
+const SLOW_LOAD_THRESHOLD_MS = 5000;
 
 const ProtectedRoute: React.FC = () => {
   const token = localStorage.getItem('token');
+  const [showSlowMessage, setShowSlowMessage] = useState(false);
 
-  const { isLoading, isError, error, refetch } = useQuery({
+  const { isLoading, isError, error, refetch, isRefetching } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Tiempo de espera agotado. Comprueba que el backend esté en marcha.')), PROFILE_LOAD_TIMEOUT_MS)
       );
-      return Promise.race([apiFetch('/profile'), timeoutPromise]);
+      try {
+        return await Promise.race([apiFetch('/profile'), timeoutPromise]);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'No se pudo conectar con el servidor. Revisa que el backend esté en marcha.';
+        throw new Error(msg);
+      }
     },
     enabled: !!token,
-    retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
+    staleTime: 1000 * 60 * 5,
   });
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const t = setTimeout(() => setShowSlowMessage(true), SLOW_LOAD_THRESHOLD_MS);
+    return () => clearTimeout(t);
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) setShowSlowMessage(false);
+  }, [isLoading]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (isLoading) {
-    return <SkeletonAppLoading />;
+  if (isLoading || isRefetching) {
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-app-bg p-6">
+        <SkeletonAppLoading />
+        {showSlowMessage && (
+          <div className="mt-8 max-w-sm w-full rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-center space-y-3">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Está tardando mucho. ¿El backend está en marcha?
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-4 py-2 rounded-xl bg-app-primary text-white text-sm font-bold"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+      </div>
+    );
   }
 
   if (isError) {
-    const is401 = (error as Error)?.message === 'Unauthorized';
+    const errMsg = typeof (error as Error)?.message === 'string' ? (error as Error).message : '';
+    const is401 = errMsg === 'Unauthorized';
     if (is401) return <Navigate to="/login" replace />;
+
+    const displayMessage = errMsg || 'No se pudo cargar tu perfil. Comprueba que el backend esté en marcha y que la URL de la API sea correcta.';
 
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center gap-6 p-6 bg-app-bg text-app-text">
@@ -43,7 +81,7 @@ const ProtectedRoute: React.FC = () => {
           </div>
           <h2 className="text-lg font-bold">Error al cargar</h2>
           <p className="text-sm text-app-muted">
-            {(error as Error)?.message ?? 'No se pudo cargar tu perfil. La base de datos puede estar iniciando.'}
+            {displayMessage}
           </p>
         </div>
         <div className="flex gap-3">
