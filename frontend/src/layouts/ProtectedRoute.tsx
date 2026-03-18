@@ -5,12 +5,19 @@ import { SkeletonAppLoading } from '@/components/Skeleton';
 import { Icon } from '@/components/Icon';
 import { apiFetch } from '@/lib/api/client';
 
+const PROFILE_LOAD_TIMEOUT_MS = 15000;
+
 const ProtectedRoute: React.FC = () => {
   const token = localStorage.getItem('token');
 
   const { isLoading, isError, error, refetch } = useQuery({
     queryKey: ['profile'],
-    queryFn: () => apiFetch('/profile'),
+    queryFn: async () => {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Tiempo de espera agotado. Comprueba que el backend esté en marcha.')), PROFILE_LOAD_TIMEOUT_MS)
+      );
+      return Promise.race([apiFetch('/profile'), timeoutPromise]);
+    },
     enabled: !!token,
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes

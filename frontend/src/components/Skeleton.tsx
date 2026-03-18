@@ -250,7 +250,7 @@ export const SkeletonAppLoading = () => (
     <PulseBox className="size-20 rounded-[20px] bg-app-primary/10 shadow-lg" />
     <div className="space-y-2 text-center flex flex-col items-center">
       <PulseBox className="h-4 w-32" />
-      <PulseBox className="h-3 w-20 opacity-50" />
+      <p className="text-sm text-app-muted">Cargando perfil…</p>
     </div>
   </div>
 );
