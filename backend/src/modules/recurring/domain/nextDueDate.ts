@@ -4,14 +4,20 @@
  * Prevents overflow: 31 Jan + 1 month = 28/29 Feb, NOT 3 Mar.
  */
 export function addMonthsPreservingDay(baseDate: Date, months: number): Date {
-  const d = new Date(baseDate);
-  const origDay = d.getDate();
-  d.setMonth(d.getMonth() + months);
-
-  const expectedMonth = (baseDate.getMonth() + months + 12) % 12;
-  if (d.getMonth() !== expectedMonth) {
-    d.setDate(0); // Go to last day of previous month = last day of target month
-  }
+  const d = new Date(baseDate.getTime());
+  const origDay = d.getUTCDate();
+  
+  // Trick: set date to 1 to avoid overflow when changing month
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  
+  // Now set the day back to origDay, or the max day of the new month
+  const targetYear = d.getUTCFullYear();
+  const targetMonth = d.getUTCMonth();
+  const maxDays = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  
+  d.setUTCDate(Math.min(origDay, maxDays));
+  
   return d;
 }
 
@@ -23,12 +29,23 @@ export function calculateNextDueDate(from: Date, frequency: string): Date {
   const d = new Date(from);
   const f = (frequency || '').toLowerCase();
 
-  if (f === 'daily') d.setDate(d.getDate() + 1);
-  else if (f === 'weekly') d.setDate(d.getDate() + 7);
-  else if (f === 'biweekly' || f === 'biweekly_15_30') d.setDate(d.getDate() + 14);
+  if (f === 'daily') d.setUTCDate(d.getUTCDate() + 1);
+  else if (f === 'weekly') d.setUTCDate(d.getUTCDate() + 7);
+  else if (f === 'biweekly') d.setUTCDate(d.getUTCDate() + 14);
+  else if (f === 'biweekly_15_30') {
+    const day = d.getUTCDate();
+    if (day <= 15) {
+      const maxDays = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+      d.setUTCDate(maxDays);
+    } else {
+      d.setUTCMonth(d.getUTCMonth() + 1);
+      d.setUTCDate(15);
+    }
+  }
   else if (f === 'monthly') return addMonthsPreservingDay(from, 1);
   else if (f === 'bimonthly') return addMonthsPreservingDay(from, 2);
-  else if (f === 'yearly') d.setFullYear(d.getFullYear() + 1);
+  else if (f === 'semiannually') return addMonthsPreservingDay(from, 6);
+  else if (f === 'yearly') d.setUTCFullYear(d.getUTCFullYear() + 1);
   else return addMonthsPreservingDay(from, 1);
 
   return d;

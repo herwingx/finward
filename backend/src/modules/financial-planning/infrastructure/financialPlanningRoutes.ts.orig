@@ -177,36 +177,47 @@ router.get('/summary', async (req: AuthRequest, res: Response) => {
   const creditAccounts = accounts.filter(a => a.type === 'CREDIT' && a.cutoffDay && a.daysToPayAfterCutoff != null);
   const creditCardRegularPayments = [];
 
-    for (const acc of creditAccounts) {
-    let totalDebt = Math.max(0, -acc.balance);
-    if (totalDebt <= 0) continue;
+  for (const acc of creditAccounts) {
+    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay!, daysToPayAfterCutoff: acc.daysToPayAfterCutoff! });
 
-    let currentRefDate = new Date();
-    for (let i = 0; i < 6; i++) {
-      if (totalDebt <= 0) break;
-      const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay!, daysToPayAfterCutoff: acc.daysToPayAfterCutoff! }, currentRefDate);
-
-      const aggResult = await prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: { accountId: acc.id, type: 'expense', installmentPurchaseId: null, deletedAt: null, date: { gte: cycle.cycleStartDate, lte: cycle.cutoffDate } }
-      });
-      const regularAmount = aggResult._sum.amount ?? 0;
-
-      if (regularAmount > 0) {
-        const owedInCycle = Math.min(regularAmount, totalDebt);
-        if (owedInCycle > 0) {
-          creditCardRegularPayments.push({
-            accountId: acc.id,
-            accountName: acc.name,
-            amount: owedInCycle,
-            dueDate: cycle.paymentDate
-          });
-          totalDebt -= owedInCycle;
-        }
+    // Obtener compras regulares en este ciclo
+    const aggResult = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        accountId: acc.id,
+        type: 'expense',
+        installmentPurchaseId: null,
+        deletedAt: null,
+        date: { gte: cycle.cycleStartDate, lte: cycle.cutoffDate }
       }
-      const prevRefDate = new Date(cycle.cutoffDate);
-      prevRefDate.setMonth(prevRefDate.getMonth() - 1);
-      currentRefDate = prevRefDate;
+    });
+
+    const regularAmount = aggResult._sum.amount ?? 0;
+
+    if (regularAmount > 0) {
+      // Obtener pagos (abonos/transferencias) realizados desde el inicio del ciclo
+      const paidAgg = await prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          accountId: acc.id,
+          type: { in: ['transfer', 'income'] },
+          deletedAt: null,
+          date: { gte: cycle.cycleStartDate }
+        }
+      });
+      const paidAmount = paidAgg._sum.amount ?? 0;
+
+      // La porción regular que falta pagar en este ciclo
+      const remainingRegular = Math.max(0, regularAmount - paidAmount);
+
+      if (remainingRegular > 0) {
+        creditCardRegularPayments.push({
+          accountId: acc.id,
+          accountName: acc.name,
+          amount: remainingRegular,
+          dueDate: cycle.paymentDate
+        });
+      }
     }
   }
 
@@ -319,38 +330,49 @@ router.get('/upcoming', async (req: AuthRequest, res: Response) => {
   for (const acc of accounts) {
     if (!acc.cutoffDay || acc.daysToPayAfterCutoff == null) continue;
 
-    let totalDebt = Math.max(0, -acc.balance);
-    if (totalDebt <= 0) continue;
+    const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay, daysToPayAfterCutoff: acc.daysToPayAfterCutoff });
 
-    let currentRefDate = now;
-    for (let i = 0; i < 6; i++) {
-      if (totalDebt <= 0) break;
-      const cycle = getBillingCycle({ cutoffDay: acc.cutoffDay, daysToPayAfterCutoff: acc.daysToPayAfterCutoff }, currentRefDate);
+    // Si la fecha de pago está después del endDate de upcoming, no lo mostramos (pero si está antes o vencido, sí)
+    if (cycle.paymentDate > endDate) continue;
 
-      const aggResult = await prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: { accountId: acc.id, type: 'expense', installmentPurchaseId: null, deletedAt: null, date: { gte: cycle.cycleStartDate, lte: cycle.cutoffDate } }
-      });
-      const regularAmount = aggResult._sum.amount ?? 0;
-
-      if (regularAmount > 0) {
-        const owedInCycle = Math.min(regularAmount, totalDebt);
-        if (owedInCycle > 0) {
-          if (cycle.paymentDate <= endDate) {
-            creditCardRegularPayments.push({
-              id: `ccp-${acc.id}-${i}`,
-              type: 'credit_card' as const,
-              description: `Pago Tarjeta: ${acc.name}`,
-              amount: owedInCycle,
-              dueDate: cycle.paymentDate,
-            });
-          }
-          totalDebt -= owedInCycle;
-        }
+    // Obtener compras regulares en este ciclo
+    const aggResult = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        accountId: acc.id,
+        type: 'expense',
+        installmentPurchaseId: null,
+        deletedAt: null,
+        date: { gte: cycle.cycleStartDate, lte: cycle.cutoffDate }
       }
-      const prevRefDate = new Date(cycle.cutoffDate);
-      prevRefDate.setMonth(prevRefDate.getMonth() - 1);
-      currentRefDate = prevRefDate;
+    });
+
+    const regularAmount = aggResult._sum.amount ?? 0;
+
+    if (regularAmount > 0) {
+      // Obtener pagos
+      const paidAgg = await prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          accountId: acc.id,
+          type: { in: ['transfer', 'income'] },
+          deletedAt: null,
+          date: { gte: cycle.cycleStartDate }
+        }
+      });
+      const paidAmount = paidAgg._sum.amount ?? 0;
+
+      const remainingRegular = Math.max(0, regularAmount - paidAmount);
+
+      if (remainingRegular > 0) {
+        creditCardRegularPayments.push({
+          id: `ccp-${acc.id}`,
+          type: 'credit_card' as const,
+          description: `Pago Tarjeta: ${acc.name}`,
+          amount: remainingRegular,
+          dueDate: cycle.paymentDate,
+        });
+      }
     }
   }
 

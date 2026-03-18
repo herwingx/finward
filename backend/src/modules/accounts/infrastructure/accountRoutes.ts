@@ -22,7 +22,49 @@ const VALID_TYPES = ['CASH', 'DEBIT', 'CREDIT', 'LOAN', 'INVESTMENT', 'SAVINGS']
 router.get('/', async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const accounts = await prisma.account.findMany({ where: { userId } });
-  res.json(accounts);
+
+  // Para tarjetas de crédito, el límite ocupado debe considerar:
+  // - Saldo actual (deuda) de la cuenta
+  // - + principal pendiente de compras MSI asociadas a esa TDC
+  const creditAccounts = accounts.filter((a) => a.type === 'CREDIT');
+  if (creditAccounts.length === 0) {
+    res.json(accounts);
+    return;
+  }
+
+  const creditIds = creditAccounts.map((a) => a.id);
+  const msiByAccount = await prisma.installmentPurchase.groupBy({
+    by: ['accountId'],
+    where: { accountId: { in: creditIds }, userId },
+    _sum: { totalAmount: true, paidAmount: true },
+  });
+
+  const msiMap = new Map<string, number>();
+  for (const row of msiByAccount) {
+    const total = row._sum.totalAmount ?? 0;
+    const paid = row._sum.paidAmount ?? 0;
+    const outstanding = Math.max(0, total - paid);
+    msiMap.set(row.accountId, outstanding);
+  }
+
+  const enriched = accounts.map((acc) => {
+    if (acc.type !== 'CREDIT' || !acc.creditLimit) return acc;
+
+    const balanceAbs = Math.abs(acc.balance);
+    const msiOutstanding = msiMap.get(acc.id) ?? 0;
+    const usedCredit = balanceAbs + msiOutstanding;
+    const utilizationPercent = (usedCredit / acc.creditLimit) * 100;
+    const availableCredit = Math.max(0, acc.creditLimit - usedCredit);
+
+    return {
+      ...acc,
+      usedCredit,
+      availableCredit,
+      utilizationPercent,
+    };
+  });
+
+  res.json(enriched);
 });
 
 router.post('/', async (req: AuthRequest, res: Response) => {
