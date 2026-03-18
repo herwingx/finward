@@ -82,6 +82,10 @@ export interface FinancialSummaryOutput {
   isSufficient: boolean;
   shortfall?: number;
   warnings: string[];
+  /** Saldo mínimo en el período al simular flujo por fecha (ingresos y gastos según vencimiento) */
+  minRunningBalance?: number;
+  /** true si en algún momento el saldo corrido sería negativo (gastos antes de tener el ingreso) */
+  cashFlowRisk?: boolean;
 }
 
 export function getFinancialSummary(input: FinancialSummaryInput): FinancialSummaryOutput {
@@ -204,9 +208,42 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
   const isSufficient = projectedBalance >= 0;
   const shortfall = isSufficient ? undefined : Math.abs(projectedBalance);
 
+  /** Flujo de caja por fecha: saldo corrido según orden de vencimientos (no solo totales al cierre) */
+  const cashFlowEvents: { date: Date; amount: number }[] = [];
+  for (const t of transactions) {
+    const amount = t.type === 'income' ? t.amount : -t.amount;
+    cashFlowEvents.push({ date: new Date(t.date), amount });
+  }
+  for (const e of expectedIncome) {
+    cashFlowEvents.push({ date: new Date(e.dueDate), amount: e.amount });
+  }
+  for (const e of expectedExpenses) {
+    cashFlowEvents.push({ date: new Date(e.dueDate), amount: -e.amount });
+  }
+  for (const e of msiPaymentsDue) {
+    cashFlowEvents.push({ date: new Date(e.dueDate), amount: -e.amount });
+  }
+  cashFlowEvents.sort((a, b) => {
+    const t = a.date.getTime() - b.date.getTime();
+    if (t !== 0) return t;
+    return b.amount - a.amount; // mismo día: ingresos primero (amount positivo), luego gastos
+  });
+
+  let runningBalance = availableFunds;
+  let minRunningBalance = runningBalance;
+  let cashFlowRisk = false;
+  for (const ev of cashFlowEvents) {
+    runningBalance += ev.amount;
+    if (runningBalance < minRunningBalance) minRunningBalance = runningBalance;
+    if (runningBalance < 0) cashFlowRisk = true;
+  }
+
   const warnings: string[] = [];
   if (!isSufficient && shortfall) warnings.push(`Déficit proyectado: $${shortfall.toFixed(2)}`);
   if (totalCommitments > totalPeriodIncome * 0.8) warnings.push('Compromisos superan 80% de ingresos');
+  if (cashFlowRisk && minRunningBalance !== undefined) {
+    warnings.push(`Flujo de caja: tienes gastos antes de recibir ingresos. Saldo mínimo proyectado: $${minRunningBalance.toFixed(2)}. Revisa fechas de vencimiento.`);
+  }
 
   return {
     periodStart: periodStart.toISOString(),
@@ -236,5 +273,7 @@ export function getFinancialSummary(input: FinancialSummaryInput): FinancialSumm
     isSufficient,
     shortfall,
     warnings,
+    minRunningBalance: Math.round(minRunningBalance * 100) / 100,
+    cashFlowRisk,
   };
 }

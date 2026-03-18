@@ -440,6 +440,27 @@ export const FinancialPlanningWidget: React.FC = () => {
         })()}
       </div>
 
+      {/* Avisos: flujo de caja (gastos antes del ingreso) y otros */}
+      {(summary.cashFlowRisk || (summary.warnings && summary.warnings.length > 0)) && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-1">
+          <p className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+            <Icon name="schedule" size={16} />
+            Flujo de caja por fechas
+          </p>
+          <p className="text-[11px] text-amber-800/90 dark:text-amber-200/90">
+            Los compromisos se ordenan por fecha de vencimiento. Si tienes gastos antes de recibir un ingreso, el saldo disponible puede no alcanzar en esas fechas.
+            {summary.cashFlowRisk && summary.minRunningBalance != null && (
+              <span className="block mt-1 font-semibold">
+                Saldo mínimo proyectado en el período: {formatCurrency(summary.minRunningBalance)}.
+              </span>
+            )}
+          </p>
+          {(summary.warnings ?? []).map((w: string, i: number) => (
+            <p key={i} className="text-[11px] text-amber-800/90 dark:text-amber-200/90">{w}</p>
+          ))}
+        </div>
+      )}
+
       {/* 3. ALERTS & KPIS */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {/* Dinero Disponible: liquidez actual (hoy), no el ingreso del período */}

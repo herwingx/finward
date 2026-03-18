@@ -202,6 +202,8 @@ export interface FinancialPeriodSummary {
   isSufficient: boolean;
   shortfall?: number;
   warnings: string[];
+  minRunningBalance?: number;
+  cashFlowRisk?: boolean;
 }
 
 export interface CreditCardStatement {
