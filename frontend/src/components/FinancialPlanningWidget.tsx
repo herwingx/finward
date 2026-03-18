@@ -314,33 +314,65 @@ export const FinancialPlanningWidget: React.FC = () => {
 
   // Grouped Credit Cards (por TDC y fecha de vencimiento)
   const groupedCards = useMemo(() => {
-    if (!summary?.msiPaymentsDue) return {};
     const groups: any = {};
-    summary.msiPaymentsDue.forEach((p: any) => {
-      const accId = p.accountId ?? 'unknown';
-      const key = isLongPeriod ? accId : `${accId}-${p.dueDate}`;
-      if (!groups[key]) {
-        groups[key] = {
-          accountName: p.accountName || 'TDC Desconocida',
-          accountId: accId,
-          dueDate: p.dueDate,
-          totalAmount: 0,
-          items: [],
-          dueDates: new Set()
-        };
-      }
-      // Mark these items explicitly as MSI so the payment action
-      // routes through the MSI payment endpoint (and updates the plan).
-      groups[key].items.push({ ...p, isMsi: true });
-      groups[key].totalAmount += p.amount;
-      groups[key].dueDates.add(p.dueDate);
-    });
-    // Add stats
+    
+    // Agrupar MSI
+    if (summary?.msiPaymentsDue) {
+      summary.msiPaymentsDue.forEach((p: any) => {
+        const accId = p.accountId ?? 'unknown';
+        const key = isLongPeriod ? accId : `${accId}-${p.dueDate}`;
+        if (!groups[key]) {
+          groups[key] = {
+            accountName: p.accountName || 'TDC Desconocida',
+            accountId: accId,
+            dueDate: p.dueDate,
+            totalAmount: 0,
+            items: [],
+            dueDates: new Set()
+          };
+        }
+        groups[key].items.push({ ...p, isMsi: true });
+        groups[key].totalAmount += p.amount;
+        groups[key].dueDates.add(p.dueDate);
+      });
+    }
+
+    // Agrupar Gastos Regulares de la Tarjeta (que vienen de expectedExpenses con id 'ccp-...')
+    if (summary?.expectedExpenses) {
+      summary.expectedExpenses.forEach((e: any) => {
+        if (e.id && e.id.startsWith('ccp-')) {
+          const accId = e.id.replace('ccp-', '');
+          const accountName = e.description.replace('Pago Tarjeta: ', '');
+          const key = isLongPeriod ? accId : `${accId}-${e.dueDate}`;
+          
+          if (!groups[key]) {
+            groups[key] = {
+              accountName: accountName || 'TDC Desconocida',
+              accountId: accId,
+              dueDate: e.dueDate,
+              totalAmount: 0,
+              items: [],
+              dueDates: new Set()
+            };
+          }
+          groups[key].items.push({ ...e, isMsi: false, originalId: e.id, description: 'Cargos regulares de este corte' });
+          groups[key].totalAmount += e.amount;
+          groups[key].dueDates.add(e.dueDate);
+        }
+      });
+    }
+
+    // Calcular estadísticas de grupo
     Object.values(groups).forEach((g: any) => {
       g.paymentDatesCount = g.dueDates.size;
     });
     return groups;
   }, [summary, isLongPeriod]);
+
+  // Filtrar los 'ccp-' de la lista normal de expectedExpenses para que no salgan duplicados
+  const filteredExpectedExpenses = useMemo(() => {
+    return summary?.expectedExpenses?.filter((e: any) => !(e.id && e.id.startsWith('ccp-'))) || [];
+  }, [summary]);
 
   // Handle Pay Action (Reusable for Expense & Income)
   const executePayAction = async (id: string, amount: number, label: string, type: 'pay' | 'receive') => {
@@ -672,7 +704,7 @@ export const FinancialPlanningWidget: React.FC = () => {
       )}
 
       {/* EXPENSE LIST (Swipeable) */}
-      {summary.expectedExpenses?.length > 0 && (
+      {filteredExpectedExpenses.length > 0 && (
         <div className="space-y-3 pb-8">
           <div className="flex justify-between items-center px-1">
             <h3 className="text-xs font-bold text-app-muted uppercase tracking-wider">Gastos Fijos Pendientes</h3>
@@ -681,7 +713,7 @@ export const FinancialPlanningWidget: React.FC = () => {
           </div>
 
           <div className="rounded-2xl border border-app-border bg-app-surface overflow-hidden shadow-sm">
-            {(showAllExpenses ? summary.expectedExpenses : summary.expectedExpenses.slice(0, 5)).map((item: any, idx: number) => {
+            {(showAllExpenses ? filteredExpectedExpenses : filteredExpectedExpenses.slice(0, 5)).map((item: any, idx: number) => {
               // Check Status
               const due = new Date(item.dueDate);
               const now = new Date();
@@ -708,12 +740,12 @@ export const FinancialPlanningWidget: React.FC = () => {
               );
             })}
 
-            {summary.expectedExpenses.length > 5 && (
+            {filteredExpectedExpenses.length > 5 && (
               <button
                 onClick={() => setShowAllExpenses(!showAllExpenses)}
                 className="w-full py-3 text-center text-xs font-bold text-app-primary hover:bg-app-subtle transition-colors border-t border-app-border"
               >
-                {showAllExpenses ? 'Ver menos' : `Ver ${summary.expectedExpenses.length - 5} más`}
+                {showAllExpenses ? 'Ver menos' : `Ver ${filteredExpectedExpenses.length - 5} más`}
               </button>
             )}
           </div>
@@ -721,7 +753,7 @@ export const FinancialPlanningWidget: React.FC = () => {
       )}
 
       {/* Empty State / All Clear */}
-      {!cardKeys.length && !summary.expectedExpenses?.length && (
+      {!cardKeys.length && !filteredExpectedExpenses.length && (
         <div className="py-8 text-center opacity-60">
           <Icon name="check_circle" size={36} className="mb-2 text-emerald-500" />
           <p className="text-sm font-medium">Todo pagado para este período.</p>

@@ -145,8 +145,8 @@ const Recurring: React.FC = () => {
     const formatCurrency = (val: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
     const getFrequencyLabel = (freq: string) => {
         const labels: any = {
-            'daily': 'Diario', 'weekly': 'Semanal', 'biweekly': 'Cada 2 sem',
-            'monthly': 'Mensual', 'yearly': 'Anual'
+            'daily': 'Diario', 'weekly': 'Semanal', 'biweekly': 'Catorcenal',
+            'biweekly_15_30': 'Quincenal', 'monthly': 'Mensual', 'bimonthly': 'Bimestral', 'semiannually': 'Semestral', 'yearly': 'Anual'
         };
         return labels[freq?.toLowerCase()] || freq;
     };

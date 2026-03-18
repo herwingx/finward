@@ -71,8 +71,11 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
   const calcNextDate = () => {
     const next = new Date(startDate);
     if (skipFirst) {
-      if (frequency === 'weekly') next.setDate(next.getDate() + 7);
+      if (frequency === 'daily') next.setDate(next.getDate() + 1);
+      else if (frequency === 'weekly') next.setDate(next.getDate() + 7);
       else if (frequency === 'monthly') return addMonthsPreservingDay(startDate, 1);
+      else if (frequency === 'bimonthly') return addMonthsPreservingDay(startDate, 2);
+      else if (frequency === 'semiannually') return addMonthsPreservingDay(startDate, 6);
       else if (frequency === 'biweekly') next.setDate(next.getDate() + 14);
       else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
       else if (frequency === 'biweekly_15_30') {
@@ -195,6 +198,8 @@ export const RecurringForm: React.FC<RecurringFormProps> = ({ existingTransactio
                   <option value="biweekly">Catorcenal</option>
                   <option value="biweekly_15_30">Quincenal</option>
                   <option value="monthly">Mensual</option>
+                  <option value="bimonthly">Bimestral</option>
+                  <option value="semiannually">Semestral</option>
                   <option value="yearly">Anual</option>
                 </select>
                 <Icon name="event_repeat" size={20} className="absolute right-2 top-2.5 text-app-muted pointer-events-none" />

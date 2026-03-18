@@ -59,8 +59,18 @@ const AccountDetailSheet = ({
 
     const conf = getAccountConfig(account.type);
     const isCredit = account.type === 'CREDIT';
-    const usagePercent = isCredit && account.creditLimit ? (account.balance / account.creditLimit) * 100 : 0;
-    const available = isCredit && account.creditLimit ? account.creditLimit - account.balance : account.balance;
+    // Para TDC el límite ocupado debe incluir saldo actual + MSI pendientes.
+    // El backend expone usedCredit/availableCredit/utilizationPercent; si no están, calculamos fallback.
+    const usedCredit = isCredit
+        ? (account as any).usedCredit ?? Math.abs(account.balance)
+        : account.balance;
+    const usagePercent =
+        isCredit && account.creditLimit
+            ? ((account as any).utilizationPercent ?? (usedCredit / account.creditLimit) * 100)
+            : 0;
+    const available = isCredit && account.creditLimit
+        ? (account as any).availableCredit ?? (account.creditLimit - usedCredit)
+        : usedCredit;
 
     return (
         <SwipeableBottomSheet isOpen={!!account} onClose={onClose}>
@@ -82,7 +92,7 @@ const AccountDetailSheet = ({
                         {isCredit ? 'Saldo Actual (Deuda)' : 'Saldo Actual'}
                     </p>
                     <div className={`text-4xl md:text-5xl font-black font-numbers tracking-tight tabular-nums ${isCredit ? 'text-app-text' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                        {formatCurrency(account.balance)}
+                        {formatCurrency(isCredit ? -(usedCredit) : account.balance)}
                     </div>
 
                     {isCredit && account.creditLimit && (
@@ -179,7 +189,10 @@ const AccountsPage: React.FC = () => {
         const lent = loans?.filter(l => l.loanType === 'lent' && ['active', 'partial'].includes(l.status)).reduce((sum, l) => sum + l.remainingAmount, 0) || 0;
         const saved = goals?.reduce((sum, g) => sum + g.currentAmount, 0) || 0;
 
-        const debt = (accounts?.filter(a => a.type === 'CREDIT').reduce((s, a) => s + a.balance, 0) || 0) +
+        const debt = (accounts?.filter(a => a.type === 'CREDIT').reduce((s, a) => {
+            const used = (a as any).usedCredit ?? Math.abs(a.balance);
+            return s + used;
+        }, 0) || 0) +
             (loans?.filter(l => l.loanType === 'borrowed' && ['active', 'partial'].includes(l.status)).reduce((sum, l) => sum + l.remainingAmount, 0) || 0);
 
         const assets = cash + invested + lent + saved;
@@ -277,7 +290,12 @@ const AccountsPage: React.FC = () => {
                     <div className="space-y-3">
                         {accounts && accounts.length > 0 ? accounts.map(account => {
                             const ui = getAccountUI(account.type);
-                            const usage = (account.type === 'CREDIT' && account.creditLimit) ? (account.balance / account.creditLimit) * 100 : 0;
+                            const usedCredit = account.type === 'CREDIT'
+                                ? (account as any).usedCredit ?? Math.abs(account.balance)
+                                : account.balance;
+                            const usage = (account.type === 'CREDIT' && account.creditLimit)
+                                ? ((account as any).utilizationPercent ?? (usedCredit / account.creditLimit) * 100)
+                                : 0;
 
                             return (
                                 <SwipeableItem
@@ -321,7 +339,7 @@ const AccountsPage: React.FC = () => {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className={`text-base font-bold font-numbers ${account.type === 'CREDIT' ? 'text-app-text' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                                        {formatCurrency(account.balance)}
+                                                        {formatCurrency(account.type === 'CREDIT' ? -((account as any).usedCredit ?? Math.abs(account.balance)) : account.balance)}
                                                     </p>
                                                 </div>
                                             </div>

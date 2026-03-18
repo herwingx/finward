@@ -193,12 +193,22 @@ const FinancialAnalysis: React.FC = () => {
     };
 
     // Force group by recurrence ID (for expenses) to totalize them over the period
-    const expenses = summary.expectedExpenses ?? [];
+    const expenses = summary.expectedExpenses?.filter((e: any) => !(e.id && e.id.startsWith('ccp-'))) ?? [];
+    const regularCc = summary.expectedExpenses?.filter((e: any) => e.id && e.id.startsWith('ccp-')) ?? [];
+    
     const msiPayments = summary.msiPaymentsDue ?? [];
     const allExpenses = groupBy(expenses, x => x.recurringTransactionId || x.description, true);
+    
     // Include regular credit card charges too, not just MSI
     const rawMsi = msiPayments.filter((m: any) => !m.isLastInstallment);
-    const allMsi = groupBy(rawMsi, x => x.originalId || x.id, false);
+    
+    // Combine rawMsi and regularCc
+    const combinedCards = [
+      ...rawMsi.map((m: any) => ({ ...m, isMsi: true })),
+      ...regularCc.map((e: any) => ({ ...e, isMsi: false, originalId: e.id, description: e.description.replace('Pago Tarjeta: ', '') }))
+    ];
+    
+    const allMsi = groupBy(combinedCards, x => x.originalId || x.id, false);
 
     return {
       expenses: expandedExpenses ? allExpenses : allExpenses.slice(0, 5),

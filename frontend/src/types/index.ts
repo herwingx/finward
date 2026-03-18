@@ -28,7 +28,7 @@ export interface Category {
   budgetType?: 'need' | 'want' | 'savings';
 }
 
-export type FrequencyType = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'biweekly_15_30';
+export type FrequencyType = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'bimonthly' | 'semiannually' | 'yearly' | 'biweekly_15_30';
 
 export interface RecurringTransaction {
   id: string;
