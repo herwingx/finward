@@ -20,7 +20,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg', 'android-chrome-192x192.png', 'android-chrome-512x512.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'],
       manifest: {
         name: 'Finward - Gestor de Finanzas Personales',
         short_name: 'Finward',

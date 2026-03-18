@@ -7,11 +7,11 @@ interface AppLogoProps {
 
 /**
  * Brand logo component that uses the custom app icon.
- * The icon is loaded from /icon.svg in the public folder.
+ * The icon is loaded from /icon.png in the public folder.
  */
 export const AppLogo: React.FC<AppLogoProps> = ({ size = 40, className = '' }) => (
   <img
-    src="/icon.svg"
+    src="/icon.png"
     alt="Finward Logo"
     width={size}
     height={size}
