@@ -77,12 +77,12 @@ const AccountDetailSheet = ({
                 </div>
 
                 {/* Primary Card - Balance */}
-                <div className="bento-card bg-app-surface p-6 mb-4 text-center border-app-border/60 shadow-sm">
+                    <div className="bento-card bg-app-surface p-6 mb-4 text-center border-app-border/60 shadow-sm">
                     <p className="text-[10px] uppercase font-bold text-app-muted tracking-widest mb-1 opacity-70">
                         {isCredit ? 'Saldo Actual (Deuda)' : 'Saldo Actual'}
                     </p>
                     <div className={`text-4xl md:text-5xl font-black font-numbers tracking-tight tabular-nums ${isCredit ? 'text-app-text' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                        {isCredit ? '-' : ''}{formatCurrency(account.balance)}
+                        {formatCurrency(account.balance)}
                     </div>
 
                     {isCredit && account.creditLimit && (
@@ -321,7 +321,7 @@ const AccountsPage: React.FC = () => {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className={`text-base font-bold font-numbers ${account.type === 'CREDIT' ? 'text-app-text' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                                        {account.type === 'CREDIT' ? '-' : ''}{formatCurrency(account.balance)}
+                                                        {formatCurrency(account.balance)}
                                                     </p>
                                                 </div>
                                             </div>

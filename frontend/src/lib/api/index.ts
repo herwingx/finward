@@ -197,7 +197,7 @@ export const payFullStatement = (accountId: string, sourceAccountId: string, amo
     body: JSON.stringify({ sourceAccountId, amount, date }),
   });
 export const payMsiInstallment = (installmentId: string, sourceAccountId: string, date?: string) =>
-  apiFetch(`/credit-card/pay-msi/${installmentId}`, {
+  apiFetch(`/credit-card/msi/${installmentId}/pay`, {
     method: 'POST',
     body: JSON.stringify({ sourceAccountId, date }),
   });

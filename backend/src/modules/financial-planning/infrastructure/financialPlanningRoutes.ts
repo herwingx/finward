@@ -68,30 +68,47 @@ function getPeriodDates(periodType: PeriodType, mode: 'calendar' | 'projection')
           end: new Date(now.getFullYear(), now.getMonth(), 15, 23, 59, 59, 999),
         };
       }
+      // Segunda quincena: 16 al cierre del 1 del mes siguiente para incluir pendientes del día 1
+      const nextMonthFirst = addMonths(startOfMonth(now), 1);
       return {
         start: new Date(now.getFullYear(), now.getMonth(), 16),
-        end: endOfMonth(now),
+        end: new Date(nextMonthFirst.getFullYear(), nextMonthFirst.getMonth(), 1, 23, 59, 59, 999),
       };
-    case 'mensual':
+    case 'mensual': {
+      // Incluir el 1 del mes siguiente para que entren vencimientos del día 1
+      const firstOfNextMonth = addMonths(startOfMonth(now), 1);
       return {
         start: startOfMonth(now),
-        end: endOfMonth(now),
+        end: new Date(firstOfNextMonth.getFullYear(), firstOfNextMonth.getMonth(), 1, 23, 59, 59, 999),
       };
-    case 'bimestral':
+    }
+    case 'bimestral': {
+      // 2 meses: inicio del mes actual al 1 del tercer mes 23:59:59 (incluye vencimientos del día 1)
+      const startBim = startOfMonth(now);
+      const firstOfThirdMonth = addMonths(startBim, 2);
       return {
-        start: startOfMonth(now),
-        end: endOfMonth(addMonths(now, 1)),
+        start: startBim,
+        end: new Date(firstOfThirdMonth.getFullYear(), firstOfThirdMonth.getMonth(), 1, 23, 59, 59, 999),
       };
-    case 'semestral':
+    }
+    case 'semestral': {
+      // 6 meses: inicio del mes actual al 1 del mes 7 23:59:59 (incluye vencimientos del día 1)
+      const startSem = startOfMonth(now);
+      const firstOfSeventhMonth = addMonths(startSem, 6);
       return {
-        start: startOfMonth(now),
-        end: endOfMonth(addMonths(now, 5)),
+        start: startSem,
+        end: new Date(firstOfSeventhMonth.getFullYear(), firstOfSeventhMonth.getMonth(), 1, 23, 59, 59, 999),
       };
-    case 'anual':
+    }
+    case 'anual': {
+      // Año: 1 ene al 1 ene del año siguiente 23:59:59 (incluye vencimientos del 1 ene)
+      const startYear = new Date(now.getFullYear(), 0, 1);
+      const firstOfNextYear = addMonths(startYear, 12);
       return {
-        start: new Date(now.getFullYear(), 0, 1),
-        end: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999),
+        start: startYear,
+        end: new Date(firstOfNextYear.getFullYear(), firstOfNextYear.getMonth(), 1, 23, 59, 59, 999),
       };
+    }
     default:
       return {
         start: today,

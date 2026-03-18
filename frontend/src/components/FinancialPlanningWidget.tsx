@@ -329,7 +329,9 @@ export const FinancialPlanningWidget: React.FC = () => {
           dueDates: new Set()
         };
       }
-      groups[key].items.push(p);
+      // Mark these items explicitly as MSI so the payment action
+      // routes through the MSI payment endpoint (and updates the plan).
+      groups[key].items.push({ ...p, isMsi: true });
       groups[key].totalAmount += p.amount;
       groups[key].dueDates.add(p.dueDate);
     });
@@ -421,7 +423,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                 <div className="text-right shrink-0">
                   <p className="text-[9px] md:text-[10px] uppercase font-bold text-indigo-500">Saldo proyectado</p>
                   <p className="text-base md:text-xl font-black font-numbers text-indigo-600 dark:text-indigo-400 leading-none">
-                    {formatCurrency(summary.disposableIncome ?? 0)}
+                    {formatCurrency(summary.projectedBalance ?? 0)}
                   </p>
                 </div>
               ) : (
@@ -429,7 +431,7 @@ export const FinancialPlanningWidget: React.FC = () => {
                   <Icon name="warning" size={18} />
                   <div>
                     <p className="text-[9px] md:text-[10px] uppercase font-bold leading-none">Déficit</p>
-                    <p className="text-xs md:text-sm font-bold font-numbers">{formatCurrency(summary.disposableIncome ?? 0)}</p>
+                    <p className="text-xs md:text-sm font-bold font-numbers">{formatCurrency(summary.projectedBalance ?? 0)}</p>
                   </div>
                 </div>
               )}
@@ -440,9 +442,13 @@ export const FinancialPlanningWidget: React.FC = () => {
 
       {/* 3. ALERTS & KPIS */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {/* Dinero Disponible */}
+        {/* Dinero Disponible: liquidez actual (hoy), no el ingreso del período */}
         <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+            <InfoTooltip
+              content="Lo que tienes hoy en efectivo y cuentas líquidas. El Saldo proyectado suma este disponible + los ingresos del período (ej. tu quincena) − compromisos."
+              iconSize="12px"
+            />
             <Icon name="account_balance_wallet" size={16} />
             <span className="text-[10px] font-bold uppercase">Disponible</span>
           </div>
@@ -473,22 +479,26 @@ export const FinancialPlanningWidget: React.FC = () => {
           <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.totalPeriodIncome ?? 0)}</p>
         </div>
 
-        {/* Fixed Commitments */}
+        {/* Total compromisos (gastos reales + fijos + MSI) — es lo que se resta para el saldo proyectado */}
         <div className="p-4 rounded-2xl bg-app-surface border border-app-border flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center gap-1.5 text-app-muted">
+            <InfoTooltip
+              content="Gastos del período ya registrados + gastos fijos pendientes + pagos TDC (MSI). Saldo proyectado = Disponible + Ingresos − Compromisos."
+              iconSize="12px"
+            />
             <Icon name="receipt_long" size={16} />
-            <span className="text-[10px] font-bold uppercase">Fijos</span>
+            <span className="text-[10px] font-bold uppercase">Compromisos</span>
           </div>
-          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.expectedExpenses?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0)}</p>
+          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.totalCommitments ?? 0)}</p>
         </div>
 
-        {/* Debt */}
+        {/* Deuda TDC (solo MSI) — desglose dentro de Compromisos */}
         <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex flex-col justify-between h-24 md:h-auto">
           <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
             <Icon name="credit_card" size={16} />
             <span className="text-[10px] font-bold uppercase">Deuda TDC</span>
           </div>
-          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.msiPaymentsDue?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0)}</p>
+          <p className="text-xl font-bold text-app-text font-numbers">{formatCurrency(summary.totalMSIPayments ?? 0)}</p>
         </div>
 
         {/* Action Button: Analysis */}
@@ -507,8 +517,12 @@ export const FinancialPlanningWidget: React.FC = () => {
             Ingresos por Recibir
           </h3>
           <div className="rounded-2xl border border-app-border bg-app-surface overflow-hidden shadow-sm">
-            {(showAllIncome ? summary.expectedIncome : summary.expectedIncome.slice(0, 3)).map((item: any) => (
-              <SwipeableActionRow key={item.id || item.description} actionType="receive" onAction={() => executePayAction(item.id, item.amount, item.description, 'receive')}>
+            {(showAllIncome ? summary.expectedIncome : summary.expectedIncome.slice(0, 3)).map((item: any, idx: number) => (
+              <SwipeableActionRow
+                key={item.uniqueId || `${item.id || item.description}-${idx}`}
+                actionType="receive"
+                onAction={() => executePayAction(item.id, item.amount, item.description, 'receive')}
+              >
                 <div className="flex justify-between items-center p-3.5">
                   <div className="flex items-center gap-3">
                     <div className="size-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
